@@ -1,7 +1,7 @@
 __author__ = 'g8y3e'
 
 # append data to file
-def writeDataToFile(file_name, data, type = "w"):
+def write_data_to_file(file_name, data, type = "w"):
     try:
         file = open(file_name, type)
         file.write(data)
@@ -13,10 +13,10 @@ def writeDataToFile(file_name, data, type = "w"):
         traceback.print_exc(sys.stdout)
         print '-' * 60
 
-def appendDataToFile(file_name, data):
-   writeDataToFile(file_name, data, "a")
+def append_data_to_file(file_name, data):
+   write_data_to_file(file_name, data, "a")
 
-def readDataFromFile(file_name):
+def read_data_from_file(file_name):
     data = None
     try:
         file = open(file_name, "r")

@@ -12,14 +12,14 @@ with open('test_requirements.txt') as f_tests:
 
 setup(
     name='cloudshell-cli',
-    url='http://www.qualisystems.com/',
+    url='https://github.com/QualiSystems/cloudshell-cli',
     author='QualiSystems',
     author_email='info@qualisystems.com',
-    packages=find_packages(),
+    packages=['cloudshell-cli'],
     install_requires=required,
+    test_suite='tests',
     tests_require=required_for_tests,
     version=version_from_file,
-    description='CloudShell CLI Python package',
-    include_package_data=True
+    description='QualiSystems Python package',
+    include_package_data = True
 )
-

@@ -76,5 +76,5 @@ class FileManager(SessionManager):
 
             :return:
         """
-        self.sendline(cmd)
+        self.send_line(cmd)
         return 'Send'

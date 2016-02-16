@@ -131,7 +131,7 @@ class SessionManager:
         """
         return self._handler
 
-    def sendline(self, send_string):
+    def send_line(self, send_string):
         """
             Saves and sends the send string provided
 
@@ -188,10 +188,10 @@ class SessionManager:
             expected_list += expected_map.keys()
 
         if self._is_unsafe_mode or len(self.command) == 0:
-            self.sendline(self.command)
+            self.send_line(self.command)
             command_sent = True
         else:
-            self.sendline('\n')
+            self.send_line('\n')
 
         for retry in range(retry_count):
             expected_out = self.expect(expected_list, self._timeout)
@@ -204,27 +204,27 @@ class SessionManager:
                 if i == 0:
                     # got invalid send enter to retry
                     if retry < 7:
-                        self.sendline('')
+                        self.send_line('')
                     else:
                         raise Exception('Session Manager', 'Failed to login with provided credentials.')
 
                 elif i == 1:
                     #send password
-                    self.sendline(self._password)
+                    self.send_line(self._password)
                     time.sleep(1)
                 elif i == 2:
                     # got timeout send enter to retry
-                    self.sendline('')
+                    self.send_line('')
                 elif i == 3:
                     #send Username
-                    self.sendline(self._username)
+                    self.send_line(self._username)
                     time.sleep(1)
                 elif i == 4:
                     #for expected_str
                     if command_sent:
                         break
                     else:
-                        self.sendline(cmd)
+                        self.send_line(cmd)
                         command_sent = True
                 else:
                     expected_map[expected_list[i]](self, retry)

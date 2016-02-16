@@ -9,7 +9,7 @@ def send_username(session, retry):
         :param retry: count of retries
         :return:
     """
-    session.sendline(session._username)
+    session.send_line(session._username)
     time.sleep(1)
 
 def send_password(session, retry):
@@ -20,7 +20,7 @@ def send_password(session, retry):
         :param retry:
         :return:
     """
-    session.sendline(session._password)
+    session.send_line(session._password)
     time.sleep(1)
 
 def send_default_password(session, retry):
@@ -32,7 +32,7 @@ def send_default_password(session, retry):
         :return:
     """
 
-    session.sendline(session._enable_password)
+    session.send_line(session._enable_password)
 
 def send_empty_string(session, retry):
     """
@@ -45,7 +45,7 @@ def send_empty_string(session, retry):
 
     logger = session.get_logger()
     logger.info('Send empty')
-    session.sendline('')
+    session.send_line('')
 
 def do_reconnect(session, retry):
     """
@@ -66,9 +66,9 @@ def send_yes(session, retry):
         :return:
     """
     if retry < 5:
-        session.sendline('yes')
+        session.send_line('yes')
     else:
-        session.sendline('')
+        session.send_line('')
 
 def wait_prompt_or_reconnect(session, retry):
     """
@@ -80,7 +80,7 @@ def wait_prompt_or_reconnect(session, retry):
     """
     logger = session.get_logger()
     if retry < 3:
-        session.sendline('')
+        session.send_line('')
         logger.error('Timeout while getting prompt. Wait 5 seconds and retry.')
         time.sleep(5)
     elif 2 < retry < 5:
@@ -99,4 +99,4 @@ def send_command(session, retry):
         :param retry: count of retries
         :return:
     """
-    session.sendline(session.command)
+    session.send_line(session.command)

@@ -79,7 +79,7 @@ class ConsoleManager(SessionManager):
         expect_list = ['[Ll]ogin:', '[Uu]sername:', '[Pp]assword:',
                        'Connection refused', expected_str, 'More']
 
-        self.sendline(self.console_port)
+        self.send_line(self.console_port)
         out = ''
         for retry in range(18):
             ex_out = self.expect(expect_list)
@@ -89,22 +89,22 @@ class ConsoleManager(SessionManager):
             self._logger.info(out)
 
             if i == 0 or i == 1:
-                self.sendline(self._username)
+                self.send_line(self._username)
             elif i == 2:
-                self.sendline(self._password + '\n')
+                self.send_line(self._password + '\n')
             elif i == 3:
                 self.clear_console(self.console_port, self._password)
-                self.sendline(self.console_port)
+                self.send_line(self.console_port)
             elif i == SSHManager.TIMEOUT_ERR:
                 self._logger.error('gor timeout, retrying ...')
-                self.sendline(self.console_port)
+                self.send_line(self.console_port)
 
             elif i == 5:
-                self.sendline('')
+                self.send_line('')
             elif i == -1:
-                self.sendline('')
+                self.send_line('')
             else:
-                self.sendline('term len 0')
+                self.send_line('term len 0')
                 out = self.expect(expect_list)
                 self._logger.info(out)
                 break
@@ -146,7 +146,7 @@ class ConsoleManager(SessionManager):
         clear_done = False
 
         expect_list = ['\[OK\]', '[Pp]assword', '.*[>#]', '\[confirm\]']
-        self.sendline('enable')
+        self.send_line('enable')
 
         #fixme magic numbers
         for retry in range(10):
@@ -155,13 +155,13 @@ class ConsoleManager(SessionManager):
             out += ex_out[1]
 
             if i == 1:
-                self.sendline(password)
+                self.send_line(password)
 
             elif i == 2:
                 if clear_done:
                     break
 
-                self.sendline('show hosts | i {0}'.format(port))
+                self.send_line('show hosts | i {0}'.format(port))
                 out += self.expect(expect_list)[1]
 
                 for line in out.splitlines():
@@ -171,10 +171,10 @@ class ConsoleManager(SessionManager):
                         line_number = res.group(1)
                         break
                 if line_number:
-                    self.sendline('clear line {0}'.format(line_number))
+                    self.send_line('clear line {0}'.format(line_number))
 
             elif i == 3:
-                self.sendline('\n')
+                self.send_line('\n')
                 clear_done = True
             elif i == 0:
                 break
@@ -183,14 +183,14 @@ class ConsoleManager(SessionManager):
 
         return 0
 
-    def sendline(self, send_string):
+    def send_line(self, send_string):
         """
             Sending data to the device
 
             :param send_string: data string buffer
             :return: str
         """
-        return self._session_handler.sendline(send_string)
+        return self._session_handler.send_line(send_string)
 
     #fixme gettter for session handler
     def expect(self, re_strings='', timeout=None):
