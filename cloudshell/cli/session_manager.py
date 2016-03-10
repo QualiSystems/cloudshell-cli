@@ -183,7 +183,7 @@ class SessionManager:
         command_sent = False
         self._timeout = timeout
 
-        expected_list = ['[Ii]nvalid', '[Pp]assword:', '[Tt]imeout', '[Ll]ogin|[Uu]ser.*:?', expected_str]
+        expected_list = ['[Ii]nvalid|[Ll]ogin\s+incorrect', '[Pp]assword:', '[Tt]imeout', '[Ll]ogin|[Uu]ser.*:?', expected_str]
         if not expected_map is None:
             expected_list += expected_map.keys()
 
