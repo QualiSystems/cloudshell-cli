@@ -195,9 +195,9 @@ class SessionManager:
 
         for retry in range(retry_count):
             expected_out = self.expect(expected_list, self._timeout)
+            self._logger.info(expected_out[1])
 
-            if expected_out[0] != -1:
-                self._logger.info(expected_out[1])
+            if expected_out != -1:
                 i = expected_out[0]
                 out += expected_out[1]
 
@@ -229,7 +229,6 @@ class SessionManager:
                 else:
                     expected_map[expected_list[i]](self, retry)
             else:
-                self._logger.info('Waiting for data')
                 time.sleep(0.1)
 
         return out
@@ -264,7 +263,7 @@ class SessionManager:
         try:
             current_output = self._receive(timeout)
         except socket.timeout as err:
-            return [-1]
+            return -1
         except Exception as err:
             raise err
 
@@ -292,7 +291,7 @@ class SessionManager:
             try:
                 buffer = self._receive(timeout)
             except socket.timeout as err:
-                return [-1]
+                return -1
             except Exception as err:
                 raise err
 
