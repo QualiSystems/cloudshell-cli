@@ -99,7 +99,7 @@ class ConnectionManager(object):
                     self._logger.error('\n{0} connection failed'.format(conn_type.upper()))
         if not connection:
             self._logger.error('Connection failed')
-            raise Exception('Connection failed')
+            raise Exception('Connection failed, check log file for errors')
 
         self._logger.info("Connected")
         return connection
