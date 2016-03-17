@@ -8,6 +8,7 @@ import socket
 
 from cloudshell.cli.helpers import normalize_buffer
 
+
 class SessionManager:
     TIMEOUT_ERR = 'timeout'
     __metaclass__ = ABCMeta
@@ -183,7 +184,7 @@ class SessionManager:
         command_sent = False
         self._timeout = timeout
 
-        expected_list = ['[Ii]nvalid\s+[Ll]ogin|[Ll]ogin\s+incorrect', '[Pp]assword:', '[Tt]imeout', '[Ll]ogin|[Uu]ser.*:?', expected_str]
+        expected_list = ['[Ii]nvalid\s+[Ll]ogin||[Ll]ogin\s+(incorrect|[Ii]nvalid)', '[Pp]assword:', '[Tt]imeout', '[Ll]ogin|[Uu]ser.*:?', expected_str]
         if not expected_map is None:
             expected_list += expected_map.keys()
 
