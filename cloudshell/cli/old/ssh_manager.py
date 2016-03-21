@@ -13,7 +13,7 @@ class SSHManager(SessionManager):
             self._port = 22
 
         self._current_channel = None
-        self._buffer_size = 512
+        self._buffer_size = 8192
 
     def __del__(self):
         self.disconnect()
