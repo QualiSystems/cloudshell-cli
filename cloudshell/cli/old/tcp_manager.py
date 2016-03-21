@@ -2,7 +2,7 @@ __author__ = 'g8y3e'
 
 import socket
 
-from cloudshell.cli.session_manager import SessionManager
+from cloudshell.cli.old.session_manager import SessionManager
 
 class TCPManager(SessionManager):
     def __init__(self, *args, **kwargs):

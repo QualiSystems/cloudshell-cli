@@ -6,7 +6,8 @@ import re
 import sys
 import socket
 
-from cloudshell.cli.helpers import normalize_buffer
+from cloudshell.cli.old.helpers import normalize_buffer
+
 
 class SessionManager:
     TIMEOUT_ERR = 'timeout'
