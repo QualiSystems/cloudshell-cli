@@ -1,6 +1,8 @@
 __author__ = 'g8y3e'
 
-from collections import OrderedDict, deque
+from collections import OrderedDict
+from Queue import Queue
+
 from threading import Lock, Event
 import time
 
@@ -24,7 +26,7 @@ class ConnectionManager:
             self.keys = keys
 
     def __init__(self, max_connections_count=4):
-        self._session_pool = deque()
+        self._session_pool = Queue(maxsize=max_connections_count)
 
         self._created_session_count = 0
         self._max_connections = max_connections_count
@@ -83,32 +85,37 @@ class ConnectionManager:
         return session_object
 
     def _get_session_from_pool(self):
-        retry_count = 3
-        time_wait = 20
-        wait_delay = 0.3
+        try:
+            session_object = self._session_pool.get(True, 60)
+        except Exception as error_object:
+            raise Exception('ConnectionManager', "Can't get find free session in pool!")
+       #retry_count = 3
+       #time_wait = 20
+       #wait_delay = 0.3
 
-        time_counted = 0
-        session_object = None
+       #time_counted = 0
+       #session_object = None
 
-        while time_counted < (retry_count * time_wait):
-            while len(self._session_pool) == 0 and time_counted < time_wait:
-                time_counted += wait_delay
-                time.sleep(wait_delay)
+       #while time_counted < (retry_count * time_wait):
+       #    while len(self._session_pool) == 0 and time_counted < time_wait:
+       #        time_counted += wait_delay
+       #        time.sleep(wait_delay)
 
-            create_session_lock.acquire()
-            if len(self._session_pool) != 0:
-                session_object = self._session_pool.popleft()
-            create_session_lock.release()
+       #    create_session_lock.acquire()
+       #    if len(self._session_pool) != 0:
+       #        session_object = self._session_pool.popleft()
+       #    create_session_lock.release()
 
-            if not session_object is None:
-                return session_object
+       #    if not session_object is None:
+       #        return session_object
 
         return session_object
 
     def add_session_to_pool(self, session, time=None):
-        create_session_lock.acquire()
-        self._session_pool.append(session)
-        create_session_lock.release()
+        self._session_pool.put(session, True, 60)
+        #create_session_lock.acquire()
+        #self._session_pool.append(session)
+        #create_session_lock.release()
 
     def get_session(self, connection_type=DEFAULT_TYPE, prompt='', logger=None, **kwargs):
         """
