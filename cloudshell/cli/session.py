@@ -26,3 +26,7 @@ class Session:
     def hardware_expect(self, data_str=None, re_string='', expect_map=OrderedDict(),
                         error_map=OrderedDict(), timeout=None, retries_count=3):
         pass
+
+    @abstractmethod
+    def reconnect(self):
+        pass

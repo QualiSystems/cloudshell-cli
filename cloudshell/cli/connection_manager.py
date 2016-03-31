@@ -5,6 +5,7 @@ from Queue import Queue
 
 from threading import Lock, Event
 import time
+import inject
 
 from cloudshell.cli.helper.singleton import Singleton
 
@@ -117,6 +118,8 @@ class ConnectionManager:
         #self._session_pool.append(session)
         #create_session_lock.release()
 
+
+    @inject.params(logger='logger', context='context', session_types='session_list')
     def get_session(self, connection_type=DEFAULT_TYPE, prompt='', logger=None, **kwargs):
         """
 
