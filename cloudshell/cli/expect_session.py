@@ -1,15 +1,18 @@
 __author__ = 'g8y3e'
 
-import re
 import socket
 import time
-
 from collections import OrderedDict
 
+from abc import ABCMeta
+
+import re
 from cloudshell.cli.session import Session
 from cloudshell.cli.helper.normalize_buffer import normalize_buffer
+import inject
 
 class ExpectSession(Session):
+    __metaclass__ = ABCMeta
 
     def __init__(self, handler=None, username=None, password=None, host=None, port=None,
                  timeout=60, new_line='\r', logger=None, **kwargs):
@@ -97,3 +100,9 @@ class ExpectSession(Session):
                 raise Exception('ExpectSession', error_map[error_string])
 
         return normalize_buffer(output_str)
+
+    @inject.params(logger='logger')
+    def reconnect(self, logger=None):
+        self.disconnect()
+        self.connect()
+        logger.info('Session reconnected')

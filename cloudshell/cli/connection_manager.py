@@ -1,105 +1,227 @@
-__author__ = 'yar'
-import copy
-import re
+__author__ = 'g8y3e'
 
-from cloudshell.cli.ssh_manager import SSHManager
-from cloudshell.cli.telnet_manager import TelnetManager
-from cloudshell.cli.console_manager import ConsoleManager
-from cloudshell.cli.file_manager import FileManager
-from cloudshell.cli.tcp_manager import TCPManager
+from collections import OrderedDict
+from Queue import Queue
 
-class ConnectionManager(object):
-    CONNECTION_ORDER = ['tcp', 'console', 'telnet', 'ssh']
-    CONNECTION_MAP = {'ssh': SSHManager, 'telnet': TelnetManager, 'console': ConsoleManager, 'tcp': TCPManager,
-                      'file': FileManager}
-    KEY_MAP = {'console': ['console_server_ip', 'console_server_user', 'console_server_password', 'console_port'],
-               'file': ['filename'],
-               'common': ['username', 'password', 'host']}
-    PROMPT_RE = '.*>|.*#|\(config.*\)#'
+from threading import Lock, Event
+import time
+import inject
 
-    def __init__(self, connection_type='auto', logger=None, **kwargs):
-        self._connection_type = connection_type.lower()
-        self._logger = logger
-        self._connection_order = copy.deepcopy(ConnectionManager.CONNECTION_ORDER)
-        self._connection_map = copy.deepcopy(ConnectionManager.CONNECTION_MAP)
-        self._key_map = copy.deepcopy(ConnectionManager.KEY_MAP)
-        self._connection_params = kwargs
+from cloudshell.cli.helper.singleton import Singleton
 
-    def _check_params(self, conn_type):
+from cloudshell.cli.telnet_session import TelnetSession
+from cloudshell.cli.ssh_session import SSHSession
+from cloudshell.cli.tcp_session import TCPSession
+from cloudshell.cli.console_session import ConsoleSession
+
+create_session_lock = Lock()
+
+class ConnectionManager:
+    __metaclass__ = Singleton
+
+    DEFAULT_TYPE = 'auto'
+
+    class SessionInfo:
+        def __init__(self, class_def, keys=list()):
+            self.class_def = class_def
+            self.keys = keys
+
+    def __init__(self, max_connections_count=4):
+        self._session_pool = Queue(maxsize=max_connections_count)
+
+        self._created_session_count = 0
+        self._max_connections = max_connections_count
+
+        self._connection_map = OrderedDict()
+
+        self._connection_map['tcp'] = self.SessionInfo(TCPSession)
+        self._connection_map['console'] = self.SessionInfo(ConsoleSession,
+                                                           ['console_server_ip', 'console_server_user',
+                                                            'console_server_password', 'console_port'])
+
+        self._connection_map['telnet'] = self.SessionInfo(TelnetSession)
+        self._connection_map['ssh'] = self.SessionInfo(SSHSession)
+
+        self._default_keys = ['username', 'password', 'host']
+
+    def set_max_connections(self, max_connections_count=4):
+        self._max_connections = max_connections_count
+
+    def _check_parameters(self, connection_type, connection_parameters):
         """
-            Checking connection parameters
 
-            :param conn_type: type oth connection string. Example: 'ssh'
-            :return: bool
+        :param connection_type:
+        :param connection_parameters:
+        :return:
         """
-        params = self._connection_params
-        if conn_type in self._key_map.keys():
-            keys = self._key_map[conn_type]
-        else:
-            keys = self._key_map['common']
+        keys = self._default_keys
+        if len(self._connection_map[connection_type].keys) > 0:
+            keys = self._connection_map[connection_type].keys
+
+        if connection_parameters is None:
+            return False
 
         for key in keys:
-            if key not in params.keys():
+            if key not in connection_parameters:
                 return False
+
         return True
 
-    def _generic_connection(self, conn_type, prompt):
+    def _create_session(self, connection_type, prompt, logger, connection_parameters):
         """
-            Generic connection method
 
-            :param conn_type:
-            :param prompt:
-            :return: SessionManager
+        :param connection_type:
+        :param prompt:
+        :param connection_parameters:
+        :return:
         """
-        connection = None
-        conn_type = re.sub(' ', '', conn_type.lower())
-        if self._check_params(conn_type) and conn_type in self._connection_map.keys():
-            try:
-                session = self._connection_map[conn_type](logger=self._logger, **self._connection_params)
-                session.connect(expected_str=prompt)
-                connection = session
-            except Exception as err:
-                error_str = str(err)
-                if self._logger:
-                    self._logger.error(error_str)
-
-                raise Exception('Console Manager', error_str)
+        session_object = None
+        if self._check_parameters(connection_type, connection_parameters):
+            session_object = self._connection_map[connection_type].class_def(logger=logger,
+                                                                             **connection_parameters)
+            session_object.connect(re_string=prompt)
         else:
-            raise Exception('Incorrect connection type')
+            raise Exception('ConnectionManager', 'Incorrect connection parameters!')
 
-        return connection
+        return session_object
 
-    def get_session(self, prompt=PROMPT_RE):
+    def _get_session_from_pool(self):
+        try:
+            session_object = self._session_pool.get(True, 60)
+        except Exception as error_object:
+            raise Exception('ConnectionManager', "Can't get find free session in pool!")
+       #retry_count = 3
+       #time_wait = 20
+       #wait_delay = 0.3
+
+       #time_counted = 0
+       #session_object = None
+
+       #while time_counted < (retry_count * time_wait):
+       #    while len(self._session_pool) == 0 and time_counted < time_wait:
+       #        time_counted += wait_delay
+       #        time.sleep(wait_delay)
+
+       #    create_session_lock.acquire()
+       #    if len(self._session_pool) != 0:
+       #        session_object = self._session_pool.popleft()
+       #    create_session_lock.release()
+
+       #    if not session_object is None:
+       #        return session_object
+
+        return session_object
+
+    def add_session_to_pool(self, session, time=None):
+        self._session_pool.put(session, True, 60)
+        #create_session_lock.acquire()
+        #self._session_pool.append(session)
+        #create_session_lock.release()
+
+
+    @inject.params(logger='logger', context='context', session_types='session_list')
+    def get_session(self, connection_type=DEFAULT_TYPE, prompt='', logger=None, **kwargs):
         """
-            Get sessin handler
 
-            :param prompt: regular expression string
-            :return: SessionManager
+        :param connection_type:
+        :param kwargs:
+        :return:
         """
-        connection = None
-        connection_type = self._connection_type
-        self._logger.info('\n-------------------------------------------------------------')
-        self._logger.info('Connection - {0}'.format(self._connection_type))
-        if 'host' in self._connection_params:
-            self._logger.info('Host - {0}'.format(self._connection_params['host']))
-        if 'port' in self._connection_params and not self._connection_params['port'] is None:
-            self._logger.info('Port - {0}'.format(self._connection_params['port']))
-        if connection_type.lower() != 'auto':
-            connection = self._generic_connection(connection_type, prompt)
+        create_session_lock.acquire()
+        if self._created_session_count == self._max_connections:
+            create_session_lock.release()
+            return self._get_session_from_pool()
         else:
-            for conn_type in self._connection_order:
+            self._created_session_count += 1
+            create_session_lock.release()
+
+        connection_parameters = kwargs
+        connection_type = connection_type.lower()
+        if (connection_type != ConnectionManager.DEFAULT_TYPE) and \
+                (connection_type not in self._connection_map):
+            raise Exception('ConnectionManager', 'Wrong connection type: "' + connection_type + '"!')
+
+        if len(prompt) == 0:
+            self._logger.warning('Prompt is empty!')
+
+        logger.info('\n-------------------------------------------------------------')
+        logger.info('Connection - {0}'.format(connection_type))
+
+        session_object = None
+
+        if connection_type != ConnectionManager.DEFAULT_TYPE:
+            session_object = self._create_session(connection_type, prompt, logger, connection_parameters)
+        else:
+            for key in self._connection_map:
+                logger.info('\n--------------------------------------')
+                logger.info('Trying to open {0} connection ...'.format(key))
                 try:
-                    self._logger.info('\n--------------------------------------')
-                    self._logger.info('Trying to open {0} connection ...'.format(conn_type))
-                    session = self._generic_connection(conn_type, prompt)
-                    if session:
-                        connection = session
+                    session_object = self._create_session(key, prompt, logger, connection_parameters)
+                    if session_object:
                         break
-                except Exception as e:
-                    self._logger.error('\n{0} connection failed'.format(conn_type.upper()))
-        if not connection:
-            self._logger.error('Connection failed')
-            raise Exception('Connection failed, check log file for errors')
+                except Exception as error_object:
+                    logger.error('\n{0} connection failed: '.format(key.upper()) + 'with error msg:' + error_object.message)
 
-        self._logger.info("Connected")
-        return connection
+        if session_object is None:
+            logger.error('Connection failed!')
+            raise Exception('ConnectionManager', 'Connection failed!')
+
+        return session_object
+
+
+if __name__ == "__main__":
+
+    import threading
+
+    session_object = None
+
+    def testThread():
+        ConnectionManager().add_session_to_pool(session_object)
+
+    from cloudshell.core.logger.qs_logger import get_qs_logger
+
+    logger = get_qs_logger()
+
+    session_object = ConnectionManager().get_session(prompt='[$#] *$', logger=logger, username='root', password='Password1',
+                                              host='192.168.42.235', timeout=1)
+
+    ConnectionManager().add_session_to_pool(session_object)
+
+    session_object = ConnectionManager().get_session(prompt='[$#] *$', logger=logger, username='root', password='Password1',
+                                              host='192.168.42.235', timeout=1)
+
+    ConnectionManager().add_session_to_pool(session_object)
+
+    session_object = ConnectionManager().get_session(prompt='[$#] *$', logger=logger, username='root', password='Password1',
+                                              host='192.168.42.235', timeout=1)
+
+    ConnectionManager().add_session_to_pool(session_object)
+
+    session_object = ConnectionManager().get_session(prompt='[$#] *$', logger=logger, username='root', password='Password1',
+                                              host='192.168.42.235', timeout=1)
+
+    ConnectionManager().add_session_to_pool(session_object)
+
+    session_object = ConnectionManager().get_session(prompt='[$#] *$', logger=logger, username='root', password='Password1',
+                                                     host='192.168.42.235', timeout=1)
+
+    session_object = ConnectionManager().get_session(prompt='[$#] *$', logger=logger, username='root', password='Password1',
+                                                     host='192.168.42.235', timeout=1)
+
+    session_object = ConnectionManager().get_session(prompt='[$#] *$', logger=logger, username='root', password='Password1',
+                                                     host='192.168.42.235', timeout=1)
+
+    session_object = ConnectionManager().get_session(prompt='[$#] *$', logger=logger, username='root', password='Password1',
+                                                     host='192.168.42.235', timeout=1)
+
+    thread = threading.Timer(3, testThread)
+    thread.start()
+
+    session_object = ConnectionManager().get_session(prompt='[$#] *$', logger=logger, username='root', password='Password1',
+                                                     host='192.168.42.235', timeout=1)
+
+    thread.join()
+
+
+
+
