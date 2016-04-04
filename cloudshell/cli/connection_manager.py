@@ -23,10 +23,11 @@ class SessionCreator:
                 kwargs[key] = self.kwargs[key](context, api)
             else:
                 kwargs[key] = self.kwargs[key]
-            if self.proxy and isinstance(self.proxy, types.ClassType):
-                return self.proxy(self.classobj(**kwargs))
-            else:
-                return self.classobj(**kwargs)
+
+        if self.proxy and isinstance(self.proxy, types.ClassType):
+            return self.proxy(self.classobj(**kwargs))
+        else:
+            return self.classobj(**kwargs)
 
 
 class ReturnToPoolProxy(object):
@@ -37,14 +38,12 @@ class ReturnToPoolProxy(object):
         return getattr(self._instance, name)
 
     def __del__(self):
-        if inject.is_configured():
-            cm = inject.instance('connection_manager')
+        if ConnectionManager.is_defined():
+            cm = ConnectionManager()
             cm.return_session_to_pool(self)
 
 
-class ConnectionManager:
-    __metaclass__ = Singleton
-
+class ConnectionManager(Singleton):
     def __init__(self):
 
         self._config = inject.instance('config')
@@ -128,7 +127,7 @@ class ConnectionManager:
             time_out = self._pool_timeout
         self._session_pool.put(session, True, time_out)
 
-    def get_session(self):
+    def get_session_instance(self):
         """
 
         :param connection_type:
@@ -147,6 +146,6 @@ class ConnectionManager:
             _CREATE_SESSION_LOCK.release()
         return session
 
-
-def get_session():
-    return ConnectionManager().get_session()
+    @staticmethod
+    def get_session():
+        return ConnectionManager().get_session_instance()
