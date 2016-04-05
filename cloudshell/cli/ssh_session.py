@@ -1,8 +1,9 @@
 __author__ = 'g8y3e'
 
 import paramiko
-
+import inject
 from cloudshell.cli.expect_session import ExpectSession
+
 
 class SSHSession(ExpectSession):
     def __init__(self, *args, **kwargs):
@@ -22,14 +23,15 @@ class SSHSession(ExpectSession):
     def __del__(self):
         self.disconnect()
 
-    def connect(self, re_string=''):
+    @inject.params(logger='logger')
+    def connect(self, re_string='', logger=None):
         """
             Connect to device through ssh
             :param re_string: regular expration of end of output
             :return: str
         """
-        self._logger.info("Host: {0}, port: {1}, username: {2}, password: {3}, timeout: {4}".
-                          format(self._host, self._port, self._username, self._password, self._timeout))
+        logger.info("Host: {0}, port: {1}, username: {2}, password: {3}, timeout: {4}".
+                    format(self._host, self._port, self._username, self._password, self._timeout))
 
         self._handler.connect(self._host, self._port, self._username, self._password, timeout=self._timeout,
                               banner_timeout=30, allow_agent=False, look_for_keys=False)
@@ -37,17 +39,18 @@ class SSHSession(ExpectSession):
         self._current_channel = self._handler.invoke_shell()
         self._current_channel.settimeout(self._timeout)
 
-        output = self.hardware_expect('', re_string=re_string, timeout=self._timeout)
-        self._logger.info(output)
+        output = self.hardware_expect(re_string=re_string, timeout=self._timeout)
+        logger.info(output)
 
         return output
 
-    def disconnect(self):
+    # @inject.params(logger='logger')
+    def disconnect(self, logger=None):
         """
             Disconnect from device
             :return:
         """
-        self._logger.info('Disconnected from device!')
+        # logger.info('Disconnected from device!')
         self._current_channel = None
         self._handler.close()
 
@@ -70,25 +73,3 @@ class SSHSession(ExpectSession):
         timeout = timeout if timeout else self._timeout
         self._current_channel.settimeout(timeout)
         return self._current_channel.recv(self._buffer_size)
-
-if __name__ == "__main__":
-
-    from collections import OrderedDict
-    from cloudshell.core.logger.qs_logger import get_qs_logger
-
-    logger = get_qs_logger()
-
-    session = SSHSession(username='root', password='Password1', host='192.168.42.235', logger=logger)
-    #session = SSHSession(username='klop', password='azsxdc', host='192.168.42.193', logger=logger, timeout=2)
-
-    prompt = '[$#] *$'
-
-    session.connect(prompt)
-
-    actions = OrderedDict()
-    actions["--[Mm]ore--"] = lambda: session.send_line('')
-
-    output = session.hardware_expect('cd /', re_string=prompt, expect_map=actions)
-    output = session.hardware_expect('ls', re_string=prompt, expect_map=actions)
-    output = output
-

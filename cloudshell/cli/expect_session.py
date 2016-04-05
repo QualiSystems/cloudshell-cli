@@ -5,19 +5,19 @@ import time
 from collections import OrderedDict
 
 from abc import ABCMeta
-
 import re
-from cloudshell.cli.session import Session
+from cloudshell.shell.core.cli_service.session import Session
 from cloudshell.cli.helper.normalize_buffer import normalize_buffer
+from cloudshell.shell.core.cli_service.cli_exceptions import CommandExecutionException
 import inject
+
 
 class ExpectSession(Session):
     __metaclass__ = ABCMeta
 
     def __init__(self, handler=None, username=None, password=None, host=None, port=None,
-                 timeout=60, new_line='\r', logger=None, **kwargs):
+                 timeout=60, new_line='\r', **kwargs):
         self._handler = handler
-        self._logger = logger
         self._host = host
         self._port = port
         self._username = username
@@ -47,8 +47,9 @@ class ExpectSession(Session):
     def send_line(self, data_str):
         self._send(data_str + self._new_line)
 
+    @inject.params(logger='logger')
     def hardware_expect(self, data_str=None, re_string='', expect_map=OrderedDict(),
-                        error_map=OrderedDict(), timeout=None, retries_count=3):
+                        error_map=OrderedDict(), timeout=None, retries_count=3, logger=None):
         """
 
         :param data_str:
@@ -89,7 +90,7 @@ class ExpectSession(Session):
             current_output = self._receive_with_retries(timeout, retries_count)
             if current_output is None:
                 output_str = ''.join(output_list) + output_str
-                self._logger.error("Can't find prompt in output: \n" + output_str)
+                logger.error("Can't find prompt in output: \n" + output_str)
                 raise Exception('ExpectSession', 'Empty response from device!')
             output_str += current_output
 
@@ -97,12 +98,12 @@ class ExpectSession(Session):
         for error_string in error_map:
             result_match = re.search(error_string, output_str, re.DOTALL)
             if result_match:
-                raise Exception('ExpectSession', error_map[error_string])
+                raise CommandExecutionException('ExpectSession', error_map[error_string])
 
         return normalize_buffer(output_str)
 
-    @inject.params(logger='logger')
-    def reconnect(self, logger=None):
+    # @inject.params(logger='logger')
+    def reconnect(self, prompt, logger=None):
         self.disconnect()
-        self.connect()
-        logger.info('Session reconnected')
+        self.connect(prompt)
+        # logger.info('Session reconnected')
