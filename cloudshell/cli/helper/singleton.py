@@ -3,6 +3,7 @@ __author__ = 'g8y3e'
 Classical pattern singleton.
 Example wiki: https://en.wikipedia.org/wiki/Singleton_pattern
 """
+import threading
 
 
 # class Singleton(type):
@@ -17,10 +18,13 @@ Example wiki: https://en.wikipedia.org/wiki/Singleton_pattern
 
 class Singleton(object):
     _instance = None
+    _SINGLETON_LOCK = threading.Lock()
 
     def __new__(cls, *args, **kwargs):
+
         if not isinstance(cls._instance, cls):
-            cls._instance = object.__new__(cls, *args, **kwargs)
+            with cls._SINGLETON_LOCK:
+                cls._instance = object.__new__(cls, *args, **kwargs)
         return cls._instance
 
     @classmethod
