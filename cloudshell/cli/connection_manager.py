@@ -15,11 +15,11 @@ class SessionCreator(object):
         self.proxy = None
         self.kwargs = None
 
-    def create_session(self, context=None, api=None):
+    def create_session(self):
         kwargs = {}
         for key in self.kwargs:
             if callable(self.kwargs[key]):
-                kwargs[key] = self.kwargs[key](context, api)
+                kwargs[key] = self.kwargs[key]()
             else:
                 kwargs[key] = self.kwargs[key]
 
@@ -41,14 +41,11 @@ class ReturnToPoolProxy(object):
 
     def __del__(self):
         if inject and inject.is_configured():
-            logger = inject.instance('logger')
-            logger.debug('Del was called')
             cm = inject.instance('connection_manager')
             cm.return_session_to_pool(self)
 
 
 class ConnectionManager(object):
-
     def __init__(self):
         self._config = inject.instance('config')
         self._connection_map = self._config.CONNECTION_MAP
@@ -59,7 +56,6 @@ class ConnectionManager(object):
         self._created_session_count = 0
 
         self._prompt = self._config.DEFAULT_PROMPT
-        self._default_connection_type = self._config.DEFAULT_CONNECTION_TYPE
         self._connection_type_auto = self._config.CONNECTION_TYPE_AUTO
         self._connection_type = self._config.CONNECTION_TYPE
 
@@ -67,16 +63,15 @@ class ConnectionManager(object):
         self.logger = inject.instance('logger')
         self.logger.debug('Connection manager created')
 
-    def _new_session(self, connection_type, logger=None, context=None, api=None):
-        """
-
-        :param connection_type:
-        :param prompt:
-        :param connection_parameters:
-        :return:
+    @inject.params(logger='logger')
+    def _new_session(self, connection_type, logger=None):
+        """Creates new session
+        :param str connection_type:
+        :rtype: Session
+        :raises: Exception
         """
         if connection_type in self._connection_map:
-            session_object = self._connection_map[connection_type].create_session(context, api)
+            session_object = self._connection_map[connection_type].create_session()
             session_object.connect(re_string=self._prompt)
             logger.debug('Created new session')
         else:
@@ -86,13 +81,18 @@ class ConnectionManager(object):
 
     @inject.params(context='context', logger='logger', api='api')
     def _create_session_by_connection_type(self, context=None, api=None, logger=None):
+        """Creates session object for connection type
+        :rtype: Session
+        :raises: Exception
+        """
 
         if self._connection_type and callable(self._connection_type):
-            connection_type = self._connection_type(context=context, api=api)
+            connection_type = self._connection_type()
         elif self._connection_type and isinstance(self._connection_type, str):
             connection_type = self._connection_type
         else:
-            connection_type = self._default_connection_type
+            logger.error('Connection type have not defined')
+            raise Exception('_create_session_by_connection_type', 'Connection type have not defined')
 
         if not self._prompt or len(self._prompt) == 0:
             logger.warning('Prompt is empty!')
@@ -108,7 +108,7 @@ class ConnectionManager(object):
                 logger.info('\n--------------------------------------')
                 logger.info('Trying to open {0} connection ...'.format(key))
                 try:
-                    session_object = self._new_session(connection_type, context=context, api=api, logger=logger)
+                    session_object = self._new_session(key)
                     if session_object:
                         break
                 except Exception as error_object:
@@ -123,6 +123,10 @@ class ConnectionManager(object):
 
     @inject.params(logger='logger')
     def _get_session_from_pool(self, logger=None):
+        """Take session from pool
+        :rtype: Session
+        :raises: Exception
+        """
         try:
             session_object = self._session_pool.get(True, self._pool_timeout)
             logger.info('Get session from pool')
@@ -131,20 +135,22 @@ class ConnectionManager(object):
 
         return session_object
 
-    @inject.params(logger='logger')
-    def return_session_to_pool(self, session, time_out=None, logger=None):
+    def return_session_to_pool(self, session, time_out=None):
+        """Creates session object for connection type
+        :param: Session session:
+        """
+
         if not time_out:
             time_out = self._pool_timeout
         self._session_pool.put(session, True, time_out)
-        logger.debug('Return session back to pool')
 
+    @inject.params(logger='logger')
     def get_session_instance(self, logger=None):
+        """Return session object, takes it from pool or create new session
+        :rtype: Session
         """
 
-        :param connection_type:
-        :param kwargs:
-        :return:
-        """
+        logger.debug('Get session')
 
         with _CREATE_SESSION_LOCK:
             if self._session_pool.empty() and self._created_session_count < self._max_connections:
@@ -152,10 +158,10 @@ class ConnectionManager(object):
                 self._created_session_count += 1
         return self._get_session_from_pool()
 
-    def get_pool_size(self):
-        return self._session_pool.qsize()
-
     @staticmethod
     @inject.params(connection_manager='connection_manager')
     def get_session(connection_manager=None):
+        """
+        :rtype: Session
+        """
         return connection_manager.get_session_instance()
