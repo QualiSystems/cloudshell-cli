@@ -5,27 +5,32 @@ from cloudshell.cli.ssh_session import SSHSession
 from cloudshell.cli.connection_manager import ReturnToPoolProxy
 from cloudshell.shell.core.context.context_utils import get_attribute_by_name_wrapper
 from cloudshell.shell.core.context.context_utils import build_suitable_context
-from cloudshell.shell.core.cli_service.session_utils import get_thread_session
+from cloudshell.cli.connection_manager import get_thread_session
+
 import inject
 from cloudshell.cli.connection_manager import ConnectionManager
 
+"""Defines function for getting session, used in binding for session"""
+# GET_SESSION = ConnectionManager.get_session
+GET_SESSION = get_thread_session
 
-# GET_SESSION_WRAPPER = ConnectionManager.get_session
-GET_SESSION_FUNCTION = get_thread_session
-
-CONNECTION_MAP = OrderedDict()
-
+"""Session types implemented in current package"""
 CONNECTION_TYPE_SSH = 'ssh'
 CONNECTION_TYPE_TELNET = 'telnet'
 CONNECTION_TYPE_AUTO = 'auto'
 
 
+"""Connection map, defines SessionCreator objects which used for session creation"""
+CONNECTION_MAP = OrderedDict()
+
+"""Definition for SSH session"""
 ssh_session = SessionCreator(SSHSession)
 ssh_session.proxy = ReturnToPoolProxy
 ssh_session.kwargs = {'username': get_attribute_by_name_wrapper('username'), 'password': get_attribute_by_name_wrapper('password'),
                       'host': get_attribute_by_name_wrapper('host')}
-
 CONNECTION_MAP[CONNECTION_TYPE_SSH] = ssh_session
+
+
 # CONNECTION_MAP['tcp'] = SessionHelper(TCPSession)
 # CONNECTION_MAP['tcp'].kwargs
 # CONNECTION_MAP['console'] = SessionHelper(ConsoleSession,
@@ -36,9 +41,13 @@ CONNECTION_MAP[CONNECTION_TYPE_SSH] = ssh_session
 
 # CONNECTION_MAP = {CONNECTION_TYPE_SSH: CONNECTION_MAP[CONNECTION_TYPE_SSH]}
 
+"""Function or string that defines connection type"""
 # CONNECTION_TYPE = get_attribute_wrapper('Connection Type')
 CONNECTION_TYPE = CONNECTION_TYPE_AUTO
 
+"""Maximum number of sessions that can be created"""
+SESSION_POOL_SIZE = 1
+"""Max time waiting session from pool"""
 POOL_TIMEOUT = 60
 
 DEFAULT_PROMPT = r'.*[>$#]\s*$'
@@ -52,4 +61,4 @@ ERROR_MAP = OrderedDict()
 
 COMMAND_RETRIES = 10
 
-SESSION_POOL_SIZE = 1
+

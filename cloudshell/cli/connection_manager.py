@@ -1,12 +1,19 @@
-__author__ = 'g8y3e'
-
+from weakref import WeakKeyDictionary
 from Queue import Queue
-from threading import Lock
+from threading import Lock, currentThread
 
 import inject
 import types
 
 _CREATE_SESSION_LOCK = Lock()
+
+_SESSION_CONTAINER = WeakKeyDictionary()
+
+
+def get_thread_session():
+    if not currentThread() in _SESSION_CONTAINER:
+        _SESSION_CONTAINER[currentThread()] = ConnectionManager.get_session()
+    return _SESSION_CONTAINER[currentThread()]
 
 
 class SessionCreator(object):
