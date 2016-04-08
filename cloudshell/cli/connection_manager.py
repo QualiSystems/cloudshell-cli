@@ -11,18 +11,29 @@ _SESSION_CONTAINER = WeakKeyDictionary()
 
 
 def get_thread_session():
+    """Return same session for thread"""
     if not currentThread() in _SESSION_CONTAINER:
         _SESSION_CONTAINER[currentThread()] = ConnectionManager.get_session()
     return _SESSION_CONTAINER[currentThread()]
 
 
 class SessionCreator(object):
+    """Creator for session"""
+
     def __init__(self, classobj):
+        """Classobj for session"""
         self.classobj = classobj
+        """Classobj for proxy"""
         self.proxy = None
+        """Dict that contains keys and funcs or values, used like a key dictionary when creates session object"""
         self.kwargs = None
 
     def create_session(self):
+        """Creates session object
+        :rtype: Session
+        :raises: Exception
+        """
+
         kwargs = {}
         for key in self.kwargs:
             if callable(self.kwargs[key]):
@@ -40,6 +51,8 @@ class SessionCreator(object):
 
 
 class ReturnToPoolProxy(object):
+    """Proxy class, return session back to pool when GC destruct session"""
+
     def __init__(self, instance):
         self._instance = instance
 
@@ -53,6 +66,8 @@ class ReturnToPoolProxy(object):
 
 
 class ConnectionManager(object):
+    """Class implements Object Pool pattern for sessions, creates and pool sessions for specific types"""
+
     def __init__(self):
         self._config = inject.instance('config')
         self._connection_map = self._config.CONNECTION_MAP
