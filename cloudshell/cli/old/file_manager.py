@@ -1,6 +1,6 @@
 import os
 
-from cloudshell.cli.session_manager import SessionManager
+from cloudshell.cli.old.session_manager import SessionManager
 
 class FileManager(SessionManager):
     @staticmethod
