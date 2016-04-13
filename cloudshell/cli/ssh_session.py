@@ -40,6 +40,7 @@ class SSHSession(ExpectSession):
         self._current_channel.settimeout(self._timeout)
 
         output = self.hardware_expect(re_string=re_string, timeout=self._timeout)
+        self._default_actions()
         logger.info(output)
 
         return output
