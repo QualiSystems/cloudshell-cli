@@ -25,6 +25,11 @@ class ExpectSession(Session):
 
         self._new_line = new_line
         self._timeout = timeout
+        self._config = inject.instance('config')
+        if hasattr(self._config, 'DEFAULT_ACTIONS'):
+            self._default_actions = self._config.DEFAULT_ACTIONS
+        else:
+            self._default_actions = None
 
     def _receive_with_retries(self, timeout, retries_count):
         current_retries = 0
@@ -83,7 +88,7 @@ class ExpectSession(Session):
             for expect_string in expect_map:
                 result_match = re.search(expect_string, output_str, re.DOTALL)
                 if result_match:
-                    expect_map[expect_string]()
+                    expect_map[expect_string](self)
                     output_list.append(output_str)
                     output_str = ''
 
@@ -102,8 +107,10 @@ class ExpectSession(Session):
 
         return normalize_buffer(output_str)
 
-    # @inject.params(logger='logger')
-    def reconnect(self, prompt, logger=None):
+    def reconnect(self, prompt):
         self.disconnect()
         self.connect(prompt)
-        # logger.info('Session reconnected')
+
+    def _default_actions(self):
+        if self._default_actions:
+            self._default_actions(session=self)
