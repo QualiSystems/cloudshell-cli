@@ -28,7 +28,7 @@ class SSHManager(SessionManager):
         self._logger.info("Host: {0}, port: {1}, username: {2}, password: {3}, timeout: {4}".format(self._host,
                                                     self._port, self._username, self._password, self._timeout))
         self._handler.connect(self._host, self._port, self._username, self._password, timeout=self._timeout,
-                              banner_timeout=30, allow_agent=False, look_for_keys=False)
+                              banner_timeout=30)
 
         self._current_channel = self._handler.invoke_shell()
         self._current_channel.settimeout(self._timeout)
