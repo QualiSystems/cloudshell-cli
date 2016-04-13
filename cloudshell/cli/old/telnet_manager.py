@@ -2,7 +2,7 @@ __author__ = 'g8y3e'
 
 import telnetlib
 
-from cloudshell.cli.session_manager import SessionManager
+from cloudshell.cli.old.session_manager import SessionManager
 
 class TelnetManager(SessionManager):
     def __init__(self, *args, **kwargs):

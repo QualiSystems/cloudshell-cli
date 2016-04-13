@@ -2,7 +2,7 @@ __author__ = 'g8y3e'
 
 import paramiko
 
-from cloudshell.cli.session_manager import SessionManager
+from cloudshell.cli.old.session_manager import SessionManager
 
 class SSHManager(SessionManager):
     def __init__(self, *args, **kwargs):
@@ -13,7 +13,7 @@ class SSHManager(SessionManager):
             self._port = 22
 
         self._current_channel = None
-        self._buffer_size = 512
+        self._buffer_size = 8192
 
     def __del__(self):
         self.disconnect()

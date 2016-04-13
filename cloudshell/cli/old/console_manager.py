@@ -4,7 +4,7 @@ import re
 
 from cloudshell.cli.session_manager import SessionManager
 from cloudshell.cli.ssh_manager import SSHManager
-from cloudshell.cli.telnet_manager import TelnetManager
+from cloudshell.cli.old.telnet_manager import TelnetManager
 
 class ConsoleManager(SessionManager):
     def __init__(self, *args, **kwargs):
