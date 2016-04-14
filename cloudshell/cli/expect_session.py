@@ -27,9 +27,9 @@ class ExpectSession(Session):
         self._timeout = timeout
         self._config = inject.instance('config')
         if hasattr(self._config, 'DEFAULT_ACTIONS'):
-            self._default_actions = self._config.DEFAULT_ACTIONS
+            self._default_actions_func = self._config.DEFAULT_ACTIONS
         else:
-            self._default_actions = None
+            self._default_actions_func = None
 
     def _receive_with_retries(self, timeout, retries_count):
         current_retries = 0
@@ -112,5 +112,5 @@ class ExpectSession(Session):
         self.connect(prompt)
 
     def _default_actions(self):
-        if self._default_actions:
-            self._default_actions(session=self)
+        if self._default_actions_func:
+            self._default_actions_func(session=self)
