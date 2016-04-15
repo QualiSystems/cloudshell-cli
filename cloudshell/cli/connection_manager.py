@@ -68,8 +68,15 @@ class ReturnToPoolProxy(object):
 class ConnectionManager(object):
     """Class implements Object Pool pattern for sessions, creates and pool sessions for specific types"""
 
-    def __init__(self):
-        self._config = inject.instance('config')
+
+    @inject.params(logger='logger', config='config')
+    def __init__(self, config, logger):
+
+        if not config:
+            raise Exception("not config provided")
+
+        self._config = config
+
         self._connection_map = self._config.CONNECTION_MAP
 
         self._max_connections = self._config.SESSION_POOL_SIZE
@@ -82,17 +89,20 @@ class ConnectionManager(object):
         self._connection_type = self._config.CONNECTION_TYPE
 
         self._pool_timeout = self._config.POOL_TIMEOUT
-        self.logger = inject.instance('logger')
+        self.logger = logger
         self.logger.debug('Connection manager created')
 
 
     @inject.params(logger='logger')
     def _new_session(self, connection_type, logger=None):
-        """Creates new session
+        """
+        Creates new session
+
         :param str connection_type:
         :rtype: Session
         :raises: Exception
         """
+
         if connection_type in self._connection_map:
             session_object = self._connection_map[connection_type].create_session()
             session_object.connect(re_string=self._prompt)
