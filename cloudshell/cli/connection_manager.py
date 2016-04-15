@@ -85,7 +85,6 @@ class ConnectionManager(object):
         self.logger = inject.instance('logger')
         self.logger.debug('Connection manager created')
 
-
     @inject.params(logger='logger')
     def _new_session(self, connection_type, logger=None):
         """Creates new session
@@ -125,7 +124,7 @@ class ConnectionManager(object):
 
         session_object = None
         if connection_type != self._connection_type_auto:
-            session_object = self._new_session(connection_type, context=context, api=api, logger=logger)
+            session_object = self._new_session(connection_type, logger=logger)
         else:
             for key in self._connection_map:
                 logger.info('\n--------------------------------------')
