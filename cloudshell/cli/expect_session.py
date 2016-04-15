@@ -49,7 +49,9 @@ class ExpectSession(Session):
 
         return current_output
 
-    def send_line(self, data_str):
+    @inject.params(logger='logger')
+    def send_line(self, data_str, logger=None):
+        logger.debug(data_str)
         self._send(data_str + self._new_line)
 
     @inject.params(logger='logger')

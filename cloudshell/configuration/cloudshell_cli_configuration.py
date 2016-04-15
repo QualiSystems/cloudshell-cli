@@ -50,7 +50,8 @@ POOL_TIMEOUT = 60
 DEFAULT_PROMPT = r'.*[>$#]\s*$'
 # PROMPT = DEFAULT_PROMPT
 CONFIG_MODE_PROMPT = r'.*#\s*$'
-ERROR_LIST = []
+ENTER_CONFIG_MODE_PROMPT_COMMAND = 'configure'
+EXIT_CONFIG_MODE_PROMPT_COMMAND = 'exit'
 
 EXPECTED_MAP = OrderedDict()
 # ERROR_MAP = OrderedDict({r'.*':'ErrorError'})
