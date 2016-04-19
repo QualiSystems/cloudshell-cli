@@ -3,9 +3,8 @@ from collections import OrderedDict
 from cloudshell.cli.session.session_creator import SessionCreator
 from cloudshell.cli.session.ssh_session import SSHSession
 from cloudshell.cli.session.session_proxy import ReturnToPoolProxy
-from cloudshell.shell.core.context.context_utils import get_attribute_by_name_wrapper
-from cloudshell.shell.core.context.context_utils import get_resource_address
-# from cloudshell.cli.session.connection_manager import get_thread_session
+from cloudshell.shell.core.context.context_utils import get_attribute_by_name_wrapper, get_resource_address, \
+    get_decrypted_password_by_attribute_name_wrapper
 
 """Session types implemented in current package"""
 CONNECTION_TYPE_SSH = 'ssh'
@@ -19,10 +18,9 @@ CONNECTION_MAP = OrderedDict()
 ssh_session = SessionCreator(SSHSession)
 ssh_session.proxy = ReturnToPoolProxy
 ssh_session.kwargs = {'username': get_attribute_by_name_wrapper('User'),
-                      'password': get_attribute_by_name_wrapper('Password'),
+                      'password': get_decrypted_password_by_attribute_name_wrapper('Password'),
                       'host': get_resource_address}
 CONNECTION_MAP[CONNECTION_TYPE_SSH] = ssh_session
-
 
 # CONNECTION_MAP['tcp'] = SessionHelper(TCPSession)
 # CONNECTION_MAP['tcp'].kwargs
