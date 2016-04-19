@@ -1,15 +1,11 @@
 from collections import OrderedDict
 
-from cloudshell.cli.connection_manager import SessionCreator
-from cloudshell.cli.ssh_session import SSHSession
-from cloudshell.cli.connection_manager import ReturnToPoolProxy
+from cloudshell.cli.session.session_creator import SessionCreator
+from cloudshell.cli.session.ssh_session import SSHSession
+from cloudshell.cli.session.session_proxy import ReturnToPoolProxy
 from cloudshell.shell.core.context.context_utils import get_attribute_by_name_wrapper
 from cloudshell.shell.core.context.context_utils import get_resource_address
-from cloudshell.cli.connection_manager import get_thread_session
-
-"""Defines function for getting session, used in binding for session"""
-# GET_SESSION = ConnectionManager.get_session
-GET_SESSION = get_thread_session
+# from cloudshell.cli.session.connection_manager import get_thread_session
 
 """Session types implemented in current package"""
 CONNECTION_TYPE_SSH = 'ssh'

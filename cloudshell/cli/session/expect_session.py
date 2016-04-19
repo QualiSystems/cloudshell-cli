@@ -6,9 +6,9 @@ from collections import OrderedDict
 
 from abc import ABCMeta
 import re
-from cloudshell.shell.core.cli_service.session import Session
+from cloudshell.cli.session.session import Session
 from cloudshell.cli.helper.normalize_buffer import normalize_buffer
-from cloudshell.shell.core.cli_service.cli_exceptions import CommandExecutionException
+from cloudshell.cli.service.cli_exceptions import CommandExecutionException
 import inject
 
 
@@ -25,11 +25,11 @@ class ExpectSession(Session):
 
         self._new_line = new_line
         self._timeout = timeout
-        self._config = inject.instance('config')
-        if hasattr(self._config, 'DEFAULT_ACTIONS'):
-            self._default_actions_func = self._config.DEFAULT_ACTIONS
-        else:
-            self._default_actions_func = None
+        self._default_actions_func = None
+        if inject.is_configured():
+            self._config = inject.instance('config')
+            if hasattr(self._config, 'DEFAULT_ACTIONS'):
+                self._default_actions_func = self._config.DEFAULT_ACTIONS
 
     def _receive_with_retries(self, timeout, retries_count):
         current_retries = 0
