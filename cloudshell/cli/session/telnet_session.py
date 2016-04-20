@@ -1,10 +1,11 @@
 __author__ = 'g8y3e'
 
 import telnetlib
-from cloudshell.core.logger.qs_logger import get_qs_logger
-
-from cloudshell.cli.expect_session import ExpectSession
 from collections import OrderedDict
+
+from cloudshell.core.logger.qs_logger import get_qs_logger
+from cloudshell.cli.session.expect_session import ExpectSession
+
 
 class TelnetSession(ExpectSession):
     def __init__(self, *args, **kwargs):
