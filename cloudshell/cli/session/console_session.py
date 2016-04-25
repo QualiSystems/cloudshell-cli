@@ -1,12 +1,12 @@
 __author__ = 'g8y3e'
 
-import re
 from collections import OrderedDict
 
+import re
 from cloudshell.cli.expect_session import ExpectSession
-
 from cloudshell.cli.ssh_session import SSHSession
-from cloudshell.cli.telnet_session import TelnetSession
+from cloudshell.cli.session.telnet_session import TelnetSession
+
 
 class ConsoleSession(ExpectSession):
     def __init__(self, *args, **kwargs):
