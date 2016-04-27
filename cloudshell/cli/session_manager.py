@@ -164,7 +164,8 @@ class SessionManager:
 
         raise Exception('Session Manager', "Can't connect!")
 
-    def hardware_expect(self, cmd, expected_str, timeout=30, expected_map={}, retry_count=10):
+    def hardware_expect(self, cmd, expected_str, timeout=30, expected_map={}, retry_count=10,
+                        is_need_default_expect_list=True):
         """
             Send 'enter' character to remote session and expect to get prompt
             send command and expect for prompt aggregate output buffer and return it.
@@ -183,10 +184,16 @@ class SessionManager:
         self.command = cmd
         command_sent = False
         self._timeout = timeout
-
-        expected_list = ['[Ii]nvalid\s+[Ll]ogin|[Ll]ogin\s+(incorrect|[Ii]nvalid)', '[Pp]assword:', '[Tt]imeout', '[Ll]ogin.*:|[Uu]ser.*:', expected_str]
-        if not expected_map is None:
-            expected_list += expected_map.keys()
+        if is_need_default_expect_list:
+            expected_list = ['[Ii]nvalid\s+[Ll]ogin|[Ll]ogin\s+(incorrect|[Ii]nvalid)', '[Pp]assword:', '[Tt]imeout', '[Ll]ogin.*:|[Uu]ser.*:', expected_str]
+            if not expected_map is None:
+                expected_list += expected_map.keys()
+        else:
+            if not expected_map is None:
+                expected_list = [expected_str]
+                expected_list += expected_map.keys()
+            else:
+                raise Exception('SessionManager', 'default expect list is not used and incomming expecte map is empty')
 
         if self._is_unsafe_mode or len(self.command) == 0:
             self.send_line(self.command)
@@ -201,34 +208,45 @@ class SessionManager:
             if expected_out != -1:
                 i = expected_out[0]
                 out += expected_out[1]
+                if is_need_default_expect_list:
+                    if i == 0:
+                        # got invalid send enter to retry
+                        if retry < 7:
+                            self.send_line('')
+                        else:
+                            raise Exception('Session Manager', 'Failed to login with provided credentials.')
 
-                if i == 0:
-                    # got invalid send enter to retry
-                    if retry < 7:
+                    elif i == 1:
+                        #send password
+                        self.send_line(self._password)
+                        time.sleep(1)
+                    elif i == 2:
+                        # got timeout send enter to retry
                         self.send_line('')
+                    elif i == 3:
+                        #send Username
+                        self.send_line(self._username)
+                        time.sleep(1)
+                    elif i == 4:
+                        #for expected_str
+                        if command_sent:
+                            break
+                        else:
+                            self.send_line(cmd)
+                            command_sent = True
                     else:
-                        raise Exception('Session Manager', 'Failed to login with provided credentials.')
-
-                elif i == 1:
-                    #send password
-                    self.send_line(self._password)
-                    time.sleep(1)
-                elif i == 2:
-                    # got timeout send enter to retry
-                    self.send_line('')
-                elif i == 3:
-                    #send Username
-                    self.send_line(self._username)
-                    time.sleep(1)
-                elif i == 4:
-                    #for expected_str
+                        expected_map[expected_list[i]](self, retry)
+                elif i == 0:
                     if command_sent:
                         break
                     else:
                         self.send_line(cmd)
                         command_sent = True
                 else:
-                    expected_map[expected_list[i]](self, retry)
+                    if expected_list[i] in expected_map:
+                        expected_map[expected_list[i]](self, retry)
+                    else:
+                        continue
             else:
                 time.sleep(0.1)
 
