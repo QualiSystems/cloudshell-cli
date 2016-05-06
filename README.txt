@@ -1,1 +1,0 @@
-Cloudshell CLI support package
