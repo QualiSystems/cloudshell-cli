@@ -2,11 +2,11 @@ __author__ = 'g8y3e'
 
 import socket
 
-from cloudshell.cli.session_manager import SessionManager
+from cloudshell.cli.session.expect_session import ExpectSession
 
-class TCPManager(SessionManager):
+class TCPSession(ExpectSession):
     def __init__(self, *args, **kwargs):
-        SessionManager.__init__(self, socket.socket(socket.AF_INET, socket.SOCK_STREAM), *args, **kwargs)
+        ExpectSession.__init__(self, socket.socket(socket.AF_INET, socket.SOCK_STREAM), *args, **kwargs)
 
         self._buffer_size = 1024
         if 'buffer_size' in kwargs:
@@ -15,21 +15,21 @@ class TCPManager(SessionManager):
         if self._port is not None:
             self._port = int(self._port)
 
-    def connect(self, expected_str=''):
+    def connect(self, re_string=''):
         """
             Connect to device
 
             :param expected_str: regular expression string
             :return:
         """
-        SessionManager.connect(self, expected_str)
-
         server_address = (self._host, self._port)
         self._handler.connect(server_address)
 
         self._handler.settimeout(self._timeout)
+        output = self.hardware_expect(re_string=re_string)
+        self._logger.info(output)
 
-        return self.hardware_expect('', expected_str)
+        return output
 
     def disconnect(self):
         """
@@ -37,17 +37,16 @@ class TCPManager(SessionManager):
 
             :return:
         """
-        SessionManager.disconnect(self)
         self._handler.close()
 
-    def _send(self, command_string):
+    def _send(self, data_str):
         """
             Send data to device
 
-            :param command_string: ommand string
+            :param data_str: ommand string
             :return:
         """
-        self._handler.sendall(command_string)
+        self._handler.sendall(data_str)
 
     def _receive(self, timeout=None):
         """
@@ -56,4 +55,8 @@ class TCPManager(SessionManager):
             :param timeout: time for waiting buffer
             :return: str
         """
-        return self._handler.recv(self._buffer_size)
+        timeout = timeout if timeout else self._timeout
+        self._handler.settimeout(timeout)
+
+        data = self._handler.recv(self._buffer_size)
+        return data
