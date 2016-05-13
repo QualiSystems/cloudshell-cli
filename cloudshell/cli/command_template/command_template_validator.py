@@ -1,15 +1,15 @@
 import re
 
 
-def get_validate_list(command_tamplate, properties_list):
+def get_validate_list(command_template, properties_list):
     if not isinstance(properties_list, list):
         properties_list = [properties_list]
 
-    validate_result = _validate(properties_list, command_tamplate.get_re_string_list())
+    validate_result = _validate(properties_list, command_template.get_re_string_list())
     if validate_result[0]:
-        return command_tamplate.get_command(*properties_list)
+        return command_template.get_command(*properties_list)
     else:
-        raise Exception(command_tamplate.get_error_by_index(validate_result[1]))
+        raise Exception(command_template.get_error_by_index(validate_result[1]))
 
 
 def _validate(properties_list, re_string_list):

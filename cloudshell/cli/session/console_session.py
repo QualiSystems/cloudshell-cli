@@ -12,9 +12,11 @@ class ConsoleSession(ExpectSession):
     def __init__(self, *args, **kwargs):
         """Initiate console connection, by default open ssh to 22 port and login to console server
 
-            :param args:
-            :param kwargs:  'console_server_ip', 'console_server_user', 'console_server_password', 'console_port' mandatory'
+        :param args:
+        :param kwargs: 'console_server_ip', 'console_server_user', 'console_server_password', 'console_port' mandatory'
+        :return:
         """
+
         ExpectSession.__init__(self, None, *args, **kwargs)
 
         self._console_username = kwargs['console_server_user']
@@ -27,6 +29,12 @@ class ConsoleSession(ExpectSession):
         self._console_port = kwargs['console_port']
 
     def _clear_console(self, re_string=''):
+        """Disconnect console if it's used by sending 'clear line xx' command
+
+        :param re_string:
+        :return:
+        """
+
         expect_map = OrderedDict()
         expect_map['[Pp]assword:'] = lambda: self.send_line(self._password)
         expect_map['\[confirm\]'] = lambda: self.send_line('')
@@ -48,6 +56,11 @@ class ConsoleSession(ExpectSession):
             self.hardware_expect('clear line {0}'.format(line_number), re_string=re_string, expect_map=expect_map)
 
     def _connect_to_console(self, re_string=''):
+        """Open console connection
+
+        :param re_string:
+        :return:
+        """
         expect_map = OrderedDict()
         expect_map['[Ll]ogin:|[Uu]sername:'] = lambda: self.send_line(self._username)
         expect_map['[Pp]assword:'] = lambda: self.send_line(self._password)
@@ -57,10 +70,10 @@ class ConsoleSession(ExpectSession):
         self.hardware_expect(self._console_port, re_string=re_string)
 
     def connect(self, re_string=''):
-        """OPen ssh or telnet connection to device
+        """Open ssh or telnet connection to device
 
-            :param re_string: expected strig
-            :return:
+        :param re_string: expected string
+        :return:
         """
 
         try:
@@ -79,27 +92,27 @@ class ConsoleSession(ExpectSession):
                 raise error_object
 
     def disconnect(self):
-        """
-            Disconnect from device
+        """Disconnect from device
 
-            :return:
+        :return:
         """
+
         self._session_handler.disconnect()
 
     def _send(self, command_string):
-        """
-            Send data to device
+        """Send data to device
 
-            :param command_string: command string
-            :return:
+        :param command_string: command string
+        :return:
         """
+
         self._session_handler._send(command_string)
 
     def _receive(self, timeout=None):
-        """
-            Read data from device
+        """Read data from device
 
-            :param timeout: time for waiting buffer
-            :return: str
+        :param timeout: time for waiting buffer
+        :return: str
         """
+
         self._session_handler._receive(timeout=timeout)

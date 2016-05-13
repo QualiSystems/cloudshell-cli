@@ -4,6 +4,7 @@ import socket
 
 from cloudshell.cli.session.expect_session import ExpectSession
 
+
 class TCPSession(ExpectSession):
     def __init__(self, *args, **kwargs):
         ExpectSession.__init__(self, socket.socket(socket.AF_INET, socket.SOCK_STREAM), *args, **kwargs)
@@ -19,7 +20,7 @@ class TCPSession(ExpectSession):
         """
             Connect to device
 
-            :param expected_str: regular expression string
+            :param re_string: regular expression string
             :return:
         """
         server_address = (self._host, self._port)
@@ -43,7 +44,7 @@ class TCPSession(ExpectSession):
         """
             Send data to device
 
-            :param data_str: ommand string
+            :param data_str: command string
             :return:
         """
         self._handler.sendall(data_str)
