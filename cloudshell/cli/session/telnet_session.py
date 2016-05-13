@@ -30,10 +30,10 @@ class TelnetSession(ExpectSession):
         expect_map['[Ll]ogin:|[Uu]ser:'] = lambda: self.send_line(self._username)
         expect_map['[Pp]assword:'] = lambda: self.send_line(self._password)
 
-        output = self.hardware_expect(re_string=re_string, expect_map=expect_map)
-        self._logger.info(output)
+        out = self.hardware_expect(re_string=re_string, expect_map=expect_map)
+        self._logger.info(out)
 
-        return output
+        return out
 
     def disconnect(self):
         """
@@ -65,11 +65,12 @@ class TelnetSession(ExpectSession):
         data = self._handler.read_some()
         return data
 
+
 if __name__ == "__main__":
     logger = get_qs_logger()
 
     session = TelnetSession(username='root', password='Password1', host='192.168.42.235', logger=logger, timeout=1)
-    #session = TelnetSession(username='klop', password='azsxdc', host='192.168.42.193', logger=logger, timeout=2)
+    # session = TelnetSession(username='klop', password='azsxdc', host='192.168.42.193', logger=logger, timeout=2)
 
     prompt = '[$#>] *$'
 
@@ -81,4 +82,3 @@ if __name__ == "__main__":
 
     output = session.hardware_expect('enable', re_string=prompt, expect_map=actions)
     output = output
-

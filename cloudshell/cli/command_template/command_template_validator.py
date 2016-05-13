@@ -14,16 +14,16 @@ def get_validate_list(command_tamplate, properties_list):
 
 def _validate(properties_list, re_string_list):
     if len(properties_list) != len(re_string_list):
-        return (False, -1)
+        return False, -1
 
     if len(properties_list) == 0:
-        return (True, -1)
+        return True, -1
 
     for index in range(0, len(properties_list)):
         if hasattr(re_string_list[index], '__call__'):
             if not re_string_list[index](properties_list[index]):
-                return (False, index)
+                return False, index
         elif not re.match(re_string_list[index], properties_list[index]):
-            return (False, index)
+            return False, index
 
-    return (True, -1)
+    return True, -1

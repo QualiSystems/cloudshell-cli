@@ -3,15 +3,14 @@ __author__ = 'g8y3e'
 from collections import OrderedDict
 
 import re
-from cloudshell.cli.expect_session import ExpectSession
-from cloudshell.cli.ssh_session import SSHSession
+from cloudshell.cli.session.expect_session import ExpectSession
+from cloudshell.cli.session.ssh_session import SSHSession
 from cloudshell.cli.session.telnet_session import TelnetSession
 
 
 class ConsoleSession(ExpectSession):
     def __init__(self, *args, **kwargs):
-        """
-            Initiate console connection, by default open ssh to 22 port and login to console server
+        """Initiate console connection, by default open ssh to 22 port and login to console server
 
             :param args:
             :param kwargs:  'console_server_ip', 'console_server_user', 'console_server_password', 'console_port' mandatory'
@@ -58,12 +57,12 @@ class ConsoleSession(ExpectSession):
         self.hardware_expect(self._console_port, re_string=re_string)
 
     def connect(self, re_string=''):
-        """
-            Connect to device through ssh or telnet connection
+        """OPen ssh or telnet connection to device
 
-            :param expected_str: regular expression string
+            :param re_string: expected strig
             :return:
         """
+
         try:
             self._session_handler.connect(re_string)
             if self._console_port:

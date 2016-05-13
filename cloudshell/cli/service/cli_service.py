@@ -48,19 +48,24 @@ class CliService(CliServiceInterface):
         return out
 
     @inject.params(logger='logger', session='session')
-    def send_command(self, command, expected_str=None, expected_map=None, timeout=30, retry_count=10,
+    def send_command(self, command, expected_str=None, expected_map=None, timeout=30, retries=10,
                      is_need_default_prompt=True, logger=None, session=None):
+        """Send command in default mode
 
-        """Send command in base mode
-
-        :param cmd: command to send
+        :param command: command to send
         :param expected_str: expected output string (_prompt by default)
+        :param expected_map: action map (string - action)
         :param timeout: command timeout
+        :param retries: retries to send command
+        :param is_need_default_prompt:
+        :param logger:
+        :param session:
         :return: received output buffer
         """
+
         self.exit_configuration_mode(session)
         try:
-            out = self._send_command(command, expected_str, expected_map=expected_map, retry_count=retry_count,
+            out = self._send_command(command, expected_str, expected_map=expected_map, retries=retries,
                                      is_need_default_prompt=is_need_default_prompt, timeout=timeout, session=session)
         except CommandExecutionException as e:
             self.rollback()
@@ -69,7 +74,7 @@ class CliService(CliServiceInterface):
         return out
 
     @inject.params(logger='logger')
-    def _send_command(self, command, expected_str=None, expected_map=None, timeout=30, retry_count=10,
+    def _send_command(self, command, expected_str=None, expected_map=None, timeout=30, retries=10,
                       is_need_default_prompt=True, logger=None, session=None):
 
         """Send command
@@ -92,7 +97,7 @@ class CliService(CliServiceInterface):
         for retry in range(self._command_retries):
             try:
                 out = session.hardware_expect(command, expected_str, expect_map=expected_map,
-                                              error_map=self._error_map, retries_count=retry_count,
+                                              error_map=self._error_map, retries_count=retries,
                                               timeout=timeout)
                 break
             except Exception as e:
