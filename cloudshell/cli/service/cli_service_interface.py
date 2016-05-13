@@ -30,4 +30,3 @@ class CliServiceInterface:
     @abstractmethod
     def rollback(self):
         pass
-

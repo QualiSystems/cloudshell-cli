@@ -27,7 +27,7 @@ class SSHSession(ExpectSession):
     def connect(self, re_string='', logger=None):
         """
             Connect to device through ssh
-            :param re_string: regular expration of end of output
+            :param re_string: regular expression of end of output
             :return: str
         """
         logger.info("Host: {0}, port: {1}, username: {2}, password: {3}, timeout: {4}".
@@ -59,7 +59,7 @@ class SSHSession(ExpectSession):
         """
             Send data to device
 
-            :param data_str: commnad string
+            :param data_str: command string
             :return:
         """
         self._current_channel.send(data_str)
