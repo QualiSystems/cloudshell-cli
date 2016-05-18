@@ -10,7 +10,7 @@ from cloudshell.cli.session.session import Session
 from cloudshell.cli.helper.normalize_buffer import normalize_buffer
 from cloudshell.cli.service.cli_exceptions import CommandExecutionException
 import inject
-from cloudshell.configuration.cloudshell_shell_core_bindings import LOGGER, CONFIG
+from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER, CONFIG
 
 
 class ExpectSession(Session):

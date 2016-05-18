@@ -4,8 +4,8 @@ from threading import Lock, currentThread
 
 import cloudshell.configuration.cloudshell_cli_configuration as package_config
 from cloudshell.shell.core.config_utils import get_config_attribute_or_none
-from cloudshell.configuration.cloudshell_shell_core_bindings import CONFIG, CONTEXT, LOGGER
-from cloudshell.configuration.cloudshell_cli_bindings import CONNECTION_MANAGER
+from cloudshell.configuration.cloudshell_shell_core_binding_keys import CONFIG, LOGGER
+from cloudshell.configuration.cloudshell_cli_binding_keys import CONNECTION_MANAGER
 import inject
 
 

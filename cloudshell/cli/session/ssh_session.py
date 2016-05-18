@@ -1,7 +1,7 @@
 import paramiko
 import inject
 from cloudshell.cli.session.expect_session import ExpectSession
-from cloudshell.configuration.cloudshell_shell_core_bindings import LOGGER
+from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER
 
 
 class SSHSession(ExpectSession):

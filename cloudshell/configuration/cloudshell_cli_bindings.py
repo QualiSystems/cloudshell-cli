@@ -1,11 +1,7 @@
 from cloudshell.cli.service.cli_service import CliService
 from cloudshell.cli.session.connection_manager import ConnectionManager
+from cloudshell.configuration.cloudshell_cli_binding_keys import SESSION, CONNECTION_MANAGER, CLI_SERVICE
 import inject
-
-"""Binding keys"""
-SESSION = 'session'
-CONNECTION_MANAGER = 'connection_manager'
-CLI_SERVICE = 'cli_service'
 
 
 def bindings(binder):

@@ -1,5 +1,5 @@
 import inject
-from cloudshell.configuration.cloudshell_cli_bindings import CONNECTION_MANAGER
+from cloudshell.configuration.cloudshell_cli_binding_keys import CONNECTION_MANAGER
 
 
 class ReturnToPoolProxy(object):

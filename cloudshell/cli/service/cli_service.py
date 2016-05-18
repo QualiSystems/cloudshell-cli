@@ -4,8 +4,8 @@ from cloudshell.cli.service.cli_service_interface import CliServiceInterface
 from cloudshell.cli.service.cli_exceptions import CommandExecutionException
 from cloudshell.shell.core.config_utils import get_config_attribute_or_none
 import cloudshell.configuration.cloudshell_cli_configuration as package_config
-from cloudshell.configuration.cloudshell_cli_bindings import SESSION
-from cloudshell.configuration.cloudshell_shell_core_bindings import CONFIG, LOGGER
+from cloudshell.configuration.cloudshell_cli_binding_keys import SESSION
+from cloudshell.configuration.cloudshell_shell_core_binding_keys import CONFIG, LOGGER
 import re
 import inject
 
