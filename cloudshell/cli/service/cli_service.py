@@ -4,12 +4,14 @@ from cloudshell.cli.service.cli_service_interface import CliServiceInterface
 from cloudshell.cli.service.cli_exceptions import CommandExecutionException
 from cloudshell.shell.core.config_utils import get_config_attribute_or_none
 import cloudshell.configuration.cloudshell_cli_configuration as package_config
+from cloudshell.configuration.cloudshell_cli_bindings import SESSION
+from cloudshell.configuration.cloudshell_shell_core_bindings import CONFIG, LOGGER
 import re
 import inject
 
 
 class CliService(CliServiceInterface):
-    @inject.params(config='config')
+    @inject.params(config=CONFIG)
     def __init__(self, config):
         if not config:
             raise Exception(self.__class__.__name__, 'Config not defined')
@@ -26,7 +28,7 @@ class CliService(CliServiceInterface):
         self._exit_config_mode_prompt_command = get_config_attribute_or_none('EXIT_CONFIG_MODE_PROMPT_COMMAND',
                                                                              self._config) or package_config.EXIT_CONFIG_MODE_PROMPT_COMMAND
 
-    @inject.params(logger='logger', session='session')
+    @inject.params(logger=LOGGER, session=SESSION)
     def send_config_command(self, command, expected_str=None, expected_map=None, timeout=30, retries=10,
                             is_need_default_prompt=False, logger=None, session=None):
         """Send command into configuration mode, enter to config mode if needed
@@ -47,7 +49,7 @@ class CliService(CliServiceInterface):
         logger.info(out)
         return out
 
-    @inject.params(logger='logger', session='session')
+    @inject.params(logger=LOGGER, session=SESSION)
     def send_command(self, command, expected_str=None, expected_map=None, timeout=30, retries=10,
                      is_need_default_prompt=True, logger=None, session=None):
         """Send command in default mode
@@ -73,7 +75,7 @@ class CliService(CliServiceInterface):
             raise e
         return out
 
-    @inject.params(logger='logger')
+    @inject.params(logger=LOGGER)
     def _send_command(self, command, expected_str=None, expected_map=None, timeout=30, retries=10,
                       is_need_default_prompt=True, logger=None, session=None):
 
@@ -115,7 +117,7 @@ class CliService(CliServiceInterface):
             output += send_command_func(command)
         return output
 
-    @inject.params(logger='logger', session='session')
+    @inject.params(logger=LOGGER, session=SESSION)
     def exit_configuration_mode(self, session=None, logger=None):
         """Send 'enter' to SSH console to get prompt,
         if config prompt received , send 'exit' command, change _prompt to DEFAULT
@@ -133,7 +135,7 @@ class CliService(CliServiceInterface):
 
         return out
 
-    @inject.params(logger='logger')
+    @inject.params(logger=LOGGER)
     def _enter_configuration_mode(self, session=None, logger=None):
         """Send 'enter' to SSH console to get prompt,
         if default prompt received , send 'configure terminal' command, change _prompt to CONFIG_MODE
