@@ -50,9 +50,7 @@ class ExpectSession(Session):
 
         return current_output
 
-    @inject.params(logger='logger')
-    def send_line(self, data_str, logger=None):
-        logger.debug(data_str)
+    def send_line(self, data_str):
         self._send(data_str + self._new_line)
 
     @inject.params(logger=LOGGER)
@@ -70,6 +68,7 @@ class ExpectSession(Session):
         """
 
         if data_str is not None:
+            logger.info('Send command: ' + data_str)
             self.send_line(data_str)
 
         if re_string is None or len(re_string) == 0:
@@ -84,6 +83,7 @@ class ExpectSession(Session):
         output_list = list()
         while True:
             if re.search(re_string, output_str, re.DOTALL):
+                logger.info('Output is:\n{0}'.format(output_str))
                 break
             else:
                 time.sleep(0.2)

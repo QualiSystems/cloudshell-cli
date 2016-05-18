@@ -27,7 +27,7 @@ class CliService(CliServiceInterface):
                                                                              self._config) or package_config.EXIT_CONFIG_MODE_PROMPT_COMMAND
 
     @inject.params(logger='logger', session='session')
-    def send_config_command(self, command, expected_str=None, expected_map=None, timeout=30, retry_count=10,
+    def send_config_command(self, command, expected_str=None, expected_map=None, timeout=30, retries=10,
                             is_need_default_prompt=False, logger=None, session=None):
         """Send command into configuration mode, enter to config mode if needed
 
@@ -42,7 +42,7 @@ class CliService(CliServiceInterface):
         if expected_str is None:
             expected_str = self._prompt
 
-        out = self._send_command(command, expected_str, expected_map=expected_map, retry_count=retry_count,
+        out = self._send_command(command, expected_str, expected_map=expected_map, retries=retries,
                                  is_need_default_prompt=is_need_default_prompt, timeout=timeout, session=session)
         logger.info(out)
         return out
@@ -107,13 +107,15 @@ class CliService(CliServiceInterface):
                 session.reconnect(self._prompt)
         return out
 
-    def send_command_list(self, commands_list, send_command_func=send_config_command):
+    def send_command_list(self, commands_list, send_command_func=None):
         output = ""
+        if not send_command_func:
+            send_command_func = self.send_config_command
         for command in commands_list:
             output += send_command_func(command)
         return output
 
-    @inject.params(logger='logger')
+    @inject.params(logger='logger', session='session')
     def exit_configuration_mode(self, session=None, logger=None):
         """Send 'enter' to SSH console to get prompt,
         if config prompt received , send 'exit' command, change _prompt to DEFAULT
