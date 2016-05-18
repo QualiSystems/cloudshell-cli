@@ -4,6 +4,8 @@ from threading import Lock, currentThread
 
 import cloudshell.configuration.cloudshell_cli_configuration as package_config
 from cloudshell.shell.core.config_utils import get_config_attribute_or_none
+from cloudshell.configuration.cloudshell_shell_core_bindings import CONFIG, CONTEXT, LOGGER
+from cloudshell.configuration.cloudshell_cli_bindings import CONNECTION_MANAGER
 import inject
 
 
@@ -13,7 +15,7 @@ class ConnectionManager(object):
     CREATE_SESSION_LOCK = Lock()
     SESSION_CONTAINER = WeakKeyDictionary()
 
-    @inject.params(config='config', logger='logger')
+    @inject.params(config=CONFIG, logger=LOGGER)
     def __init__(self, config, logger):
         if not config:
             raise Exception(self.__class__.__name__, 'Config not defined')
@@ -37,7 +39,7 @@ class ConnectionManager(object):
         if logger:
             logger.debug('Connection manager created')
 
-    @inject.params(logger='logger')
+    @inject.params(logger=LOGGER)
     def _new_session(self, connection_type, logger=None):
         """Creates new session
         :param str connection_type:
@@ -94,7 +96,7 @@ class ConnectionManager(object):
 
         return session_object
 
-    @inject.params(logger='logger')
+    @inject.params(logger=LOGGER)
     def _get_session_from_pool(self, logger=None):
         """Take session from pool
         :rtype: Session
@@ -117,7 +119,7 @@ class ConnectionManager(object):
             time_out = self._pool_timeout
         self._session_pool.put(session, True, time_out)
 
-    @inject.params(logger='logger')
+    @inject.params(logger=LOGGER)
     def get_session_instance(self, logger):
         """Return session object, takes it from pool or create new session
         :rtype: Session
@@ -132,7 +134,7 @@ class ConnectionManager(object):
         return self._get_session_from_pool()
 
     @staticmethod
-    @inject.params(connection_manager='connection_manager')
+    @inject.params(connection_manager=CONNECTION_MANAGER)
     def get_session(connection_manager):
         """
         :rtype: Session
@@ -140,7 +142,6 @@ class ConnectionManager(object):
         return connection_manager.get_session_instance()
 
     @staticmethod
-    @inject.params()
     def get_thread_session():
         """Return same session for thread"""
         if not currentThread() in ConnectionManager.SESSION_CONTAINER:

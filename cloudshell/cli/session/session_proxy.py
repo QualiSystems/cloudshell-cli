@@ -1,4 +1,5 @@
 import inject
+from cloudshell.configuration.cloudshell_cli_bindings import CONNECTION_MANAGER
 
 
 class ReturnToPoolProxy(object):
@@ -12,5 +13,5 @@ class ReturnToPoolProxy(object):
 
     def __del__(self):
         if inject and inject.is_configured():
-            cm = inject.instance('connection_manager')
+            cm = inject.instance(CONNECTION_MANAGER)
             cm.return_session_to_pool(self)

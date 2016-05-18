@@ -3,7 +3,7 @@ from collections import OrderedDict
 from cloudshell.cli.session.session_creator import SessionCreator
 from cloudshell.cli.session.ssh_session import SSHSession
 from cloudshell.cli.session.session_proxy import ReturnToPoolProxy
-from cloudshell.shell.core.context.context_utils import get_attribute_by_name_wrapper, get_resource_address, \
+from cloudshell.shell.core.context_utils import get_attribute_by_name_wrapper, get_resource_address, \
     get_decrypted_password_by_attribute_name_wrapper
 
 """Session types implemented in current package"""

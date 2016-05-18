@@ -1,8 +1,7 @@
-__author__ = 'g8y3e'
-
 import paramiko
 import inject
 from cloudshell.cli.session.expect_session import ExpectSession
+from cloudshell.configuration.cloudshell_shell_core_bindings import LOGGER
 
 
 class SSHSession(ExpectSession):
@@ -23,7 +22,7 @@ class SSHSession(ExpectSession):
     def __del__(self):
         self.disconnect()
 
-    @inject.params(logger='logger')
+    @inject.params(logger=LOGGER)
     def connect(self, re_string='', logger=None):
         """
             Connect to device through ssh
