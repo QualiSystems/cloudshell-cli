@@ -85,8 +85,7 @@ class ConnectionManager(object):
                     if session_object:
                         break
                 except Exception as error_object:
-                    logger.error(
-                        '\n{0} connection failed: '.format(key.upper()) + 'with error msg:' + error_object.message)
+                    logger.error('{0} connection failed with error msg: {1}'.format(key.upper(), error_object.message))
 
         if session_object is None:
             logger.error('Connection failed!')
