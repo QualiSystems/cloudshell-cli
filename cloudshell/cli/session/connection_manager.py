@@ -1,4 +1,4 @@
-from weakref import WeakKeyDictionary
+from weakref import WeakKeyDictionary, WeakSet
 from Queue import Queue
 from threading import Lock, currentThread
 
@@ -27,7 +27,7 @@ class ConnectionManager(object):
                                                              self._config) or package_config.SESSION_POOL_SIZE
 
         self._session_pool = Queue(maxsize=self._max_connections)
-        self._created_session_count = 0
+        self._existing_sessions = WeakSet()
 
         self._prompt = get_config_attribute_or_none('DEFAULT_PROMPT', self._config) or package_config.DEFAULT_PROMPT
         self._connection_type_auto = get_config_attribute_or_none('CONNECTION_TYPE_AUTO',
@@ -127,9 +127,10 @@ class ConnectionManager(object):
         logger.debug('Get session')
 
         with ConnectionManager.CREATE_SESSION_LOCK:
-            if self._session_pool.empty() and self._created_session_count < self._max_connections:
-                self.return_session_to_pool(self._create_session_by_connection_type(logger))
-                self._created_session_count += 1
+            if self._session_pool.empty() and len(self._existing_sessions) < self._max_connections:
+                session = self._create_session_by_connection_type(logger)
+                self._existing_sessions.add(session)
+                self.return_session_to_pool(session)
         return self._get_session_from_pool()
 
     @staticmethod
