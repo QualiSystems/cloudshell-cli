@@ -10,6 +10,7 @@ from cloudshell.cli.session.session import Session
 from cloudshell.cli.helper.normalize_buffer import normalize_buffer
 from cloudshell.cli.service.cli_exceptions import CommandExecutionException
 import inject
+from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER, CONFIG
 
 
 class ExpectSession(Session):
@@ -27,7 +28,7 @@ class ExpectSession(Session):
         self._timeout = timeout
         self._default_actions_func = None
         if inject.is_configured():
-            self._config = inject.instance('config')
+            self._config = inject.instance(CONFIG)
             if hasattr(self._config, 'DEFAULT_ACTIONS'):
                 self._default_actions_func = self._config.DEFAULT_ACTIONS
 
@@ -52,7 +53,7 @@ class ExpectSession(Session):
     def send_line(self, data_str):
         self._send(data_str + self._new_line)
 
-    @inject.params(logger='logger')
+    @inject.params(logger=LOGGER)
     def hardware_expect(self, data_str=None, re_string='', expect_map=OrderedDict(),
                         error_map=OrderedDict(), timeout=None, retries_count=3, logger=None):
         """

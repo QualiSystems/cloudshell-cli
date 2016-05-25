@@ -1,9 +1,11 @@
-from weakref import WeakKeyDictionary
+from weakref import WeakKeyDictionary, WeakSet
 from Queue import Queue
 from threading import Lock, currentThread
 
 import cloudshell.configuration.cloudshell_cli_configuration as package_config
 from cloudshell.shell.core.config_utils import get_config_attribute_or_none
+from cloudshell.configuration.cloudshell_shell_core_binding_keys import CONFIG, LOGGER
+from cloudshell.configuration.cloudshell_cli_binding_keys import CONNECTION_MANAGER
 import inject
 
 
@@ -13,7 +15,7 @@ class ConnectionManager(object):
     CREATE_SESSION_LOCK = Lock()
     SESSION_CONTAINER = WeakKeyDictionary()
 
-    @inject.params(config='config', logger='logger')
+    @inject.params(config=CONFIG, logger=LOGGER)
     def __init__(self, config, logger):
         if not config:
             raise Exception(self.__class__.__name__, 'Config not defined')
@@ -25,7 +27,7 @@ class ConnectionManager(object):
                                                              self._config) or package_config.SESSION_POOL_SIZE
 
         self._session_pool = Queue(maxsize=self._max_connections)
-        self._created_session_count = 0
+        self._existing_sessions = WeakSet()
 
         self._prompt = get_config_attribute_or_none('DEFAULT_PROMPT', self._config) or package_config.DEFAULT_PROMPT
         self._connection_type_auto = get_config_attribute_or_none('CONNECTION_TYPE_AUTO',
@@ -37,7 +39,7 @@ class ConnectionManager(object):
         if logger:
             logger.debug('Connection manager created')
 
-    @inject.params(logger='logger')
+    @inject.params(logger=LOGGER)
     def _new_session(self, connection_type, logger=None):
         """Creates new session
         :param str connection_type:
@@ -93,7 +95,7 @@ class ConnectionManager(object):
 
         return session_object
 
-    @inject.params(logger='logger')
+    @inject.params(logger=LOGGER)
     def _get_session_from_pool(self, logger=None):
         """Take session from pool
         :rtype: Session
@@ -116,7 +118,7 @@ class ConnectionManager(object):
             time_out = self._pool_timeout
         self._session_pool.put(session, True, time_out)
 
-    @inject.params(logger='logger')
+    @inject.params(logger=LOGGER)
     def get_session_instance(self, logger):
         """Return session object, takes it from pool or create new session
         :rtype: Session
@@ -125,13 +127,14 @@ class ConnectionManager(object):
         logger.debug('Get session')
 
         with ConnectionManager.CREATE_SESSION_LOCK:
-            if self._session_pool.empty() and self._created_session_count < self._max_connections:
-                self.return_session_to_pool(self._create_session_by_connection_type(logger))
-                self._created_session_count += 1
+            if self._session_pool.empty() and len(self._existing_sessions) < self._max_connections:
+                session = self._create_session_by_connection_type(logger)
+                self._existing_sessions.add(session)
+                self.return_session_to_pool(session)
         return self._get_session_from_pool()
 
     @staticmethod
-    @inject.params(connection_manager='connection_manager')
+    @inject.params(connection_manager=CONNECTION_MANAGER)
     def get_session(connection_manager):
         """
         :rtype: Session
@@ -139,7 +142,6 @@ class ConnectionManager(object):
         return connection_manager.get_session_instance()
 
     @staticmethod
-    @inject.params()
     def get_thread_session():
         """Return same session for thread"""
         if not currentThread() in ConnectionManager.SESSION_CONTAINER:
