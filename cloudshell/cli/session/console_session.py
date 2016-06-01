@@ -1,21 +1,22 @@
 __author__ = 'g8y3e'
 
-import re
 from collections import OrderedDict
 
-from cloudshell.cli.expect_session import ExpectSession
+import re
+from cloudshell.cli.session.expect_session import ExpectSession
+from cloudshell.cli.session.ssh_session import SSHSession
+from cloudshell.cli.session.telnet_session import TelnetSession
 
-from cloudshell.cli.ssh_session import SSHSession
-from cloudshell.cli.telnet_session import TelnetSession
 
 class ConsoleSession(ExpectSession):
     def __init__(self, *args, **kwargs):
-        """
-            Initiate console connection, by default open ssh to 22 port and login to console server
+        """Initiate console connection, by default open ssh to 22 port and login to console server
 
-            :param args:
-            :param kwargs:  'console_server_ip', 'console_server_user', 'console_server_password', 'console_port' mandatory'
+        :param args:
+        :param kwargs: 'console_server_ip', 'console_server_user', 'console_server_password', 'console_port' mandatory'
+        :return:
         """
+
         ExpectSession.__init__(self, None, *args, **kwargs)
 
         self._console_username = kwargs['console_server_user']
@@ -28,6 +29,12 @@ class ConsoleSession(ExpectSession):
         self._console_port = kwargs['console_port']
 
     def _clear_console(self, re_string=''):
+        """Disconnect console if it's used by sending 'clear line xx' command
+
+        :param re_string:
+        :return:
+        """
+
         expect_map = OrderedDict()
         expect_map['[Pp]assword:'] = lambda: self.send_line(self._password)
         expect_map['\[confirm\]'] = lambda: self.send_line('')
@@ -49,6 +56,11 @@ class ConsoleSession(ExpectSession):
             self.hardware_expect('clear line {0}'.format(line_number), re_string=re_string, expect_map=expect_map)
 
     def _connect_to_console(self, re_string=''):
+        """Open console connection
+
+        :param re_string:
+        :return:
+        """
         expect_map = OrderedDict()
         expect_map['[Ll]ogin:|[Uu]sername:'] = lambda: self.send_line(self._username)
         expect_map['[Pp]assword:'] = lambda: self.send_line(self._password)
@@ -58,12 +70,12 @@ class ConsoleSession(ExpectSession):
         self.hardware_expect(self._console_port, re_string=re_string)
 
     def connect(self, re_string=''):
-        """
-            Connect to device through ssh or telnet connection
+        """Open ssh or telnet connection to device
 
-            :param expected_str: regular expression string
-            :return:
+        :param re_string: expected string
+        :return:
         """
+
         try:
             self._session_handler.connect(re_string)
             if self._console_port:
@@ -80,27 +92,27 @@ class ConsoleSession(ExpectSession):
                 raise error_object
 
     def disconnect(self):
-        """
-            Disconnect from device
+        """Disconnect from device
 
-            :return:
+        :return:
         """
+
         self._session_handler.disconnect()
 
     def _send(self, command_string):
-        """
-            Send data to device
+        """Send data to device
 
-            :param command_string: command string
-            :return:
+        :param command_string: command string
+        :return:
         """
+
         self._session_handler._send(command_string)
 
     def _receive(self, timeout=None):
-        """
-            Read data from device
+        """Read data from device
 
-            :param timeout: time for waiting buffer
-            :return: str
+        :param timeout: time for waiting buffer
+        :return: str
         """
+
         self._session_handler._receive(timeout=timeout)
