@@ -38,7 +38,9 @@ CONNECTION_MAP[CONNECTION_TYPE_SSH] = ssh_session
 CONNECTION_TYPE = CONNECTION_TYPE_AUTO
 
 """Maximum number of sessions that can be created"""
-SESSION_POOL_SIZE = 1
+DEFAULT_SESSION_POOL_SIZE = 1
+SESSION_POOL_SIZE = get_attribute_by_name_wrapper('Sessions Concurrency Limit')
+
 """Max time waiting session from pool"""
 POOL_TIMEOUT = 60
 

@@ -3,7 +3,7 @@ from Queue import Queue
 from threading import Lock, currentThread
 
 import cloudshell.configuration.cloudshell_cli_configuration as package_config
-from cloudshell.shell.core.config_utils import get_config_attribute_or_none
+from cloudshell.shell.core.config_utils import get_config_attribute_or_none, call_if_callable
 from cloudshell.configuration.cloudshell_shell_core_binding_keys import CONFIG, LOGGER
 from cloudshell.configuration.cloudshell_cli_binding_keys import CONNECTION_MANAGER
 import inject
@@ -23,8 +23,10 @@ class ConnectionManager(object):
         self._connection_map = get_config_attribute_or_none('CONNECTION_MAP',
                                                             self._config) or package_config.CONNECTION_MAP
 
-        self._max_connections = get_config_attribute_or_none('SESSION_POOL_SIZE',
-                                                             self._config) or package_config.SESSION_POOL_SIZE
+        self._max_connections = call_if_callable(get_config_attribute_or_none('SESSION_POOL_SIZE',
+                                                             self._config) or package_config.SESSION_POOL_SIZE)
+        if not self._max_connections:
+            self._max_connections = package_config.DEFAULT_SESSION_POOL_SIZE
 
         self._session_pool = Queue(maxsize=self._max_connections)
         self._existing_sessions = WeakSet()
