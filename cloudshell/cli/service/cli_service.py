@@ -28,6 +28,12 @@ class CliService(CliServiceInterface):
         self._exit_config_mode_prompt_command = get_config_attribute_or_none('EXIT_CONFIG_MODE_PROMPT_COMMAND',
                                                                              self._config) or package_config.EXIT_CONFIG_MODE_PROMPT_COMMAND
 
+        self._commit_command = get_config_attribute_or_none('COMMIT_COMMAND',
+                                                            self._config) or package_config.COMMIT_COMMAND
+
+        self._rollback_command = get_config_attribute_or_none('ROLLBACK_COMMAND',
+                                                              self._config) or package_config.ROLLBACK_COMAND
+
     @inject.params(logger=LOGGER, session=SESSION)
     def send_config_command(self, command, expected_str=None, expected_map=None, timeout=30, retries=10,
                             is_need_default_prompt=False, logger=None, session=None):
@@ -163,5 +169,8 @@ class CliService(CliServiceInterface):
         # self._prompt = self.CONFIG_MODE_PROMPT
         return re.search(self._prompt, out)
 
-    def rollback(self):
-        pass
+    def commit(self, expected_map=None):
+        self.send_config_command(self._commit_command, expected_map=expected_map)
+
+    def rollback(self, expected_map=None):
+        self.send_config_command(self._rollback_command, expected_map=expected_map)
