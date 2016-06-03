@@ -6,10 +6,11 @@ from collections import OrderedDict
 
 from abc import ABCMeta
 import re
-from cloudshell.shell.core.cli_service.session import Session
+from cloudshell.cli.session.session import Session
 from cloudshell.cli.helper.normalize_buffer import normalize_buffer
-from cloudshell.shell.core.cli_service.cli_exceptions import CommandExecutionException
+from cloudshell.cli.service.cli_exceptions import CommandExecutionException
 import inject
+from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER, CONFIG
 
 
 class ExpectSession(Session):
@@ -25,11 +26,11 @@ class ExpectSession(Session):
 
         self._new_line = new_line
         self._timeout = timeout
-        self._config = inject.instance('config')
-        if hasattr(self._config, 'DEFAULT_ACTIONS'):
-            self._default_actions_func = self._config.DEFAULT_ACTIONS
-        else:
-            self._default_actions_func = None
+        self._default_actions_func = None
+        if inject.is_configured():
+            self._config = inject.instance(CONFIG)
+            if hasattr(self._config, 'DEFAULT_ACTIONS'):
+                self._default_actions_func = self._config.DEFAULT_ACTIONS
 
     def _receive_with_retries(self, timeout, retries_count):
         current_retries = 0
@@ -52,7 +53,7 @@ class ExpectSession(Session):
     def send_line(self, data_str):
         self._send(data_str + self._new_line)
 
-    @inject.params(logger='logger')
+    @inject.params(logger=LOGGER)
     def hardware_expect(self, data_str=None, re_string='', expect_map=OrderedDict(),
                         error_map=OrderedDict(), timeout=None, retries_count=3, logger=None):
         """
@@ -67,6 +68,7 @@ class ExpectSession(Session):
         """
 
         if data_str is not None:
+            logger.info('Send command: ' + data_str)
             self.send_line(data_str)
 
         if re_string is None or len(re_string) == 0:
@@ -81,6 +83,7 @@ class ExpectSession(Session):
         output_list = list()
         while True:
             if re.search(re_string, output_str, re.DOTALL):
+                logger.info('Output is:\n{0}'.format(output_str))
                 break
             else:
                 time.sleep(0.2)
