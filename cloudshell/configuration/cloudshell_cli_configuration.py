@@ -40,7 +40,7 @@ telnet_session.kwargs = {'username': get_attribute_by_name_wrapper('User'),
 CONNECTION_MAP[CONNECTION_TYPE_TELNET] = telnet_session
 
 """Function or string that defines connection type"""
-CONNECTION_TYPE = get_attribute_by_name_wrapper('Connection Type')
+CONNECTION_TYPE = get_attribute_by_name_wrapper('CLI Connection Type')
 # CONNECTION_TYPE = CONNECTION_TYPE_AUTO
 
 """Maximum number of sessions that can be created"""

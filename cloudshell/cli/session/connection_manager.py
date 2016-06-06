@@ -64,9 +64,9 @@ class ConnectionManager(object):
         """
 
         if self._connection_type and callable(self._connection_type):
-            connection_type = self._connection_type()
+            connection_type = self._connection_type().lower()
         elif self._connection_type and isinstance(self._connection_type, str):
-            connection_type = self._connection_type
+            connection_type = self._connection_type.lower()
         else:
             logger.error('Connection type have not defined')
             raise Exception('_create_session_by_connection_type', 'Connection type have not defined')
