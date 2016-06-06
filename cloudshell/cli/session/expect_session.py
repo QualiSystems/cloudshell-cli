@@ -19,8 +19,15 @@ class ExpectSession(Session):
     def __init__(self, handler=None, username=None, password=None, host=None, port=None,
                  timeout=60, new_line='\r', **kwargs):
         self._handler = handler
-        self._host = host
         self._port = port
+        if host:
+            temp_host = host.split(':')
+            self._host = temp_host[0]
+            if not self._port and len(temp_host) > 1:
+                self._port = temp_host[1]
+        else:
+            self._host = host
+
         self._username = username
         self._password = password
 
