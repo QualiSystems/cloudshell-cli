@@ -63,7 +63,9 @@ class ExpectSession(Session):
     @inject.params(logger=LOGGER)
     def hardware_expect(self, data_str=None, re_string='', expect_map=OrderedDict(),
                         error_map=OrderedDict(), timeout=None, retries_count=3, logger=None):
-        """
+        """Get response form the device and compare it to expected_map, error_map and re_string patterns,
+        perform actions specified in expected_map if any, and return output.
+        Will raise Exception if response from the device will be empty during the minute
 
         :param data_str:
         :param re_string:
@@ -74,6 +76,7 @@ class ExpectSession(Session):
         :return:
         """
 
+        empty_buffer_counter = 0
         if data_str is not None:
             logger.debug('Send command: ' + data_str)
             self.send_line(data_str)
@@ -107,6 +110,12 @@ class ExpectSession(Session):
                 output_str = ''.join(output_list) + output_str
                 logger.error("Can't find prompt in output: \n" + output_str)
                 raise Exception('ExpectSession', 'Empty response from device!')
+            if current_output == '':
+                if empty_buffer_counter < 20:
+                    empty_buffer_counter += 1
+                else:
+                    raise Exception('ExpectSession', 'Session timed out, Failed to get response form device')
+                time.sleep(3)
             output_str += current_output
 
         output_str = ''.join(output_list) + output_str

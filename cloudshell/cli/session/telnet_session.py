@@ -1,10 +1,10 @@
 __author__ = 'g8y3e'
 
 import telnetlib
+import inject
 from collections import OrderedDict
-
-#from cloudshell.core.logger.qs_logger import get_qs_logger
 from cloudshell.cli.session.expect_session import ExpectSession
+from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER
 
 
 class TelnetSession(ExpectSession):
@@ -14,7 +14,8 @@ class TelnetSession(ExpectSession):
         if self._port is None:
             self._port = 23
 
-    def connect(self, re_string=''):
+    @inject.params(logger=LOGGER)
+    def connect(self, re_string='', logger=None):
         """
             Connect to device
 
@@ -27,11 +28,12 @@ class TelnetSession(ExpectSession):
             raise Exception('TelnetSession', "Can't connect to device!")
 
         expect_map = OrderedDict()
-        expect_map['[Ll]ogin:|[Uu]ser:'] = lambda: self.send_line(self._username)
-        expect_map['[Pp]assword:'] = lambda: self.send_line(self._password)
+        expect_map['[Ll]ogin:|[Uu]ser:'] = lambda session: session.send_line(session._username)
+        expect_map['[Pp]assword:'] = lambda session: session.send_line(session._password)
 
         out = self.hardware_expect(re_string=re_string, expect_map=expect_map)
-        self._logger.info(out)
+        self._default_actions()
+        logger.info(out)
 
         return out
 
@@ -41,6 +43,7 @@ class TelnetSession(ExpectSession):
 
             :return:
         """
+
         self._handler.close()
 
     def _send(self, data_str):
@@ -50,6 +53,7 @@ class TelnetSession(ExpectSession):
             :param data_str: command string
             :return:
         """
+
         self._handler.write(data_str)
 
     def _receive(self, timeout=None):
@@ -59,6 +63,7 @@ class TelnetSession(ExpectSession):
             :param timeout: time for waiting buffer
             :return: str
         """
+
         timeout = timeout if timeout else self._timeout
         self._handler.get_socket().settimeout(timeout)
 
