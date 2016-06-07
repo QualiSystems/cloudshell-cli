@@ -1,3 +1,4 @@
+import traceback
 from weakref import WeakKeyDictionary, WeakSet
 from Queue import Queue
 from threading import Lock, currentThread
@@ -53,7 +54,7 @@ class ConnectionManager(object):
             session_object.connect(re_string=self._prompt)
             logger.debug('Created new session')
         else:
-            raise Exception('ConnectionManager', 'Connection type {0} have not defined'.format(connection_type))
+            raise Exception('ConnectionManager', 'Connection type {0} is not defined'.format(connection_type))
 
         return session_object
 
@@ -69,7 +70,7 @@ class ConnectionManager(object):
             connection_type = self._connection_type.lower()
         else:
             logger.error('Connection type have not defined')
-            raise Exception('_create_session_by_connection_type', 'Connection type have not defined')
+            raise Exception('_create_session_by_connection_type', 'Connection type is not defined')
 
         if not self._prompt or len(self._prompt) == 0:
             logger.warning('Prompt is empty!')
@@ -107,6 +108,7 @@ class ConnectionManager(object):
             session_object = self._session_pool.get(True, self._pool_timeout)
             logger.info('Get session from pool')
         except Exception as error_object:
+            logger.error(traceback.format_exc())
             raise Exception('ConnectionManager', "Can't get find free session from pool!")
 
         return session_object
