@@ -1,3 +1,5 @@
+import re
+
 __author__ = 'g8y3e'
 
 import telnetlib
@@ -8,6 +10,8 @@ from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER
 
 
 class TelnetSession(ExpectSession):
+    AUTHENTICATION_ERROR_PATTERN = '%.*($|\n)'
+
     def __init__(self, *args, **kwargs):
         ExpectSession.__init__(self, telnetlib.Telnet(), *args, **kwargs)
 
@@ -30,8 +34,17 @@ class TelnetSession(ExpectSession):
         expect_map = OrderedDict()
         expect_map['[Ll]ogin:|[Uu]ser:'] = lambda session: session.send_line(session._username)
         expect_map['[Pp]assword:'] = lambda session: session.send_line(session._password)
+        re_string += '|' + self.AUTHENTICATION_ERROR_PATTERN
 
         out = self.hardware_expect(re_string=re_string, expect_map=expect_map)
+
+        match_error = re.search(self.AUTHENTICATION_ERROR_PATTERN, out)
+        if match_error:
+            error_message = re.sub('%', '', match_error.group()).strip(' \r\t\n')
+            logger.error('Failed to open telnet connection to the device, {0}'.format(error_message))
+            raise Exception('TelnetSession', 'Failed to open telnet connection to the device, {0}'.format(
+                error_message))
+
         self._default_actions()
         logger.info(out)
 

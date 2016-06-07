@@ -65,7 +65,7 @@ class ExpectSession(Session):
                         error_map=OrderedDict(), timeout=None, retries_count=3, logger=None):
         """Get response form the device and compare it to expected_map, error_map and re_string patterns,
         perform actions specified in expected_map if any, and return output.
-        Will raise Exception if response from the device will be empty during the minute
+        Will raise Exception if response from the device will be empty within a minute
 
         :param data_str:
         :param re_string:
