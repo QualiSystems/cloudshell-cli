@@ -1,7 +1,5 @@
 import re
 
-__author__ = 'g8y3e'
-
 import telnetlib
 import inject
 from collections import OrderedDict
@@ -17,6 +15,9 @@ class TelnetSession(ExpectSession):
 
         if self._port is None:
             self._port = 23
+
+    def __del__(self):
+        self.disconnect()
 
     @inject.params(logger=LOGGER)
     def connect(self, re_string='', logger=None):
@@ -56,7 +57,7 @@ class TelnetSession(ExpectSession):
 
             :return:
         """
-
+        self._handler.write('exit')
         self._handler.close()
 
     def _send(self, data_str):

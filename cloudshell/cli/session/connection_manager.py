@@ -38,7 +38,7 @@ class ConnectionManager(object):
         self._connection_type = get_config_attribute_or_none('CONNECTION_TYPE',
                                                              self._config) or package_config.CONNECTION_TYPE
         self._default_connection_type = get_config_attribute_or_none('DEFAULT_CONNECTION_TYPE',
-                                                                     self._config) or package_config.CONNECTION_TYPE
+                                                                     self._config) or package_config.DEFAULT_CONNECTION_TYPE
 
         self._pool_timeout = get_config_attribute_or_none('POOL_TIMEOUT', self._config) or package_config.POOL_TIMEOUT
         if logger:
@@ -67,17 +67,19 @@ class ConnectionManager(object):
         :raises: Exception
         """
 
-        if not self._connection_type:
-            self._connection_type = self._default_connection_type
-
         if self._connection_type and callable(self._connection_type):
-            connection_type = self._connection_type().lower()
+            connection_type = self._connection_type()
         elif self._connection_type and isinstance(self._connection_type, str):
-            connection_type = self._connection_type.lower()
+            connection_type = self._connection_type
         else:
             logger.error('Unknown connection type {0}'.format(self._connection_type))
             raise Exception('_create_session_by_connection_type', 'Unknown connection type: {0}'.format(
                 self._connection_type))
+
+        if not connection_type:
+            connection_type = self._default_connection_type
+
+        connection_type = connection_type.lower()
 
         if not self._prompt or len(self._prompt) == 0:
             logger.warning('Prompt is empty!')
