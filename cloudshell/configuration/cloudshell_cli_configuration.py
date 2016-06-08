@@ -3,13 +3,15 @@ from collections import OrderedDict
 from cloudshell.cli.session.session_creator import SessionCreator
 from cloudshell.cli.session.ssh_session import SSHSession
 from cloudshell.cli.session.session_proxy import ReturnToPoolProxy
+from cloudshell.cli.session.tcp_session import TCPSession
+from cloudshell.cli.session.telnet_session import TelnetSession
 from cloudshell.shell.core.context_utils import get_attribute_by_name_wrapper, get_resource_address, \
     get_decrypted_password_by_attribute_name_wrapper
-	
 
 """Session types implemented in current package"""
 CONNECTION_TYPE_SSH = 'ssh'
 CONNECTION_TYPE_TELNET = 'telnet'
+CONNECTION_TYPE_TCP = 'tcp'
 CONNECTION_TYPE_AUTO = 'auto'
 
 """Connection map, defines SessionCreator objects which used for session creation"""
@@ -23,19 +25,23 @@ ssh_session.kwargs = {'username': get_attribute_by_name_wrapper('User'),
                       'host': get_resource_address}
 CONNECTION_MAP[CONNECTION_TYPE_SSH] = ssh_session
 
-# CONNECTION_MAP['tcp'] = SessionHelper(TCPSession)
-# CONNECTION_MAP['tcp'].kwargs
-# CONNECTION_MAP['console'] = SessionHelper(ConsoleSession,
-#                                                    ['console_server_ip', 'console_server_user',
-#                                                     'console_server_password', 'console_port'])
-# CONNECTION_MAP['telnet'] = SessionHelper(TelnetSession)
-# CONNECTION_MAP['ssh'] = SessionHelper(SSHSession)
+"""Definition for TCP session"""
+tcp_session = SessionCreator(TCPSession)
+tcp_session.proxy = ReturnToPoolProxy
+tcp_session.kwargs = {'host': get_resource_address}
+CONNECTION_MAP[CONNECTION_TYPE_TCP] = tcp_session
 
-# CONNECTION_MAP = {CONNECTION_TYPE_SSH: CONNECTION_MAP[CONNECTION_TYPE_SSH]}
+"""Definition for Telnet session"""
+telnet_session = SessionCreator(TelnetSession)
+telnet_session.proxy = ReturnToPoolProxy
+telnet_session.kwargs = {'username': get_attribute_by_name_wrapper('User'),
+                         'password': get_decrypted_password_by_attribute_name_wrapper('Password'),
+                         'host': get_resource_address}
+CONNECTION_MAP[CONNECTION_TYPE_TELNET] = telnet_session
 
 """Function or string that defines connection type"""
-# CONNECTION_TYPE = get_attribute_wrapper('Connection Type')
-CONNECTION_TYPE = CONNECTION_TYPE_AUTO
+CONNECTION_TYPE = get_attribute_by_name_wrapper('CLI Connection Type')
+DEFAULT_CONNECTION_TYPE = CONNECTION_TYPE_AUTO
 
 """Maximum number of sessions that can be created"""
 DEFAULT_SESSION_POOL_SIZE = 1
@@ -49,6 +55,10 @@ DEFAULT_PROMPT = r'.*[>$#]\s*$'
 CONFIG_MODE_PROMPT = r'.*#\s*$'
 ENTER_CONFIG_MODE_PROMPT_COMMAND = 'configure'
 EXIT_CONFIG_MODE_PROMPT_COMMAND = 'exit'
+
+"""Commit rollback commands"""
+COMMIT_COMMAND = 'commit'
+ROLLBACK_COMAND = 'rollback'
 
 EXPECTED_MAP = OrderedDict()
 # ERROR_MAP = OrderedDict({r'.*':'ErrorError'})
