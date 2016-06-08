@@ -1,8 +1,8 @@
-__author__ = 'g8y3e'
-
+import traceback
 import paramiko
 import inject
-from cloudshell.cli.expect_session import ExpectSession
+from cloudshell.cli.session.expect_session import ExpectSession
+from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER
 
 
 class SSHSession(ExpectSession):
@@ -23,25 +23,29 @@ class SSHSession(ExpectSession):
     def __del__(self):
         self.disconnect()
 
-    @inject.params(logger='logger')
+    @inject.params(logger=LOGGER)
     def connect(self, re_string='', logger=None):
         """
             Connect to device through ssh
-            :param re_string: regular expration of end of output
+            :param re_string: regular expression of end of output
             :return: str
         """
-        logger.info("Host: {0}, port: {1}, username: {2}, password: {3}, timeout: {4}".
-                    format(self._host, self._port, self._username, self._password, self._timeout))
 
-        self._handler.connect(self._host, self._port, self._username, self._password, timeout=self._timeout,
-                              banner_timeout=30, allow_agent=False, look_for_keys=False)
+        # logger.debug("Host: {0}, port: {1}, username: {2}, password: {3}, timeout: {4}".
+        #              format(self._host, self._port, self._username, self._password, self._timeout))
+        try:
+            self._handler.connect(self._host, self._port, self._username, self._password, timeout=self._timeout,
+                                  banner_timeout=30, allow_agent=False, look_for_keys=False)
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            raise Exception('SSHSession', 'Failed to open connection to device: {0}'.format(e.message))
 
         self._current_channel = self._handler.invoke_shell()
         self._current_channel.settimeout(self._timeout)
 
         output = self.hardware_expect(re_string=re_string, timeout=self._timeout)
-        self._default_actions()
         logger.info(output)
+        self._default_actions()
 
         return output
 
@@ -51,6 +55,7 @@ class SSHSession(ExpectSession):
             Disconnect from device
             :return:
         """
+
         # logger.info('Disconnected from device!')
         self._current_channel = None
         self._handler.close()
@@ -59,9 +64,10 @@ class SSHSession(ExpectSession):
         """
             Send data to device
 
-            :param data_str: commnad string
+            :param data_str: command string
             :return:
         """
+
         self._current_channel.send(data_str)
 
     def _receive(self, timeout=None):
@@ -70,6 +76,7 @@ class SSHSession(ExpectSession):
             :param timeout: time between retries
             :return: str
         """
+
         # Set the channel timeout
         timeout = timeout if timeout else self._timeout
         self._current_channel.settimeout(timeout)
