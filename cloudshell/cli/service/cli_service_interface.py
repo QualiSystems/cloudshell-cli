@@ -28,5 +28,9 @@ class CliServiceInterface:
         pass
 
     @abstractmethod
-    def rollback(self):
+    def commit(self, expected_map):
+        pass
+
+    @abstractmethod
+    def rollback(self, expected_map):
         pass
