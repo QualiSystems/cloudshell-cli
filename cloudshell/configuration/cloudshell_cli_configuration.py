@@ -41,7 +41,7 @@ CONNECTION_MAP[CONNECTION_TYPE_TELNET] = telnet_session
 
 """Function or string that defines connection type"""
 CONNECTION_TYPE = get_attribute_by_name_wrapper('CLI Connection Type')
-# CONNECTION_TYPE = CONNECTION_TYPE_AUTO
+DEFAULT_CONNECTION_TYPE = CONNECTION_TYPE_AUTO
 
 """Maximum number of sessions that can be created"""
 DEFAULT_SESSION_POOL_SIZE = 1

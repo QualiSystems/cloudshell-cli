@@ -78,7 +78,7 @@ class ExpectSession(Session):
 
         empty_buffer_counter = 0
         if data_str is not None:
-            logger.debug('Send command: ' + data_str)
+            logger.debug(data_str)
             self.send_line(data_str)
 
         if re_string is None or len(re_string) == 0:
@@ -93,7 +93,7 @@ class ExpectSession(Session):
         output_list = list()
         while True:
             if re.search(re_string, output_str, re.DOTALL):
-                logger.debug('Output is:\n{0}'.format(output_str))
+                logger.debug('{0}'.format(output_str))
                 break
             else:
                 time.sleep(0.2)
@@ -108,8 +108,8 @@ class ExpectSession(Session):
             current_output = self._receive_with_retries(timeout, retries_count)
             if current_output is None:
                 output_str = ''.join(output_list) + output_str
-                logger.error("Can't find prompt in output: \n" + output_str)
-                raise Exception('ExpectSession', 'Empty response from device!')
+                logger.error('Failed to get prompt from device, session returned:\n{0}'.format(output_str))
+                raise Exception('ExpectSession', 'Failed to get response from device')
             if current_output == '':
                 if empty_buffer_counter < 20:
                     empty_buffer_counter += 1

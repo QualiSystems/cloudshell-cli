@@ -31,8 +31,8 @@ class SSHSession(ExpectSession):
             :return: str
         """
 
-        logger.debug("Host: {0}, port: {1}, username: {2}, password: {3}, timeout: {4}".
-                     format(self._host, self._port, self._username, self._password, self._timeout))
+        # logger.debug("Host: {0}, port: {1}, username: {2}, password: {3}, timeout: {4}".
+        #              format(self._host, self._port, self._username, self._password, self._timeout))
         try:
             self._handler.connect(self._host, self._port, self._username, self._password, timeout=self._timeout,
                                   banner_timeout=30, allow_agent=False, look_for_keys=False)
@@ -44,8 +44,8 @@ class SSHSession(ExpectSession):
         self._current_channel.settimeout(self._timeout)
 
         output = self.hardware_expect(re_string=re_string, timeout=self._timeout)
-        self._default_actions()
         logger.info(output)
+        self._default_actions()
 
         return output
 
