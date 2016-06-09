@@ -7,6 +7,8 @@ class ReturnToPoolProxy(object):
 
     VALIDATED_CALLS = ('connect', 'reconnect')
 
+
+
     def __init__(self, instance):
         self._instance = instance
         self._valid = False
@@ -33,3 +35,10 @@ class ReturnToPoolProxy(object):
         if inject and inject.is_configured() and self._valid:
             cm = inject.instance(CONNECTION_MANAGER)
             cm.return_session_to_pool(self)
+
+    def set_invalid(self):
+        """Set session to invalid to remove it from session pull
+
+        :return:
+        """
+        self._valid = False

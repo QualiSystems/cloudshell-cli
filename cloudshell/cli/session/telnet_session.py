@@ -13,8 +13,10 @@ class TelnetSession(ExpectSession):
     def __init__(self, *args, **kwargs):
         ExpectSession.__init__(self, telnetlib.Telnet(), *args, **kwargs)
 
+        self.session_type = 'TELNET'
         if self._port is None:
             self._port = 23
+
 
     def __del__(self):
         self.disconnect()

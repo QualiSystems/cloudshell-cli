@@ -5,7 +5,7 @@ from cloudshell.cli.service.cli_service_interface import CliServiceInterface
 from cloudshell.cli.service.cli_exceptions import CommandExecutionException
 from cloudshell.shell.core.config_utils import get_config_attribute_or_none
 import cloudshell.configuration.cloudshell_cli_configuration as package_config
-from cloudshell.configuration.cloudshell_cli_binding_keys import SESSION
+from cloudshell.configuration.cloudshell_cli_binding_keys import SESSION, CONNECTION_MANAGER
 from cloudshell.configuration.cloudshell_shell_core_binding_keys import CONFIG, LOGGER
 import re
 import inject
@@ -34,6 +34,13 @@ class CliService(CliServiceInterface):
 
         self._rollback_command = get_config_attribute_or_none('ROLLBACK_COMMAND',
                                                               self._config) or package_config.ROLLBACK_COMAND
+
+
+
+    @inject.params(session=SESSION)
+    def get_session_type(self, session):
+        return session.session_type
+
 
     @inject.params(logger=LOGGER, session=SESSION)
     def send_config_command(self, command, expected_str=None, expected_map=None, timeout=30, retries=10,
@@ -177,3 +184,16 @@ class CliService(CliServiceInterface):
 
     def rollback(self, expected_map=None):
         self.send_config_command(self._rollback_command, expected_map=expected_map)
+
+    @inject.params(logger=LOGGER, session=SESSION, cm=CONNECTION_MANAGER)
+    def destroy_threaded_session(self, session=None, logger=None, cm=None):
+        """
+
+        :param session:
+        :param logger:
+        :return:
+        """
+        logger.info('Closing session ....')
+        cm.destroy_thread_session(session)
+
+

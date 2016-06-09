@@ -9,12 +9,15 @@ class TCPSession(ExpectSession):
     def __init__(self, *args, **kwargs):
         ExpectSession.__init__(self, socket.socket(socket.AF_INET, socket.SOCK_STREAM), *args, **kwargs)
 
+        self.session_type = 'TCP'
         self._buffer_size = 1024
         if 'buffer_size' in kwargs:
             self._buffer_size = kwargs['buffer_size']
 
         if self._port is not None:
             self._port = int(self._port)
+
+
 
     def connect(self, re_string=''):
         """

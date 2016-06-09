@@ -160,3 +160,9 @@ class ConnectionManager(object):
         if not currentThread() in ConnectionManager.SESSION_CONTAINER:
             ConnectionManager.SESSION_CONTAINER[currentThread()] = ConnectionManager.get_session()
         return ConnectionManager.SESSION_CONTAINER[currentThread()]
+
+    @staticmethod
+    def destroy_thread_session(session):
+        session.set_invalid()
+        if currentThread() in ConnectionManager.SESSION_CONTAINER:
+            del (ConnectionManager.SESSION_CONTAINER[currentThread()])
