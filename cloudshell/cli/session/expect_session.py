@@ -6,10 +6,11 @@ from collections import OrderedDict
 
 from abc import ABCMeta
 import re
-from cloudshell.shell.core.cli_service.session import Session
+from cloudshell.cli.session.session import Session
 from cloudshell.cli.helper.normalize_buffer import normalize_buffer
-from cloudshell.shell.core.cli_service.cli_exceptions import CommandExecutionException
+from cloudshell.cli.service.cli_exceptions import CommandExecutionException
 import inject
+from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER, CONFIG
 
 
 class ExpectSession(Session):
@@ -18,18 +19,25 @@ class ExpectSession(Session):
     def __init__(self, handler=None, username=None, password=None, host=None, port=None,
                  timeout=60, new_line='\r', **kwargs):
         self._handler = handler
-        self._host = host
         self._port = port
+        if host:
+            temp_host = host.split(':')
+            self._host = temp_host[0]
+            if not self._port and len(temp_host) > 1:
+                self._port = temp_host[1]
+        else:
+            self._host = host
+
         self._username = username
         self._password = password
 
         self._new_line = new_line
         self._timeout = timeout
-        self._config = inject.instance('config')
-        if hasattr(self._config, 'DEFAULT_ACTIONS'):
-            self._default_actions_func = self._config.DEFAULT_ACTIONS
-        else:
-            self._default_actions_func = None
+        self._default_actions_func = None
+        if inject.is_configured():
+            self._config = inject.instance(CONFIG)
+            if hasattr(self._config, 'DEFAULT_ACTIONS'):
+                self._default_actions_func = self._config.DEFAULT_ACTIONS
 
     def _receive_with_retries(self, timeout, retries_count):
         current_retries = 0
@@ -52,10 +60,12 @@ class ExpectSession(Session):
     def send_line(self, data_str):
         self._send(data_str + self._new_line)
 
-    @inject.params(logger='logger')
+    @inject.params(logger=LOGGER)
     def hardware_expect(self, data_str=None, re_string='', expect_map=OrderedDict(),
                         error_map=OrderedDict(), timeout=None, retries_count=3, logger=None):
-        """
+        """Get response form the device and compare it to expected_map, error_map and re_string patterns,
+        perform actions specified in expected_map if any, and return output.
+        Will raise Exception if response from the device will be empty within a minute
 
         :param data_str:
         :param re_string:
@@ -66,7 +76,9 @@ class ExpectSession(Session):
         :return:
         """
 
+        empty_buffer_counter = 0
         if data_str is not None:
+            logger.debug(data_str)
             self.send_line(data_str)
 
         if re_string is None or len(re_string) == 0:
@@ -81,6 +93,7 @@ class ExpectSession(Session):
         output_list = list()
         while True:
             if re.search(re_string, output_str, re.DOTALL):
+                logger.debug('{0}'.format(output_str))
                 break
             else:
                 time.sleep(0.2)
@@ -95,8 +108,14 @@ class ExpectSession(Session):
             current_output = self._receive_with_retries(timeout, retries_count)
             if current_output is None:
                 output_str = ''.join(output_list) + output_str
-                logger.error("Can't find prompt in output: \n" + output_str)
-                raise Exception('ExpectSession', 'Empty response from device!')
+                logger.error('Failed to get prompt from device, session returned:\n{0}'.format(output_str))
+                raise Exception('ExpectSession', 'Failed to get response from device')
+            if current_output == '':
+                if empty_buffer_counter < 20:
+                    empty_buffer_counter += 1
+                else:
+                    raise Exception('ExpectSession', 'Session timed out, Failed to get response form device')
+                time.sleep(3)
             output_str += current_output
 
         output_str = ''.join(output_list) + output_str
