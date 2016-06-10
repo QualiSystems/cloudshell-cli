@@ -18,6 +18,7 @@ class ExpectSession(Session):
 
     def __init__(self, handler=None, username=None, password=None, host=None, port=None,
                  timeout=60, new_line='\r', **kwargs):
+        self.session_type = 'EXPECT'
         self._handler = handler
         self._port = port
         if host:
