@@ -1,5 +1,5 @@
 import traceback
-from weakref import WeakKeyDictionary, WeakSet
+from weakref import WeakKeyDictionary
 from Queue import Queue
 from threading import Lock, currentThread
 
@@ -30,7 +30,7 @@ class ConnectionManager(object):
             self._max_connections = package_config.DEFAULT_SESSION_POOL_SIZE
 
         self._session_pool = Queue(maxsize=self._max_connections)
-        self._existing_sessions = WeakSet()
+        self._existing_sessions = 0
 
         self._prompt = get_config_attribute_or_none('DEFAULT_PROMPT', self._config) or package_config.DEFAULT_PROMPT
         self._connection_type_auto = get_config_attribute_or_none('CONNECTION_TYPE_AUTO',
@@ -132,6 +132,13 @@ class ConnectionManager(object):
             time_out = self._pool_timeout
         self._session_pool.put(session, True, time_out)
 
+    def decrement_sessions_count(self):
+        if self._existing_sessions > 0:
+            self._existing_sessions -= 1
+
+    def increment_sessions_count(self):
+        self._existing_sessions += 1
+
     @inject.params(logger=LOGGER)
     def get_session_instance(self, logger):
         """Return session object, takes it from pool or create new session
@@ -141,9 +148,9 @@ class ConnectionManager(object):
         logger.debug('Get session')
 
         with ConnectionManager.CREATE_SESSION_LOCK:
-            if self._session_pool.empty() and len(self._existing_sessions) < self._max_connections:
+            if self._session_pool.empty() and self._existing_sessions < int(self._max_connections):
                 session = self._create_session_by_connection_type(logger)
-                self._existing_sessions.add(session)
+                self.increment_sessions_count()
                 self.return_session_to_pool(session)
         return self._get_session_from_pool()
 
