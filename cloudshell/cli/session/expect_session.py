@@ -78,9 +78,12 @@ class ExpectSession(Session):
         """
 
         empty_buffer_counter = 0
+        MAX_RETRIES = 15
+        retries=0
         if data_str is not None:
             logger.debug(data_str)
             self.send_line(data_str)
+            time.sleep(0.2)
 
         if re_string is None or len(re_string) == 0:
             raise Exception('ExpectSession', 'Expect list is empty!')
@@ -89,43 +92,57 @@ class ExpectSession(Session):
         if output_str is None:
             raise Exception('ExpectSession', 'Empty response from device!')
 
-        # Loop until one of the expressions is matched or loop forever if
+        # Loop until one of the expressions is matched or MAX_RETRIES
         # nothing is expected (usually used for exit)
         output_list = list()
-        while True:
+
+        while True and retries < MAX_RETRIES:
+            retries+=1
+
             if re.search(re_string, output_str, re.DOTALL):
-                logger.debug('{0}'.format(output_str))
+                #logger.debug(output_str)
                 break
             else:
                 time.sleep(0.2)
 
+            read_buffer = True
+            output_list.append(output_str)
             for expect_string in expect_map:
                 result_match = re.search(expect_string, output_str, re.DOTALL)
                 if result_match:
+                    #if output matches expected action - send action and read buffer
                     expect_map[expect_string](self)
+                    time.sleep(0.2)
+                    output_str = self._receive_with_retries(timeout, retries_count)
                     output_list.append(output_str)
-                    output_str = ''
+                    read_buffer = False
 
-            current_output = self._receive_with_retries(timeout, retries_count)
-            if current_output is None:
-                output_str = ''.join(output_list) + output_str
-                logger.error('Failed to get prompt from device, session returned:\n{0}'.format(output_str))
-                raise Exception('ExpectSession', 'Failed to get response from device')
-            if current_output == '':
-                if empty_buffer_counter < 20:
-                    empty_buffer_counter += 1
-                else:
-                    raise Exception('ExpectSession', 'Session timed out, Failed to get response form device')
-                time.sleep(3)
-            output_str += current_output
+            #don't read buffer if already readen
+            if read_buffer:
+                current_output = self._receive_with_retries(timeout, retries_count)
+                if current_output is None:
+                    output_list.append(output_str)
+                    output_str = '\n'.join(output_list)
+                    logger.error('Failed to get prompt from device, session returned:\n{0}'.format(output_str))
+                    raise Exception('ExpectSession', 'Failed to get response from device')
+                if current_output == '':
+                    if empty_buffer_counter < 20:
+                        empty_buffer_counter += 1
+                    else:
+                        raise Exception('ExpectSession', 'Session timed out, Failed to get response form device')
+                    time.sleep(3)
+                output_str += current_output
+        output_list.append(output_str)
+        output_str = '\n'.join(output_list)
 
-        output_str = ''.join(output_list) + output_str
         for error_string in error_map:
             result_match = re.search(error_string, output_str, re.DOTALL)
             if result_match:
                 raise CommandExecutionException('ExpectSession', error_map[error_string])
 
-        return normalize_buffer(output_str)
+        output_str = normalize_buffer(output_str)
+        logger.debug(output_str)
+        return output_str
 
     def reconnect(self, prompt):
         self.disconnect()
