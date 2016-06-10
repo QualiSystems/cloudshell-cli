@@ -1,8 +1,8 @@
-import re
-
 import telnetlib
-import inject
 from collections import OrderedDict
+
+import re
+import inject
 from cloudshell.cli.session.expect_session import ExpectSession
 from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER
 
@@ -16,7 +16,6 @@ class TelnetSession(ExpectSession):
         self.session_type = 'TELNET'
         if self._port is None:
             self._port = 23
-
 
     def __del__(self):
         self.disconnect()
@@ -59,7 +58,6 @@ class TelnetSession(ExpectSession):
 
             :return:
         """
-        self._handler.write('exit')
         self._handler.close()
 
     def _send(self, data_str):
