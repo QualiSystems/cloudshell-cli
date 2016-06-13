@@ -99,6 +99,7 @@ class ConnectionManager(object):
                     if session_object:
                         break
                 except Exception as error_object:
+                    logger.error(traceback.format_exc())
                     logger.error('{0} connection failed with error msg: {1}'.format(key.upper(), error_object.message))
 
         if session_object is None:
