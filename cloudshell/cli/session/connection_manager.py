@@ -1,4 +1,5 @@
-from weakref import WeakKeyDictionary, WeakSet
+import traceback
+from weakref import WeakKeyDictionary
 from Queue import Queue
 from threading import Lock, currentThread
 
@@ -18,24 +19,26 @@ class ConnectionManager(object):
     @inject.params(config=CONFIG, logger=LOGGER)
     def __init__(self, config, logger):
         if not config:
-            raise Exception(self.__class__.__name__, 'Config not defined')
+            raise Exception(self.__class__.__name__, 'Failed to read config for cloudshell-cli package')
         self._config = config
         self._connection_map = get_config_attribute_or_none('CONNECTION_MAP',
                                                             self._config) or package_config.CONNECTION_MAP
 
         self._max_connections = call_if_callable(get_config_attribute_or_none('SESSION_POOL_SIZE',
-                                                             self._config) or package_config.SESSION_POOL_SIZE)
+                                                                              self._config) or package_config.SESSION_POOL_SIZE)
         if not self._max_connections:
             self._max_connections = package_config.DEFAULT_SESSION_POOL_SIZE
 
         self._session_pool = Queue(maxsize=self._max_connections)
-        self._existing_sessions = WeakSet()
+        self._existing_sessions = 0
 
         self._prompt = get_config_attribute_or_none('DEFAULT_PROMPT', self._config) or package_config.DEFAULT_PROMPT
         self._connection_type_auto = get_config_attribute_or_none('CONNECTION_TYPE_AUTO',
                                                                   self._config) or package_config.CONNECTION_TYPE_AUTO
         self._connection_type = get_config_attribute_or_none('CONNECTION_TYPE',
                                                              self._config) or package_config.CONNECTION_TYPE
+        self._default_connection_type = get_config_attribute_or_none('DEFAULT_CONNECTION_TYPE',
+                                                                     self._config) or package_config.DEFAULT_CONNECTION_TYPE
 
         self._pool_timeout = get_config_attribute_or_none('POOL_TIMEOUT', self._config) or package_config.POOL_TIMEOUT
         if logger:
@@ -53,7 +56,8 @@ class ConnectionManager(object):
             session_object.connect(re_string=self._prompt)
             logger.debug('Created new session')
         else:
-            raise Exception('ConnectionManager', 'Connection type {0} have not defined'.format(connection_type))
+            logger.error('Unknown connection type {0}'.format(self._connection_type))
+            raise Exception('ConnectionManager', 'Unknown connection type: {0}'.format(connection_type))
 
         return session_object
 
@@ -68,8 +72,14 @@ class ConnectionManager(object):
         elif self._connection_type and isinstance(self._connection_type, str):
             connection_type = self._connection_type
         else:
-            logger.error('Connection type have not defined')
-            raise Exception('_create_session_by_connection_type', 'Connection type have not defined')
+            logger.error('Unknown connection type {0}'.format(self._connection_type))
+            raise Exception('_create_session_by_connection_type', 'Unknown connection type: {0}'.format(
+                self._connection_type))
+
+        if not connection_type:
+            connection_type = self._default_connection_type
+
+        connection_type = connection_type.lower()
 
         if not self._prompt or len(self._prompt) == 0:
             logger.warning('Prompt is empty!')
@@ -89,6 +99,7 @@ class ConnectionManager(object):
                     if session_object:
                         break
                 except Exception as error_object:
+                    logger.error(traceback.format_exc())
                     logger.error('{0} connection failed with error msg: {1}'.format(key.upper(), error_object.message))
 
         if session_object is None:
@@ -107,7 +118,8 @@ class ConnectionManager(object):
             session_object = self._session_pool.get(True, self._pool_timeout)
             logger.info('Get session from pool')
         except Exception as error_object:
-            raise Exception('ConnectionManager', "Can't get find free session from pool!")
+            logger.error(traceback.format_exc())
+            raise Exception('ConnectionManager', "Failed to get available session!")
 
         return session_object
 
@@ -120,6 +132,13 @@ class ConnectionManager(object):
             time_out = self._pool_timeout
         self._session_pool.put(session, True, time_out)
 
+    def decrement_sessions_count(self):
+        if self._existing_sessions > 0:
+            self._existing_sessions -= 1
+
+    def increment_sessions_count(self):
+        self._existing_sessions += 1
+
     @inject.params(logger=LOGGER)
     def get_session_instance(self, logger):
         """Return session object, takes it from pool or create new session
@@ -129,9 +148,9 @@ class ConnectionManager(object):
         logger.debug('Get session')
 
         with ConnectionManager.CREATE_SESSION_LOCK:
-            if self._session_pool.empty() and len(self._existing_sessions) < self._max_connections:
+            if self._session_pool.empty() and self._existing_sessions < int(self._max_connections):
                 session = self._create_session_by_connection_type(logger)
-                self._existing_sessions.add(session)
+                self.increment_sessions_count()
                 self.return_session_to_pool(session)
         return self._get_session_from_pool()
 
@@ -149,3 +168,9 @@ class ConnectionManager(object):
         if not currentThread() in ConnectionManager.SESSION_CONTAINER:
             ConnectionManager.SESSION_CONTAINER[currentThread()] = ConnectionManager.get_session()
         return ConnectionManager.SESSION_CONTAINER[currentThread()]
+
+    @staticmethod
+    def destroy_thread_session(session):
+        session.set_invalid()
+        if currentThread() in ConnectionManager.SESSION_CONTAINER:
+            del (ConnectionManager.SESSION_CONTAINER[currentThread()])

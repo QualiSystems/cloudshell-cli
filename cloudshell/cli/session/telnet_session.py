@@ -1,20 +1,27 @@
-__author__ = 'g8y3e'
-
 import telnetlib
 from collections import OrderedDict
 
-#from cloudshell.core.logger.qs_logger import get_qs_logger
+import re
+import inject
 from cloudshell.cli.session.expect_session import ExpectSession
+from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER
 
 
 class TelnetSession(ExpectSession):
+    AUTHENTICATION_ERROR_PATTERN = '%.*($|\n)'
+
     def __init__(self, *args, **kwargs):
         ExpectSession.__init__(self, telnetlib.Telnet(), *args, **kwargs)
 
+        self.session_type = 'TELNET'
         if self._port is None:
             self._port = 23
 
-    def connect(self, re_string=''):
+    def __del__(self):
+        self.disconnect()
+
+    @inject.params(logger=LOGGER)
+    def connect(self, re_string='', logger=None):
         """
             Connect to device
 
@@ -27,11 +34,21 @@ class TelnetSession(ExpectSession):
             raise Exception('TelnetSession', "Can't connect to device!")
 
         expect_map = OrderedDict()
-        expect_map['[Ll]ogin:|[Uu]ser:'] = lambda: self.send_line(self._username)
-        expect_map['[Pp]assword:'] = lambda: self.send_line(self._password)
+        expect_map['[Ll]ogin:|[Uu]ser:'] = lambda session: session.send_line(session._username)
+        expect_map['[Pp]assword:'] = lambda session: session.send_line(session._password)
+        re_string += '|' + self.AUTHENTICATION_ERROR_PATTERN
 
         out = self.hardware_expect(re_string=re_string, expect_map=expect_map)
-        self._logger.info(out)
+
+        match_error = re.search(self.AUTHENTICATION_ERROR_PATTERN, out)
+        if match_error:
+            error_message = re.sub('%', '', match_error.group()).strip(' \r\t\n')
+            logger.error('Failed to open telnet connection to the device, {0}'.format(error_message))
+            raise Exception('TelnetSession', 'Failed to open telnet connection to the device, {0}'.format(
+                error_message))
+
+        self._default_actions()
+        logger.info(out)
 
         return out
 
@@ -50,6 +67,7 @@ class TelnetSession(ExpectSession):
             :param data_str: command string
             :return:
         """
+
         self._handler.write(data_str)
 
     def _receive(self, timeout=None):
@@ -59,6 +77,7 @@ class TelnetSession(ExpectSession):
             :param timeout: time for waiting buffer
             :return: str
         """
+
         timeout = timeout if timeout else self._timeout
         self._handler.get_socket().settimeout(timeout)
 

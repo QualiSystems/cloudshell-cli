@@ -27,9 +27,20 @@ class ReturnToPoolProxy(object):
             except:
                 self._valid = False
                 raise
+
         return wrapper_func
 
     def __del__(self):
-        if inject and inject.is_configured() and self._valid:
+        if inject and inject.is_configured():
             cm = inject.instance(CONNECTION_MANAGER)
-            cm.return_session_to_pool(self)
+            if self._valid:
+                cm.return_session_to_pool(self)
+            else:
+                cm.decrement_sessions_count()
+
+    def set_invalid(self):
+        """Set session to invalid to remove it from session pull
+
+        :return:
+        """
+        self._valid = False
