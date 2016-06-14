@@ -2,6 +2,7 @@ __author__ = 'g8y3e'
 
 import re
 
+
 def normalize_buffer(input_buffer):
     """
     Method for clear color fro input_buffer and special characters

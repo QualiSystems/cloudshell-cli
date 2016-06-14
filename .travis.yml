@@ -1,14 +1,14 @@
 language: python
 python:
-    - "2.7"
+- '2.7'
+
+before_install:
+- pip install Inject==3.3.1
+- pip install paramiko==1.15.2
+- pip install pycrypto==2.6.1
+- pip install -r test_requirements.txt -i https://testpypi.python.org/pypi
 
 install:
-    - pip install -r test_requirements.txt
-    - pip install coveralls
+    - python setup.py install
 
-script:
-    - python setup.py develop
-    - nosetests --with-coverage --cover-package=cloudshell
-
-after_success:
-    coveralls
+script: python setup.py sdist --format zip
