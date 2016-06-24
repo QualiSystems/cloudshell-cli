@@ -1,3 +1,4 @@
+from cloudshell.cli.command_template.command_template import CommandTemplate
 from cloudshell.cli.command_template.command_template_validator import get_validate_list
 
 _TEMPLATE_DICT = {}
@@ -42,7 +43,13 @@ def get_commands_list(command_map):
 
     prepared_commands = []
     for command, value in command_map.items():
-        if command in _TEMPLATE_DICT:
-            command_template = _TEMPLATE_DICT[command]
-            prepared_commands.append(get_validate_list(command_template, value))
+        if isinstance(command, CommandTemplate):
+            command_template = command
+        else:
+            if command in _TEMPLATE_DICT:
+                command_template = _TEMPLATE_DICT[command]
+
+            else:
+                raise Exception('get_commands_list', 'Command template {0} is not registered'.format(command))
+        prepared_commands.append(get_validate_list(command_template, value))
     return prepared_commands
