@@ -16,7 +16,7 @@ class ExpectSession(Session):
     __metaclass__ = ABCMeta
 
     DEFAULT_ACTIONS = None
-    HE_MAX_LOOP_RETRIES = 20
+    HE_MAX_LOOP_RETRIES = 100
     HE_MAX_READ_RETRIES = 5
 
     def __init__(self, handler=None, username=None, password=None, host=None, port=None,
@@ -88,7 +88,7 @@ class ExpectSession(Session):
         """
 
         if retries_count is None:
-            retries_count = self._max_read_retries
+            retries_count = self._max_loop_retries
 
         if data_str is not None:
             logger.debug(data_str)
@@ -106,9 +106,9 @@ class ExpectSession(Session):
         retries = 0
         is_correct_exit = False
 
-        while retries < self._max_loop_retries:
+        while retries_count == 0 or retries < retries_count:
             retries += 1
-            output_str += self._receive_with_retries(timeout, retries_count)
+            output_str += self._receive_with_retries(timeout, self._max_read_retries)
 
             if re.search(re_string, output_str, re.DOTALL):
                 output_list.append(output_str)
