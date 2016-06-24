@@ -43,7 +43,7 @@ class CliService(CliServiceInterface):
 
 
     @inject.params(logger=LOGGER, session=SESSION)
-    def send_config_command(self, command, expected_str=None, expected_map=None, timeout=30, retries=10,
+    def send_config_command(self, command, expected_str=None, expected_map=None, timeout=None, retries=None,
                             is_need_default_prompt=False, logger=None, session=None):
         """Send command into configuration mode, enter to config mode if needed
 
@@ -64,7 +64,7 @@ class CliService(CliServiceInterface):
         return out
 
     @inject.params(logger=LOGGER, session=SESSION)
-    def send_command(self, command, expected_str=None, expected_map=None, timeout=30, retries=10,
+    def send_command(self, command, expected_str=None, expected_map=None, timeout=None, retries=None,
                      is_need_default_prompt=True, logger=None, session=None):
         """Send command in default mode
 
@@ -90,7 +90,7 @@ class CliService(CliServiceInterface):
         return out
 
     @inject.params(logger=LOGGER)
-    def _send_command(self, command, expected_str=None, expected_map=None, timeout=30, retries=10,
+    def _send_command(self, command, expected_str=None, expected_map=None, timeout=None, retries=None,
                       is_need_default_prompt=True, logger=None, session=None):
         """Send command
 

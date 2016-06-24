@@ -6,12 +6,12 @@ class CliServiceInterface:
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def send_command(self, command, expected_str=None, expected_map=None, timeout=30, retry_count=10,
+    def send_command(self, command, expected_str=None, expected_map=None, timeout=None, retry_count=None,
                      is_need_default_prompt=True):
         pass
 
     @abstractmethod
-    def send_config_command(self, command, expected_str=None, expected_map=None, timeout=30, retry_count=10,
+    def send_config_command(self, command, expected_str=None, expected_map=None, timeout=None, retry_count=None,
                             is_need_default_prompt=True):
         pass
 

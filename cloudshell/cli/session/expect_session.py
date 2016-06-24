@@ -18,6 +18,7 @@ class ExpectSession(Session):
     DEFAULT_ACTIONS = None
     HE_MAX_LOOP_RETRIES = 100
     HE_MAX_READ_RETRIES = 5
+    HE_EMPTY_LOOP_TIMEOUT = 0.2
 
     def __init__(self, handler=None, username=None, password=None, host=None, port=None,
                  timeout=60, new_line='\r', **kwargs):
@@ -42,7 +43,7 @@ class ExpectSession(Session):
 
         self._max_read_retries = self.HE_MAX_READ_RETRIES
         self._max_loop_retries = self.HE_MAX_LOOP_RETRIES
-        # self._global_timeout = self.HE_GLOBAL_TIMEOUT
+        self._empty_loop_timeout = self.HE_EMPTY_LOOP_TIMEOUT
         self._default_actions_func = self.DEFAULT_ACTIONS
 
     def _receive_with_retries(self, timeout, retries_count):
@@ -107,6 +108,7 @@ class ExpectSession(Session):
         is_correct_exit = False
 
         while retries_count == 0 or retries < retries_count:
+            is_matched = False
             retries += 1
             output_str += self._receive_with_retries(timeout, self._max_read_retries)
 
@@ -121,7 +123,10 @@ class ExpectSession(Session):
                     expect_map[expect_string](self)
                     output_list.append(output_str)
                     output_str = ''
+                    is_matched = True
                     break
+            if not is_matched:
+                time.sleep(self._empty_loop_timeout)
 
         if not is_correct_exit:
             raise Exception('ExpectSession', 'Loop limit exceeded')
