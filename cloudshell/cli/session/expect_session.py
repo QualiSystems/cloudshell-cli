@@ -136,6 +136,7 @@ class ExpectSession(Session):
         for error_string in error_map:
             result_match = re.search(error_string, result_output, re.DOTALL)
             if result_match:
+                logger.error(result_output)
                 raise CommandExecutionException('ExpectSession', error_map[error_string])
 
         result_output = normalize_buffer(result_output)

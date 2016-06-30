@@ -6,12 +6,13 @@ class CliServiceInterface:
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def send_command(self, command, expected_str=None, expected_map=None, timeout=None, retry_count=None,
-                     is_need_default_prompt=True):
+    def send_command(self, command, expected_str=None, expected_map=None, error_map=None, timeout=None,
+                     retries=None, is_need_default_prompt=True):
         pass
 
     @abstractmethod
-    def send_config_command(self, command, expected_str=None, expected_map=None, timeout=None, retry_count=None,
+    def send_config_command(self, command, expected_str=None, expected_map=None, error_map=None, timeout=None,
+                            retries=None,
                             is_need_default_prompt=True):
         pass
 
@@ -24,7 +25,7 @@ class CliServiceInterface:
         pass
 
     @abstractmethod
-    def send_command_list(self, commands_list, send_command_func=send_config_command):
+    def send_command_list(self, commands_list, send_command_func=None, expected_map=None, error_map=None):
         pass
 
     @abstractmethod
