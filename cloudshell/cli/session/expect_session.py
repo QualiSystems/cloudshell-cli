@@ -140,7 +140,7 @@ class ExpectSession(Session):
                 raise CommandExecutionException('ExpectSession', error_map[error_string])
 
         result_output = normalize_buffer(result_output)
-        # logger.debug(output_str)
+        logger.debug(result_output)
         return result_output
 
     def reconnect(self, prompt):

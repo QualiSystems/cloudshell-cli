@@ -20,7 +20,7 @@ class CliService(CliServiceInterface):
     ENTER_CONFIG_MODE_PROMPT_COMMAND = package_config.ENTER_CONFIG_MODE_PROMPT_COMMAND
     EXIT_CONFIG_MODE_PROMPT_COMMAND = package_config.EXIT_CONFIG_MODE_PROMPT_COMMAND
     COMMIT_COMMAND = package_config.COMMIT_COMMAND
-    ROLLBACK_COMMAND = package_config.ROLLBACK_COMAND
+    ROLLBACK_COMMAND = package_config.ROLLBACK_COMMAND
 
     @inject.params(config=CONFIG)
     def __init__(self, config):
