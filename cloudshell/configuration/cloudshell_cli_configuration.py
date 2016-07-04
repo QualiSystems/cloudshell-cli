@@ -58,7 +58,7 @@ EXIT_CONFIG_MODE_PROMPT_COMMAND = 'exit'
 
 """Commit rollback commands"""
 COMMIT_COMMAND = 'commit'
-ROLLBACK_COMAND = 'rollback'
+ROLLBACK_COMMAND = 'rollback'
 
 EXPECTED_MAP = OrderedDict()
 # ERROR_MAP = OrderedDict({r'.*':'ErrorError'})

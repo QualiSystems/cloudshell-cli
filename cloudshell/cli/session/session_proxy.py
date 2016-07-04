@@ -1,3 +1,4 @@
+from cloudshell.cli.service.cli_exceptions import CommandExecutionException
 import inject
 from cloudshell.configuration.cloudshell_cli_binding_keys import CONNECTION_MANAGER
 
@@ -24,6 +25,8 @@ class ReturnToPoolProxy(object):
                 if name in self.VALIDATED_CALLS:
                     self._valid = True
                 return result
+            except CommandExecutionException:
+                raise
             except:
                 self._valid = False
                 raise
