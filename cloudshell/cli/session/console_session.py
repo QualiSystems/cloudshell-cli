@@ -61,6 +61,7 @@ class ConsoleSession(ExpectSession):
         :param re_string:
         :return:
         """
+
         expect_map = OrderedDict()
         expect_map['[Ll]ogin:|[Uu]sername:'] = lambda: self.send_line(self._username)
         expect_map['[Pp]assword:'] = lambda: self.send_line(self._password)

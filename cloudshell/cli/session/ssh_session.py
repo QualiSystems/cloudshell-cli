@@ -27,14 +27,13 @@ class SSHSession(ExpectSession):
 
     @inject.params(logger=LOGGER)
     def connect(self, re_string='', logger=None):
-        """
-            Connect to device through ssh
-            :param re_string: regular expression of end of output
-            :return: str
+        """Connect to device through ssh
+
+        :param re_string: expected string in output
+        :param logger:
+        :return: output
         """
 
-        # logger.debug("Host: {0}, port: {1}, username: {2}, password: {3}, timeout: {4}".
-        #              format(self._host, self._port, self._username, self._password, self._timeout))
         try:
             self._handler.connect(self._host, self._port, self._username, self._password, timeout=self._timeout,
                                   banner_timeout=30, allow_agent=False, look_for_keys=False)
@@ -53,33 +52,33 @@ class SSHSession(ExpectSession):
 
     # @inject.params(logger='logger')
     def disconnect(self, logger=None):
-        """
-            Disconnect from device
-            :return:
+        """Disconnect from device
+
+        :param logger:
+        :return:
         """
 
-        # logger.info('Disconnected from device!')
         self._current_channel = None
         self._handler.close()
 
     def _send(self, data_str):
-        """
-            Send data to device
+        """Send message to device
 
-            :param data_str: command string
-            :return:
+        :param data_str:  message/command
+        :return:
         """
 
         self._current_channel.send(data_str)
 
     def _receive(self, timeout=None):
-        """
-            Read data from device
-            :param timeout: time between retries
-            :return: str
+        """Read session buffer
+
+        :param timeout: time between retries
+        :return:
         """
 
         # Set the channel timeout
         timeout = timeout if timeout else self._timeout
+
         self._current_channel.settimeout(timeout)
         return self._current_channel.recv(self._buffer_size)

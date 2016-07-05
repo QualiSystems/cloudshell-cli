@@ -9,7 +9,7 @@ def get_validate_list(command_template, properties_list):
     if validate_result[0]:
         return command_template.get_command(*properties_list)
     else:
-        raise Exception(command_template.get_error_by_index(validate_result[1]))
+        raise Exception('get_validate_list:', command_template.get_error_by_index(validate_result[1]))
 
 
 def _validate(properties_list, re_string_list):

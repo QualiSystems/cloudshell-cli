@@ -31,4 +31,4 @@ class SessionCreator(object):
             else:
                 return self.classobj(**kwargs)
         else:
-            raise Exception('SessionCreator', 'Incorrect classobj for session {0}'.format(self.classobj))
+            raise Exception('SessionCreator', 'Incorrect classobj for session \'{0}\''.format(self.classobj))
