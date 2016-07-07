@@ -22,16 +22,16 @@ class TelnetSession(ExpectSession):
 
     @inject.params(logger=LOGGER)
     def connect(self, re_string='', logger=None):
-        """
-            Connect to device
+        """Open connection to device / create session
 
-            :param re_string: regular expression string
-            :return:
+        :param re_string:
+        :param logger:
+        :return:
         """
 
         self._handler.open(self._host, int(self._port), self._timeout)
         if self._handler.get_socket() is None:
-            raise Exception('TelnetSession', "Can't connect to device!")
+            raise Exception('TelnetSession', "Failed to open telnet connection.")
 
         expect_map = OrderedDict()
         expect_map['[Ll]ogin:|[Uu]ser:'] = lambda session: session.send_line(session._username)
@@ -53,29 +53,27 @@ class TelnetSession(ExpectSession):
         return out
 
     def disconnect(self):
-        """
-            Disconnect from device
+        """Disconnect / close the session
 
-            :return:
+        :return:
         """
+
         self._handler.close()
 
     def _send(self, data_str):
-        """
-            Send data to device
+        """send message / command to device
 
-            :param data_str: command string
-            :return:
+        :param data_str: message / command to send
+        :return:
         """
 
         self._handler.write(data_str)
 
     def _receive(self, timeout=None):
-        """
-            Read data from device
+        """read session buffer
 
-            :param timeout: time for waiting buffer
-            :return: str
+        :param timeout:
+        :return: output
         """
 
         timeout = timeout if timeout else self._timeout

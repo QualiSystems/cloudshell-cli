@@ -46,4 +46,5 @@ class ReturnToPoolProxy(object):
 
         :return:
         """
+
         self._valid = False

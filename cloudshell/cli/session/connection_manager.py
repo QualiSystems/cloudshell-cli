@@ -56,8 +56,9 @@ class ConnectionManager(object):
             session_object.connect(re_string=self._prompt)
             logger.debug('Created new session')
         else:
-            logger.error('Unknown connection type {0}'.format(self._connection_type))
-            raise Exception('ConnectionManager', 'Unknown connection type: {0}'.format(connection_type))
+            err_msg = 'Unknown connection type \'{0}\''.format(self._connection_type)
+            logger.error(err_msg)
+            raise Exception('ConnectionManager', err_msg)
 
         return session_object
 
@@ -72,9 +73,9 @@ class ConnectionManager(object):
         elif self._connection_type and isinstance(self._connection_type, str):
             connection_type = self._connection_type
         else:
-            logger.error('Unknown connection type {0}'.format(self._connection_type))
-            raise Exception('_create_session_by_connection_type', 'Unknown connection type: {0}'.format(
-                self._connection_type))
+            err_msg = 'Unknown connection type {0}'.format(self._connection_type)
+            logger.error(err_msg)
+            raise Exception('_create_session_by_connection_type', err_msg)
 
         if not connection_type:
             connection_type = self._default_connection_type
@@ -82,7 +83,7 @@ class ConnectionManager(object):
         connection_type = connection_type.lower()
 
         if not self._prompt or len(self._prompt) == 0:
-            logger.warning('Prompt is empty!')
+            logger.warning('Provided Prompt for the session is empty!')
 
         logger.info('\n-------------------------------------------------------------')
         logger.info('Connection - {0}'.format(connection_type))
@@ -103,25 +104,31 @@ class ConnectionManager(object):
                     logger.error('{0} connection failed with error msg: {1}'.format(key.upper(), error_object.message))
 
         if session_object is None:
-            logger.error('Connection failed!')
-            raise Exception('ConnectionManager', 'Cannot create session, see logs for details')
+            err_msg = 'Failed to open connection to device.'
+            logger.error(err_msg)
+            raise Exception('ConnectionManager', err_msg)
 
         return session_object
 
     @inject.params(logger=LOGGER)
     def _get_session_from_pool(self, logger=None):
         """Take session from pool
+
+        :param logger:
         :rtype: Session
         :raises: Exception
         """
+
         logger.debug(
             'Session pool size: {0}, Sessions in the pool: {1}'.format(self._max_connections, self._existing_sessions))
         try:
             session_object = self._session_pool.get(True, self._pool_timeout)
-            logger.info('Get session from pool')
+            logger.info('Trying to get session from pool')
         except Exception as error_object:
+            err_msg = "Failed to get available session from pull."
             logger.error(traceback.format_exc())
-            raise Exception('ConnectionManager', "Failed to get available session!")
+            logger.error(err_msg)
+            raise Exception('ConnectionManager', err_msg)
 
         return session_object
 
@@ -147,8 +154,6 @@ class ConnectionManager(object):
         :rtype: Session
         """
 
-        logger.debug('Get session')
-
         with ConnectionManager.CREATE_SESSION_LOCK:
             if self._session_pool.empty() and self._existing_sessions < int(self._max_connections):
                 session = self._create_session_by_connection_type(logger)
@@ -159,20 +164,28 @@ class ConnectionManager(object):
     @staticmethod
     @inject.params(connection_manager=CONNECTION_MANAGER)
     def get_session(connection_manager):
-        """
+        """Get session
         :rtype: Session
         """
+
         return connection_manager.get_session_instance()
 
     @staticmethod
     def get_thread_session():
-        """Return same session for thread"""
+        """Return same session for thread
+        """
+
         if not currentThread() in ConnectionManager.SESSION_CONTAINER:
             ConnectionManager.SESSION_CONTAINER[currentThread()] = ConnectionManager.get_session()
         return ConnectionManager.SESSION_CONTAINER[currentThread()]
 
     @staticmethod
     def destroy_thread_session(session):
+        """Destroy threaded session
+
+        :param session:
+        :return:
+        """
         session.set_invalid()
         if currentThread() in ConnectionManager.SESSION_CONTAINER:
             del (ConnectionManager.SESSION_CONTAINER[currentThread()])

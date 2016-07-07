@@ -47,6 +47,13 @@ class ExpectSession(Session):
         self._default_actions_func = self.DEFAULT_ACTIONS
 
     def _receive_with_retries(self, timeout, retries_count):
+        """Read session buffer with several retries
+
+        :param timeout:
+        :param retries_count:
+        :return:
+        """
+
         current_retries = 0
         current_output = None
 
@@ -77,14 +84,14 @@ class ExpectSession(Session):
                         error_map=OrderedDict(), timeout=None, retries_count=None, logger=None):
         """Get response form the device and compare it to expected_map, error_map and re_string patterns,
         perform actions specified in expected_map if any, and return output.
-        Will raise Exception if response from the device will be empty within a minute
+        Raise Exception if receive empty responce from device within a minute
 
-        :param data_str:
-        :param re_string:
-        :param expect_map:
-        :param error_map:
-        :param timeout:
-        :param retries_count:
+        :param data_str: command to send
+        :param re_string: expected string
+        :param expect_map: dict with {re_str: action} to trigger some action on received string
+        :param error_map: expected error list
+        :param timeout: session timeout
+        :param retries_count: maximal retries count
         :return:
         """
 
@@ -97,8 +104,7 @@ class ExpectSession(Session):
             time.sleep(0.2)
 
         if re_string is None or len(re_string) == 0:
-            raise Exception('ExpectSession', 'Expect list is empty!')
-
+            raise Exception('ExpectSession', 'List of expected messages can\'t be empty!')
 
         # Loop until one of the expressions is matched or MAX_RETRIES
         # nothing is expected (usually used for exit)
@@ -129,7 +135,7 @@ class ExpectSession(Session):
                 time.sleep(self._empty_loop_timeout)
 
         if not is_correct_exit:
-            raise Exception('ExpectSession', 'Loop limit exceeded')
+            raise Exception('ExpectSession', 'Session Loop limit exceeded')
 
         result_output = ''.join(output_list)
 
@@ -137,7 +143,7 @@ class ExpectSession(Session):
             result_match = re.search(error_string, result_output, re.DOTALL)
             if result_match:
                 logger.error(result_output)
-                raise CommandExecutionException('ExpectSession', error_map[error_string])
+                raise CommandExecutionException('ExpectSession', 'Session returned \'{}\''.foromat(error_map[error_string]))
 
         result_output = normalize_buffer(result_output)
         logger.debug(result_output)

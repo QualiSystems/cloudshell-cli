@@ -20,12 +20,12 @@ class TCPSession(ExpectSession):
 
 
     def connect(self, re_string=''):
-        """
-            Connect to device
+        """Open connection to device / create session
 
-            :param re_string: regular expression string
-            :return:
+        :param re_string: expected message from device
+        :return:
         """
+
         server_address = (self._host, self._port)
         self._handler.connect(server_address)
 
@@ -36,29 +36,29 @@ class TCPSession(ExpectSession):
         return output
 
     def disconnect(self):
-        """
-            Disconnect from device
+        """Disconnect from device/close the session
 
-            :return:
+        :return:
         """
+
         self._handler.close()
 
     def _send(self, data_str):
-        """
-            Send data to device
+        """Send message to the session
 
-            :param data_str: command string
-            :return:
+        :param data_str: message/command to send
+        :return:
         """
+
         self._handler.sendall(data_str)
 
     def _receive(self, timeout=None):
-        """
-            Read data from device
+        """Read session buffer
 
-            :param timeout: time for waiting buffer
-            :return: str
+        :param timeout:
+        :return:
         """
+
         timeout = timeout if timeout else self._timeout
         self._handler.settimeout(timeout)
 

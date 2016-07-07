@@ -10,7 +10,7 @@ def add_templates(commands):
 
 def send_commands_list(commands_list, send_command_func=None, expected_map=None, error_map=None):
     if not send_command_func:
-        raise Exception("Need send command function")
+        raise Exception("send_commands_list:", "send_command function is None or empty")
     output = ""
     for command in commands_list:
         out = send_command_func(command, expected_map=expected_map, error_map=error_map)
@@ -50,6 +50,6 @@ def get_commands_list(command_map):
                 command_template = _TEMPLATE_DICT[command]
 
             else:
-                raise Exception('get_commands_list', 'Command template {0} is not registered'.format(command))
+                raise Exception("get_commands_list: ", "Command template \'{0}\' is not registered".format(command))
         prepared_commands.append(get_validate_list(command_template, value))
     return prepared_commands
