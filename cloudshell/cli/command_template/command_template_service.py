@@ -8,18 +8,18 @@ def add_templates(commands):
     _TEMPLATE_DICT.update(commands)
 
 
-def send_commands_list(commands_list, send_command_func=None):
+def send_commands_list(commands_list, send_command_func=None, expected_map=None, error_map=None):
     if not send_command_func:
         raise Exception("send_commands_list:", "send_command function is None or empty")
     output = ""
     for command in commands_list:
-        out = send_command_func(command)
+        out = send_command_func(command, expected_map=expected_map, error_map=error_map)
         if out:
             output += out
     return output
 
 
-def execute_command_map(command_map, send_command_func=None):
+def execute_command_map(command_map, send_command_func=None, expected_map=None, error_map=None):
     """Generate commands list based on command_map and run them
 
     :param command_map: map of commands
@@ -30,7 +30,7 @@ def execute_command_map(command_map, send_command_func=None):
     """
 
     commands_list = get_commands_list(command_map)
-    output = send_commands_list(commands_list, send_command_func)
+    output = send_commands_list(commands_list, send_command_func, expected_map=expected_map, error_map=error_map)
     return output
 
 

@@ -119,6 +119,8 @@ class ConnectionManager(object):
         :raises: Exception
         """
 
+        logger.debug(
+            'Session pool size: {0}, Sessions in the pool: {1}'.format(self._max_connections, self._existing_sessions))
         try:
             session_object = self._session_pool.get(True, self._pool_timeout)
             logger.info('Trying to get session from pool')

@@ -29,7 +29,7 @@ class ExpectSession(Session):
             temp_host = host.split(':')
             self._host = temp_host[0]
             if not self._port and len(temp_host) > 1:
-                self._port = temp_host[1]
+                self._port = int(temp_host[1])
         else:
             self._host = host
 
