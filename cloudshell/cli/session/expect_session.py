@@ -130,11 +130,11 @@ class ExpectSession(Session):
             for expect_string in expect_map:
                 result_match = re.search(expect_string, output_str, re.DOTALL)
                 if result_match:
+                    output_list.append(output_str)
                     if not action_loop_protector.check_loops(expect_string):
-                        self.logger.error('Loops detected, last action: {}'.format(expect_string))
+                        self.logger.error('Loops detected, output_list: {}'.format(output_list))
                         raise Exception('hardware_expect', 'Expected actions loops detected')
                     expect_map[expect_string](self)
-                    output_list.append(output_str)
                     output_str = ''
                     is_matched = True
                     break
@@ -176,15 +176,23 @@ class ActionLoopProtector(object):
         self._action_history = []
 
     @property
+    def logger(self):
+        return inject.instance(LOGGER)
+
+    @property
     def action_history_len(self):
         return len(self._action_history)
 
     def check_loops(self, action_key):
-        """Add action in history look for loops in action history"""
+        """Add action in history, look for loops in action history"""
+        is_correct = True
         self._action_history.append(action_key)
         for index in reversed(range(0, len(self._action_history))):
             if not self._check_loop_for_index(index):
-                return False
+                is_correct = False
+                self.logger.error('Action history: {}'.format(self._action_history))
+                break
+        return is_correct
 
     def _check_loop_for_index(self, index):
         """Check if index of history can have loops then check for loops"""
@@ -198,18 +206,22 @@ class ActionLoopProtector(object):
                 for combination_index in range(self._max_action_loops):
                     index_start = (self.action_history_len - 1) - (combination_len * combination_index) - (
                         combination_len - 1)
+                    """get start index for combination"""
                     index_end = (self.action_history_len - 1) - (combination_len * combination_index)
+                    """get end index for combination"""
                     combinations.append(self._get_combination(index_start, index_end))
-                is_different = self._is_combinations_different(combinations)
+                is_different = self._are_combinations_different(combinations)
         return is_different
 
     def _get_combination(self, index_start, index_end):
+        """create combination from history by indexes"""
         combination = []
         for index in range(index_start, index_end + 1):
             combination.append(self._action_history[index])
         return combination
 
-    def _is_combinations_different(self, combinations):
+    def _are_combinations_different(self, combinations):
+        """check if combinations are different"""
         is_different = False
         previous_combination = combinations.pop(0)
         for combination in combinations:
@@ -218,4 +230,5 @@ class ActionLoopProtector(object):
                 break
             else:
                 previous_combination = combination
+
         return is_different
