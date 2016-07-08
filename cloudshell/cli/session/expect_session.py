@@ -46,6 +46,10 @@ class ExpectSession(Session):
         self._empty_loop_timeout = self.HE_EMPTY_LOOP_TIMEOUT
         self._default_actions_func = self.DEFAULT_ACTIONS
 
+    @property
+    def logger(self):
+        return inject.instance(LOGGER)
+
     def _receive_with_retries(self, timeout, retries_count):
         """Read session buffer with several retries
 
@@ -79,9 +83,8 @@ class ExpectSession(Session):
     def send_line(self, data_str):
         self._send(data_str + self._new_line)
 
-    @inject.params(logger=LOGGER)
     def hardware_expect(self, data_str=None, re_string='', expect_map=OrderedDict(),
-                        error_map=OrderedDict(), timeout=None, retries_count=None, logger=None):
+                        error_map=OrderedDict(), timeout=None, retries_count=None):
         """Get response form the device and compare it to expected_map, error_map and re_string patterns,
         perform actions specified in expected_map if any, and return output.
         Raise Exception if receive empty responce from device within a minute
@@ -99,7 +102,7 @@ class ExpectSession(Session):
             retries_count = self._max_loop_retries
 
         if data_str is not None:
-            logger.debug(data_str)
+            self.logger.debug(data_str)
             self.send_line(data_str)
             time.sleep(0.2)
 
@@ -112,6 +115,7 @@ class ExpectSession(Session):
         output_str = ''
         retries = 0
         is_correct_exit = False
+        action_loop_protector = ActionLoopProtector()
 
         while retries_count == 0 or retries < retries_count:
             is_matched = False
@@ -126,6 +130,9 @@ class ExpectSession(Session):
             for expect_string in expect_map:
                 result_match = re.search(expect_string, output_str, re.DOTALL)
                 if result_match:
+                    if not action_loop_protector.check_loops(expect_string):
+                        self.logger.error('Loops detected, last action: {}'.format(expect_string))
+                        raise Exception('hardware_expect', 'Expected actions loops detected')
                     expect_map[expect_string](self)
                     output_list.append(output_str)
                     output_str = ''
@@ -142,11 +149,12 @@ class ExpectSession(Session):
         for error_string in error_map:
             result_match = re.search(error_string, result_output, re.DOTALL)
             if result_match:
-                logger.error(result_output)
-                raise CommandExecutionException('ExpectSession', 'Session returned \'{}\''.foromat(error_map[error_string]))
+                self.logger.error(result_output)
+                raise CommandExecutionException('ExpectSession',
+                                                'Session returned \'{}\''.format(error_map[error_string]))
 
         result_output = normalize_buffer(result_output)
-        logger.debug(result_output)
+        self.logger.debug(result_output)
         return result_output
 
     def reconnect(self, prompt):
@@ -156,3 +164,58 @@ class ExpectSession(Session):
     def _default_actions(self):
         if self._default_actions_func:
             self._default_actions_func(session=self)
+
+
+class ActionLoopProtector(object):
+    MAX_ACTION_LOOPS = 2
+    MAX_COMBINATION_LENGTH = 3
+
+    def __init__(self):
+        self._max_action_loops = self.MAX_ACTION_LOOPS
+        self._max_combination_length = self.MAX_COMBINATION_LENGTH
+        self._action_history = []
+
+    @property
+    def action_history_len(self):
+        return len(self._action_history)
+
+    def check_loops(self, action_key):
+        """Add action in history look for loops in action history"""
+        self._action_history.append(action_key)
+        for index in reversed(range(0, len(self._action_history))):
+            if not self._check_loop_for_index(index):
+                return False
+
+    def _check_loop_for_index(self, index):
+        """Check if index of history can have loops then check for loops"""
+        is_different = True
+        combination_len = self.action_history_len - index
+        if combination_len <= self._max_combination_length:
+            """Check if combination length is suitable"""
+            if self.action_history_len / (self.action_history_len - index) >= self._max_action_loops:
+                combinations = []
+                """Check if combinations count can be in the history"""
+                for combination_index in range(self._max_action_loops):
+                    index_start = (self.action_history_len - 1) - (combination_len * combination_index) - (
+                        combination_len - 1)
+                    index_end = (self.action_history_len - 1) - (combination_len * combination_index)
+                    combinations.append(self._get_combination(index_start, index_end))
+                is_different = self._is_combinations_different(combinations)
+        return is_different
+
+    def _get_combination(self, index_start, index_end):
+        combination = []
+        for index in range(index_start, index_end + 1):
+            combination.append(self._action_history[index])
+        return combination
+
+    def _is_combinations_different(self, combinations):
+        is_different = False
+        previous_combination = combinations.pop(0)
+        for combination in combinations:
+            if combination != previous_combination:
+                is_different = True
+                break
+            else:
+                previous_combination = combination
+        return is_different
