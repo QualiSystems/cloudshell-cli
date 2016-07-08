@@ -115,7 +115,7 @@ class ExpectSession(Session):
         output_str = ''
         retries = 0
         is_correct_exit = False
-        action_loop_protector = ActionLoopProtector()
+        action_loop_detector = ActionLoopDetector()
 
         while retries_count == 0 or retries < retries_count:
             is_matched = False
@@ -131,7 +131,7 @@ class ExpectSession(Session):
                 result_match = re.search(expect_string, output_str, re.DOTALL)
                 if result_match:
                     output_list.append(output_str)
-                    if not action_loop_protector.check_loops(expect_string):
+                    if not action_loop_detector.check_loops(expect_string):
                         self.logger.error('Loops detected, output_list: {}'.format(output_list))
                         raise Exception('hardware_expect', 'Expected actions loops detected')
                     expect_map[expect_string](self)
@@ -166,7 +166,7 @@ class ExpectSession(Session):
             self._default_actions_func(session=self)
 
 
-class ActionLoopProtector(object):
+class ActionLoopDetector(object):
     MAX_ACTION_LOOPS = 2
     MAX_COMBINATION_LENGTH = 3
 
