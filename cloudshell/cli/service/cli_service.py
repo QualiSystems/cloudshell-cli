@@ -56,7 +56,7 @@ class CliService(CliServiceInterface):
         self._enter_configuration_mode(session)
 
         if expected_str is None:
-            expected_str = self._prompt
+            expected_str = self._config_mode_prompt
 
         out = self._send_command(command, expected_str, expected_map=expected_map, error_map=error_map,
                                  retries=retries, is_need_default_prompt=is_need_default_prompt, timeout=timeout,
@@ -168,7 +168,7 @@ class CliService(CliServiceInterface):
 
         out = None
         for retry in range(3):
-            out = self._send_command(' ', session=session)
+            out = self._send_command(' ',expected_str=self._prompt + "|" + self._config_mode_prompt ,session=session)
             if not out:
                 logger.error('Failed to get prompt, retrying ...')
                 time.sleep(1)
@@ -176,6 +176,7 @@ class CliService(CliServiceInterface):
             elif not re.search(self._config_mode_prompt, out):
                 out = self._send_command(self._enter_config_mode_prompt_command, self._config_mode_prompt,
                                          session=session)
+                #if( re.search(self._config_mode_prompt, out)): break
 
             else:
                 break
