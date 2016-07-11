@@ -21,7 +21,7 @@ CONNECTION_MAP = OrderedDict()
 ssh_session = SessionCreator(SSHSession)
 ssh_session.proxy = ReturnToPoolProxy
 ssh_session.kwargs = {'username': get_attribute_by_name_wrapper('User'),
-                      'password': get_attribute_by_name_wrapper('Password'),#get_decrypted_password_by_attribute_name_wrapper('Password'),
+                      'password': get_decrypted_password_by_attribute_name_wrapper('Password'),
                       'host': get_resource_address}
 CONNECTION_MAP[CONNECTION_TYPE_SSH] = ssh_session
 
