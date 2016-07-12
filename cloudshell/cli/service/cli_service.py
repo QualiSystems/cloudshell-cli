@@ -149,9 +149,9 @@ class CliService(CliServiceInterface):
 
         out = None
         for retry in range(5):
-            out = self._send_command(' ', session=session)
+            out = self._send_command(' ',expected_str=self._prompt + "|" + self._config_mode_prompt ,session=session)
             if re.search(self._config_mode_prompt, out):
-                self._send_command(self._exit_config_mode_prompt_command, session=session)
+                self._send_command(self._exit_config_mode_prompt_command,expected_str=self._prompt + "|" + self._config_mode_prompt, session=session)
             else:
                 break
 
