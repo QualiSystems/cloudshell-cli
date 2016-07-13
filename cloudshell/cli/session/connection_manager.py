@@ -56,7 +56,7 @@ class ConnectionManager(object):
             session_object.connect(re_string=self._prompt)
             logger.debug('Created new session')
         else:
-            err_msg = 'Unknown connection type \'{0}\''.format(self._connection_type)
+            err_msg = 'Unknown connection type \'{0}\''.format(connection_type)
             logger.error(err_msg)
             raise Exception('ConnectionManager', err_msg)
 
