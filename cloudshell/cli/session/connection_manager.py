@@ -52,8 +52,12 @@ class ConnectionManager(object):
         :raises: Exception
         """
         if connection_type in self._connection_map:
-            session_object = self._connection_map[connection_type].create_session()
-            session_object.connect(re_string=self._prompt)
+            try:
+                session_object = self._connection_map[connection_type].create_session()
+                session_object.connect(re_string=self._prompt)
+            except Exception as exception:
+                logger.error('Cannot create session, Exception: {}'.format(exception.message))
+                raise Exception(self.__class__.__name__, 'Failed to open connection, see logs for details')
             logger.debug('Created new session')
         else:
             err_msg = 'Unknown connection type \'{0}\''.format(connection_type)
