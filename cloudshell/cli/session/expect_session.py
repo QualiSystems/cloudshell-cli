@@ -125,7 +125,7 @@ class ExpectSession(Session):
             if re.search(re_string, output_str, re.DOTALL):
                 output_list.append(output_str)
                 is_correct_exit = True
-                break
+
 
             for expect_string in expect_map:
                 result_match = re.search(expect_string, output_str, re.DOTALL)
@@ -138,6 +138,7 @@ class ExpectSession(Session):
                     output_str = ''
                     is_matched = True
                     break
+            if(is_correct_exit):break
             if not is_matched:
                 time.sleep(self._empty_loop_timeout)
 
