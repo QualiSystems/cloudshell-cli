@@ -2,9 +2,7 @@ import telnetlib
 from collections import OrderedDict
 
 import re
-import inject
 from cloudshell.cli.session.expect_session import ExpectSession
-from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER
 
 
 class TelnetSession(ExpectSession):
@@ -20,12 +18,10 @@ class TelnetSession(ExpectSession):
     def __del__(self):
         self.disconnect()
 
-    @inject.params(logger=LOGGER)
-    def connect(self, re_string='', logger=None):
+    def connect(self, re_string=''):
         """Open connection to device / create session
 
         :param re_string:
-        :param logger:
         :return:
         """
 
@@ -43,12 +39,12 @@ class TelnetSession(ExpectSession):
         match_error = re.search(self.AUTHENTICATION_ERROR_PATTERN, out)
         if match_error:
             error_message = re.sub('%', '', match_error.group()).strip(' \r\t\n')
-            logger.error('Failed to open telnet connection to the device, {0}'.format(error_message))
+            self.logger.error('Failed to open telnet connection to the device, {0}'.format(error_message))
             raise Exception('TelnetSession', 'Failed to open telnet connection to the device, {0}'.format(
                 error_message))
 
         self._default_actions()
-        logger.info(out)
+        self.logger.info(out)
 
         return out
 

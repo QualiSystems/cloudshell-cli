@@ -26,17 +26,17 @@ class CliService(CliServiceInterface):
     def __init__(self, config):
         if not config:
             raise Exception(self.__class__.__name__, 'Config not defined')
-        self._config = config
-        override_attributes_from_config(self, config)
-        self._expected_map = self.EXPECTED_MAP
-        self._error_map = self.ERROR_MAP
-        self._command_retries = self.COMMAND_RETRIES
-        self._prompt = self.DEFAULT_PROMPT
-        self._config_mode_prompt = self.CONFIG_MODE_PROMPT
-        self._enter_config_mode_prompt_command = self.ENTER_CONFIG_MODE_PROMPT_COMMAND
-        self._exit_config_mode_prompt_command = self.EXIT_CONFIG_MODE_PROMPT_COMMAND
-        self._commit_command = self.COMMIT_COMMAND
-        self._rollback_command = self.ROLLBACK_COMMAND
+        """Override constants with global config values"""
+        overridden_config = override_attributes_from_config(CliService, config=config)
+        self._expected_map = overridden_config.EXPECTED_MAP
+        self._error_map = overridden_config.ERROR_MAP
+        self._command_retries = overridden_config.COMMAND_RETRIES
+        self._prompt = overridden_config.DEFAULT_PROMPT
+        self._config_mode_prompt = overridden_config.CONFIG_MODE_PROMPT
+        self._enter_config_mode_prompt_command = overridden_config.ENTER_CONFIG_MODE_PROMPT_COMMAND
+        self._exit_config_mode_prompt_command = overridden_config.EXIT_CONFIG_MODE_PROMPT_COMMAND
+        self._commit_command = overridden_config.COMMIT_COMMAND
+        self._rollback_command = overridden_config.ROLLBACK_COMMAND
 
     @inject.params(session=SESSION)
     def get_session_type(self, session):

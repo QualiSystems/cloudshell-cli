@@ -41,14 +41,15 @@ class ExpectSession(Session):
         self._new_line = new_line
         self._timeout = timeout
 
-        override_attributes_from_config(self)
+        """Override constants with global config values"""
+        overridden_config = override_attributes_from_config(ExpectSession)
 
-        self._max_read_retries = self.HE_MAX_READ_RETRIES
-        self._max_loop_retries = self.HE_MAX_LOOP_RETRIES
-        self._empty_loop_timeout = self.HE_EMPTY_LOOP_TIMEOUT
-        self._default_actions_func = self.DEFAULT_ACTIONS
-        self._loop_detector_max_action_loops = self.HE_LOOP_DETECTOR_MAX_ACTION_LOOPS
-        self._loop_detector_max_combination_length = self.HE_LOOP_DETECTOR_MAX_COMBINATION_LENGTH
+        self._max_read_retries = overridden_config.HE_MAX_READ_RETRIES
+        self._max_loop_retries = overridden_config.HE_MAX_LOOP_RETRIES
+        self._empty_loop_timeout = overridden_config.HE_EMPTY_LOOP_TIMEOUT
+        self._default_actions_func = overridden_config.DEFAULT_ACTIONS
+        self._loop_detector_max_action_loops = overridden_config.HE_LOOP_DETECTOR_MAX_ACTION_LOOPS
+        self._loop_detector_max_combination_length = overridden_config.HE_LOOP_DETECTOR_MAX_COMBINATION_LENGTH
 
     @property
     def logger(self):
