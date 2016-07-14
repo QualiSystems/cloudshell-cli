@@ -30,7 +30,7 @@ class TelnetSession(ExpectSession):
             raise Exception('TelnetSession', "Failed to open telnet connection.")
 
         expect_map = OrderedDict()
-        expect_map['[Ll]ogin:|[Uu]ser:'] = lambda session: session.send_line(session._username)
+        expect_map['[Ll]ogin:|[Uu]ser:|[Uu]sername:'] = lambda session: session.send_line(session._username)
         expect_map['[Pp]assword:'] = lambda session: session.send_line(session._password)
         re_string += '|' + self.AUTHENTICATION_ERROR_PATTERN
 
