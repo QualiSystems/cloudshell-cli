@@ -1,10 +1,11 @@
 import traceback
 from weakref import WeakKeyDictionary
-from Queue import Queue
+from Queue import Queue, Empty
 from threading import Lock, currentThread
 
 import cloudshell.configuration.cloudshell_cli_configuration as package_config
-from cloudshell.shell.core.config_utils import get_config_attribute_or_none, call_if_callable
+from cloudshell.shell.core.config_utils import call_if_callable, \
+    override_attributes_from_config
 from cloudshell.configuration.cloudshell_shell_core_binding_keys import CONFIG, LOGGER
 from cloudshell.configuration.cloudshell_cli_binding_keys import CONNECTION_MANAGER
 import inject
@@ -13,34 +14,40 @@ import inject
 class ConnectionManager(object):
     """Class implements Object Pool pattern for sessions, creates and pool sessions for specific types"""
 
-    CREATE_SESSION_LOCK = Lock()
-    SESSION_CONTAINER = WeakKeyDictionary()
+    """Session lock"""
+    _CREATE_SESSION_LOCK = Lock()
+    """Session container"""
+    _SESSION_CONTAINER = WeakKeyDictionary()
+
+    """Configuration attributes"""
+    CONNECTION_MAP = package_config.CONNECTION_MAP
+    SESSION_POOL_SIZE = package_config.SESSION_POOL_SIZE
+    DEFAULT_SESSION_POOL_SIZE = package_config.DEFAULT_SESSION_POOL_SIZE
+    DEFAULT_PROMPT = package_config.DEFAULT_PROMPT
+    CONNECTION_TYPE_AUTO = package_config.CONNECTION_TYPE_AUTO
+    CONNECTION_TYPE = package_config.CONNECTION_TYPE
+    DEFAULT_CONNECTION_TYPE = package_config.DEFAULT_CONNECTION_TYPE
+    POOL_TIMEOUT = package_config.POOL_TIMEOUT
 
     @inject.params(config=CONFIG, logger=LOGGER)
     def __init__(self, config, logger):
         if not config:
             raise Exception(self.__class__.__name__, 'Failed to read config for cloudshell-cli package')
-        self._config = config
-        self._connection_map = get_config_attribute_or_none('CONNECTION_MAP',
-                                                            self._config) or package_config.CONNECTION_MAP
+        """Override constants with global config values"""
+        overridden_config = override_attributes_from_config(ConnectionManager, config=config)
 
-        self._max_connections = call_if_callable(get_config_attribute_or_none('SESSION_POOL_SIZE',
-                                                                              self._config) or package_config.SESSION_POOL_SIZE)
+        self._connection_map = overridden_config.CONNECTION_MAP
+        self._max_connections = call_if_callable(overridden_config.SESSION_POOL_SIZE)
         if not self._max_connections:
-            self._max_connections = package_config.DEFAULT_SESSION_POOL_SIZE
+            self._max_connections = overridden_config.DEFAULT_SESSION_POOL_SIZE
+        self._prompt = overridden_config.DEFAULT_PROMPT
+        self._connection_type_auto = overridden_config.CONNECTION_TYPE_AUTO
+        self._connection_type = overridden_config.CONNECTION_TYPE
+        self._default_connection_type = overridden_config.DEFAULT_CONNECTION_TYPE
+        self._pool_timeout = overridden_config.POOL_TIMEOUT
 
         self._session_pool = Queue(maxsize=self._max_connections)
         self._existing_sessions = 0
-
-        self._prompt = get_config_attribute_or_none('DEFAULT_PROMPT', self._config) or package_config.DEFAULT_PROMPT
-        self._connection_type_auto = get_config_attribute_or_none('CONNECTION_TYPE_AUTO',
-                                                                  self._config) or package_config.CONNECTION_TYPE_AUTO
-        self._connection_type = get_config_attribute_or_none('CONNECTION_TYPE',
-                                                             self._config) or package_config.CONNECTION_TYPE
-        self._default_connection_type = get_config_attribute_or_none('DEFAULT_CONNECTION_TYPE',
-                                                                     self._config) or package_config.DEFAULT_CONNECTION_TYPE
-
-        self._pool_timeout = get_config_attribute_or_none('POOL_TIMEOUT', self._config) or package_config.POOL_TIMEOUT
         if logger:
             logger.debug('Connection manager created')
 
@@ -56,7 +63,7 @@ class ConnectionManager(object):
                 session_object = self._connection_map[connection_type].create_session()
                 session_object.connect(re_string=self._prompt)
             except Exception as exception:
-                logger.error('Cannot create session, Exception: {}'.format(exception.message))
+                logger.error('Cannot create session, Exception: {0}'.format(exception))
                 raise Exception(self.__class__.__name__, 'Failed to open connection, see logs for details')
             logger.debug('Created new session')
         else:
@@ -128,6 +135,10 @@ class ConnectionManager(object):
         try:
             session_object = self._session_pool.get(True, self._pool_timeout)
             logger.info('Trying to get session from pool')
+        except Empty:
+            logger.error('Get session timeout expired')
+            raise Exception(self.__class__.__name__,
+                            'Failed to get session after {} sec., timeout expired'.format(self._pool_timeout))
         except Exception as error_object:
             err_msg = "Failed to get available session from pull."
             logger.error(traceback.format_exc())
@@ -158,7 +169,7 @@ class ConnectionManager(object):
         :rtype: Session
         """
 
-        with ConnectionManager.CREATE_SESSION_LOCK:
+        with ConnectionManager._CREATE_SESSION_LOCK:
             if self._session_pool.empty() and self._existing_sessions < int(self._max_connections):
                 session = self._create_session_by_connection_type(logger)
                 self.increment_sessions_count()
@@ -179,9 +190,9 @@ class ConnectionManager(object):
         """Return same session for thread
         """
 
-        if not currentThread() in ConnectionManager.SESSION_CONTAINER:
-            ConnectionManager.SESSION_CONTAINER[currentThread()] = ConnectionManager.get_session()
-        return ConnectionManager.SESSION_CONTAINER[currentThread()]
+        if not currentThread() in ConnectionManager._SESSION_CONTAINER:
+            ConnectionManager._SESSION_CONTAINER[currentThread()] = ConnectionManager.get_session()
+        return ConnectionManager._SESSION_CONTAINER[currentThread()]
 
     @staticmethod
     def destroy_thread_session(session):
@@ -191,5 +202,5 @@ class ConnectionManager(object):
         :return:
         """
         session.set_invalid()
-        if currentThread() in ConnectionManager.SESSION_CONTAINER:
-            del (ConnectionManager.SESSION_CONTAINER[currentThread()])
+        if currentThread() in ConnectionManager._SESSION_CONTAINER:
+            del (ConnectionManager._SESSION_CONTAINER[currentThread()])
