@@ -24,7 +24,7 @@ class ConsoleSession(ExpectSession):
         self._console_host = kwargs['console_server_ip']
 
         self._session_handler = SSHSession(self._console_username, self._console_password, self._console_host,
-                                           port=22, logger=self._logger)
+                                           port=22, logger=self.logger)
 
         self._console_port = kwargs['console_port']
 
@@ -61,6 +61,7 @@ class ConsoleSession(ExpectSession):
         :param re_string:
         :return:
         """
+
         expect_map = OrderedDict()
         expect_map['[Ll]ogin:|[Uu]sername:'] = lambda: self.send_line(self._username)
         expect_map['[Pp]assword:'] = lambda: self.send_line(self._password)

@@ -19,8 +19,8 @@ class CommandTemplate:
 
     def get_error_by_index(self, index):
         if (len(self._error_message_list) - 1) < index:
-            raise Exception('Command Template: something went wrong! '
-                            'Error index bigger, than error list size!')
+            raise Exception('Command Template: '
+                            'Failed to get index from error_message_list, error index higher than error_message_list size!')
 
         return self._error_message_list[index]
 

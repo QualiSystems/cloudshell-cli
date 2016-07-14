@@ -1,5 +1,3 @@
-__author__ = 'g8y3e'
-
 import socket
 import time
 from collections import OrderedDict
@@ -10,11 +8,19 @@ from cloudshell.cli.session.session import Session
 from cloudshell.cli.helper.normalize_buffer import normalize_buffer
 from cloudshell.cli.service.cli_exceptions import CommandExecutionException
 import inject
-from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER, CONFIG
+from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER
+from cloudshell.shell.core.config_utils import override_attributes_from_config
 
 
 class ExpectSession(Session):
     __metaclass__ = ABCMeta
+
+    DEFAULT_ACTIONS = None
+    HE_MAX_LOOP_RETRIES = 100
+    HE_MAX_READ_RETRIES = 5
+    HE_EMPTY_LOOP_TIMEOUT = 0.2
+    HE_LOOP_DETECTOR_MAX_ACTION_LOOPS = 3
+    HE_LOOP_DETECTOR_MAX_COMBINATION_LENGTH = 4
 
     def __init__(self, handler=None, username=None, password=None, host=None, port=None,
                  timeout=60, new_line='\r', **kwargs):
@@ -25,7 +31,7 @@ class ExpectSession(Session):
             temp_host = host.split(':')
             self._host = temp_host[0]
             if not self._port and len(temp_host) > 1:
-                self._port = temp_host[1]
+                self._port = int(temp_host[1])
         else:
             self._host = host
 
@@ -34,13 +40,29 @@ class ExpectSession(Session):
 
         self._new_line = new_line
         self._timeout = timeout
-        self._default_actions_func = None
-        if inject.is_configured():
-            self._config = inject.instance(CONFIG)
-            if hasattr(self._config, 'DEFAULT_ACTIONS'):
-                self._default_actions_func = self._config.DEFAULT_ACTIONS
+
+        """Override constants with global config values"""
+        overridden_config = override_attributes_from_config(ExpectSession)
+
+        self._max_read_retries = overridden_config.HE_MAX_READ_RETRIES
+        self._max_loop_retries = overridden_config.HE_MAX_LOOP_RETRIES
+        self._empty_loop_timeout = overridden_config.HE_EMPTY_LOOP_TIMEOUT
+        self._default_actions_func = overridden_config.DEFAULT_ACTIONS
+        self._loop_detector_max_action_loops = overridden_config.HE_LOOP_DETECTOR_MAX_ACTION_LOOPS
+        self._loop_detector_max_combination_length = overridden_config.HE_LOOP_DETECTOR_MAX_COMBINATION_LENGTH
+
+    @property
+    def logger(self):
+        return inject.instance(LOGGER)
 
     def _receive_with_retries(self, timeout, retries_count):
+        """Read session buffer with several retries
+
+        :param timeout:
+        :param retries_count:
+        :return:
+        """
+
         current_retries = 0
         current_output = None
 
@@ -49,100 +71,98 @@ class ExpectSession(Session):
 
             try:
                 current_output = self._receive(timeout)
+                if current_output == '':
+                    time.sleep(0.5)
+                    continue
             except socket.timeout:
+                time.sleep(0.5)
                 continue
             except Exception as err:
                 raise err
-
             break
 
+        if current_output is None:
+            raise Exception('ExpectSession', 'Failed to get response from device')
         return current_output
 
     def send_line(self, data_str):
         self._send(data_str + self._new_line)
 
-    @inject.params(logger=LOGGER)
     def hardware_expect(self, data_str=None, re_string='', expect_map=OrderedDict(),
-                        error_map=OrderedDict(), timeout=None, retries_count=3, logger=None):
+                        error_map=OrderedDict(), timeout=None, retries_count=None):
         """Get response form the device and compare it to expected_map, error_map and re_string patterns,
         perform actions specified in expected_map if any, and return output.
-        Will raise Exception if response from the device will be empty within a minute
+        Raise Exception if receive empty responce from device within a minute
 
-        :param data_str:
-        :param re_string:
-        :param expect_map:
-        :param error_map:
-        :param timeout:
-        :param retries_count:
+        :param data_str: command to send
+        :param re_string: expected string
+        :param expect_map: dict with {re_str: action} to trigger some action on received string
+        :param error_map: expected error list
+        :param timeout: session timeout
+        :param retries_count: maximal retries count
         :return:
         """
 
-        empty_buffer_counter = 0
-        MAX_RETRIES = 15
-        retries=0
+        if retries_count is None:
+            retries_count = self._max_loop_retries
+
         if data_str is not None:
-            logger.debug(data_str)
+            self.logger.debug(data_str)
             self.send_line(data_str)
             time.sleep(0.2)
 
         if re_string is None or len(re_string) == 0:
-            raise Exception('ExpectSession', 'Expect list is empty!')
-
-        output_str = self._receive_with_retries(timeout, retries_count)
-        if output_str is None:
-            raise Exception('ExpectSession', 'Empty response from device!')
+            raise Exception('ExpectSession', 'List of expected messages can\'t be empty!')
 
         # Loop until one of the expressions is matched or MAX_RETRIES
         # nothing is expected (usually used for exit)
         output_list = list()
+        output_str = ''
+        retries = 0
+        is_correct_exit = False
+        action_loop_detector = ActionLoopDetector(self._loop_detector_max_action_loops,
+                                                  self._loop_detector_max_combination_length)
 
-        while True and retries < MAX_RETRIES:
-            retries+=1
+        while retries_count == 0 or retries < retries_count:
+            is_matched = False
+            retries += 1
+            output_str += self._receive_with_retries(timeout, self._max_read_retries)
 
             if re.search(re_string, output_str, re.DOTALL):
-                #logger.debug(output_str)
-                break
-            else:
-                time.sleep(0.2)
+                output_list.append(output_str)
+                is_correct_exit = True
 
-            read_buffer = True
-            output_list.append(output_str)
+
             for expect_string in expect_map:
                 result_match = re.search(expect_string, output_str, re.DOTALL)
                 if result_match:
-                    #if output matches expected action - send action and read buffer
+                    output_list.append(output_str)
+                    if not action_loop_detector.check_loops(expect_string):
+                        self.logger.error('Loops detected, output_list: {}'.format(output_list))
+                        raise Exception('hardware_expect', 'Expected actions loops detected')
                     expect_map[expect_string](self)
-                    time.sleep(0.2)
-                    output_str = self._receive_with_retries(timeout, retries_count)
-                    output_list.append(output_str)
-                    read_buffer = False
+                    output_str = ''
+                    is_matched = True
+                    break
+            if(is_correct_exit):break
+            if not is_matched:
+                time.sleep(self._empty_loop_timeout)
 
-            #don't read buffer if already readen
-            if read_buffer:
-                current_output = self._receive_with_retries(timeout, retries_count)
-                if current_output is None:
-                    output_list.append(output_str)
-                    output_str = '\n'.join(output_list)
-                    logger.error('Failed to get prompt from device, session returned:\n{0}'.format(output_str))
-                    raise Exception('ExpectSession', 'Failed to get response from device')
-                if current_output == '':
-                    if empty_buffer_counter < 20:
-                        empty_buffer_counter += 1
-                    else:
-                        raise Exception('ExpectSession', 'Session timed out, Failed to get response form device')
-                    time.sleep(3)
-                output_str += current_output
-        output_list.append(output_str)
-        output_str = '\n'.join(output_list)
+        if not is_correct_exit:
+            raise Exception('ExpectSession', 'Session Loop limit exceeded')
+
+        result_output = ''.join(output_list)
 
         for error_string in error_map:
-            result_match = re.search(error_string, output_str, re.DOTALL)
+            result_match = re.search(error_string, result_output, re.DOTALL)
             if result_match:
-                raise CommandExecutionException('ExpectSession', error_map[error_string])
+                self.logger.error(result_output)
+                raise CommandExecutionException('ExpectSession',
+                                                'Session returned \'{}\''.format(error_map[error_string]))
 
-        output_str = normalize_buffer(output_str)
-        logger.debug(output_str)
-        return output_str
+        result_output = normalize_buffer(result_output)
+        self.logger.debug(result_output)
+        return result_output
 
     def reconnect(self, prompt):
         self.disconnect()
@@ -151,3 +171,69 @@ class ExpectSession(Session):
     def _default_actions(self):
         if self._default_actions_func:
             self._default_actions_func(session=self)
+
+
+class ActionLoopDetector(object):
+    """Class which helps to detect loops for action combinations"""
+    def __init__(self, max_loops, max_combination_length):
+        self._max_action_loops = max_loops
+        self._max_combination_length = max_combination_length
+        self._action_history = []
+
+    @property
+    def logger(self):
+        return inject.instance(LOGGER)
+
+    @property
+    def action_history_len(self):
+        return len(self._action_history)
+
+    def check_loops(self, action_key):
+        """Add action in history, look for loops in action history"""
+        is_correct = True
+        self._action_history.append(action_key)
+        for index in reversed(range(0, len(self._action_history))):
+            if not self._check_loop_for_index(index):
+                is_correct = False
+                self.logger.error('Action history: {}'.format(self._action_history))
+                break
+        return is_correct
+
+    def _check_loop_for_index(self, index):
+        """Check if index of history can have loops then check for loops"""
+        is_different = True
+        combination_len = self.action_history_len - index
+        if combination_len <= self._max_combination_length:
+            """Check if combination length is suitable"""
+            if self.action_history_len / (self.action_history_len - index) >= self._max_action_loops:
+                combinations = []
+                """Check if combinations count can be in the history"""
+                for combination_index in range(self._max_action_loops):
+                    index_start = (self.action_history_len - 1) - (combination_len * combination_index) - (
+                        combination_len - 1)
+                    """get start index for combination"""
+                    index_end = (self.action_history_len - 1) - (combination_len * combination_index)
+                    """get end index for combination"""
+                    combinations.append(self._get_combination(index_start, index_end))
+                is_different = self._are_combinations_different(combinations)
+        return is_different
+
+    def _get_combination(self, index_start, index_end):
+        """create combination from history by indexes"""
+        combination = []
+        for index in range(index_start, index_end + 1):
+            combination.append(self._action_history[index])
+        return combination
+
+    def _are_combinations_different(self, combinations):
+        """check if combinations are different"""
+        is_different = False
+        previous_combination = combinations.pop(0)
+        for combination in combinations:
+            if combination != previous_combination:
+                is_different = True
+                break
+            else:
+                previous_combination = combination
+
+        return is_different
