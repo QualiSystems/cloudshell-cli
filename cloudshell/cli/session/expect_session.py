@@ -19,6 +19,8 @@ class ExpectSession(Session):
     HE_MAX_LOOP_RETRIES = 100
     HE_MAX_READ_RETRIES = 5
     HE_EMPTY_LOOP_TIMEOUT = 0.2
+    HE_LOOP_DETECTOR_MAX_ACTION_LOOPS = 3
+    HE_LOOP_DETECTOR_MAX_COMBINATION_LENGTH = 4
 
     def __init__(self, handler=None, username=None, password=None, host=None, port=None,
                  timeout=60, new_line='\r', **kwargs):
@@ -45,6 +47,8 @@ class ExpectSession(Session):
         self._max_loop_retries = self.HE_MAX_LOOP_RETRIES
         self._empty_loop_timeout = self.HE_EMPTY_LOOP_TIMEOUT
         self._default_actions_func = self.DEFAULT_ACTIONS
+        self._loop_detector_max_action_loops = self.HE_LOOP_DETECTOR_MAX_ACTION_LOOPS
+        self._loop_detector_max_combination_length = self.HE_LOOP_DETECTOR_MAX_COMBINATION_LENGTH
 
     @property
     def logger(self):
@@ -115,7 +119,8 @@ class ExpectSession(Session):
         output_str = ''
         retries = 0
         is_correct_exit = False
-        action_loop_detector = ActionLoopDetector()
+        action_loop_detector = ActionLoopDetector(self._loop_detector_max_action_loops,
+                                                  self._loop_detector_max_combination_length)
 
         while retries_count == 0 or retries < retries_count:
             is_matched = False
@@ -125,7 +130,7 @@ class ExpectSession(Session):
             if re.search(re_string, output_str, re.DOTALL):
                 output_list.append(output_str)
                 is_correct_exit = True
-                break
+
 
             for expect_string in expect_map:
                 result_match = re.search(expect_string, output_str, re.DOTALL)
@@ -138,6 +143,7 @@ class ExpectSession(Session):
                     output_str = ''
                     is_matched = True
                     break
+            if(is_correct_exit):break
             if not is_matched:
                 time.sleep(self._empty_loop_timeout)
 
@@ -167,12 +173,10 @@ class ExpectSession(Session):
 
 
 class ActionLoopDetector(object):
-    MAX_ACTION_LOOPS = 2
-    MAX_COMBINATION_LENGTH = 3
-
-    def __init__(self):
-        self._max_action_loops = self.MAX_ACTION_LOOPS
-        self._max_combination_length = self.MAX_COMBINATION_LENGTH
+    """Class which helps to detect loops for action combinations"""
+    def __init__(self, max_loops, max_combination_length):
+        self._max_action_loops = max_loops
+        self._max_combination_length = max_combination_length
         self._action_history = []
 
     @property
