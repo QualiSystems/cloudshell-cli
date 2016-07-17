@@ -130,10 +130,12 @@ class ExpectSession(Session):
             for expect_string in expect_map:
                 result_match = re.search(expect_string, output_str, re.DOTALL)
                 if result_match:
-                    output_list.append(output_str)
-                    if not action_loop_detector.check_loops(expect_string):
+
+
+                    if not action_loop_detector.check_loops(expect_string) and output_str in output_list:
                         self.logger.error('Loops detected, output_list: {}'.format(output_list))
                         raise Exception('hardware_expect', 'Expected actions loops detected')
+                    output_list.append(output_str)
                     expect_map[expect_string](self)
                     output_str = ''
                     is_matched = True
@@ -187,6 +189,7 @@ class ActionLoopDetector(object):
     def check_loops(self, action_key):
         """Add action in history, look for loops in action history"""
         is_correct = True
+
         self._action_history.append(action_key)
         for index in reversed(range(0, len(self._action_history))):
             if not self._check_loop_for_index(index):
