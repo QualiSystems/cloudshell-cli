@@ -89,7 +89,9 @@ class ExpectSession(Session):
         self._send(data_str + self._new_line)
 
     def hardware_expect(self, data_str=None, re_string='', expect_map=OrderedDict(),
-                        error_map=OrderedDict(), timeout=None, retries_count=None,check_action_loop_detector=True):
+                        error_map=OrderedDict(), timeout=None, retries=None,check_action_loop_detector=True,logger = None, \
+                        session = None,is_need_default_prompt = True,):
+
         """Get response form the device and compare it to expected_map, error_map and re_string patterns,
         perform actions specified in expected_map if any, and return output.
         Raise Exception if receive empty responce from device within a minute
@@ -99,12 +101,12 @@ class ExpectSession(Session):
         :param expect_map: dict with {re_str: action} to trigger some action on received string
         :param error_map: expected error list
         :param timeout: session timeout
-        :param retries_count: maximal retries count
+        :param retries: maximal retries count
         :return:
         """
 
-        if retries_count is None:
-            retries_count = self._max_loop_retries
+        if retries is None:
+            retries = self._max_loop_retries
 
         if data_str is not None:
             self.logger.debug(data_str)
@@ -118,14 +120,14 @@ class ExpectSession(Session):
         # nothing is expected (usually used for exit)
         output_list = list()
         output_str = ''
-        retries = 0
+        retries_count = 0
         is_correct_exit = False
         action_loop_detector = ActionLoopDetector(self._loop_detector_max_action_loops,
                                                   self._loop_detector_max_combination_length)
 
-        while retries_count == 0 or retries < retries_count:
+        while retries == 0 or retries_count < retries:
             is_matched = False
-            retries += 1
+            retries_count += 1
             output_str += self._receive_with_retries(timeout, self._max_read_retries)
 
             if re.search(re_string, output_str, re.DOTALL):

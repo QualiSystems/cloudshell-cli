@@ -127,6 +127,7 @@ class CliService(CliServiceInterface):
                 optional_args.get('session').reconnect(self._prompt)
         return out
 
+    @inject.params(logger=LOGGER, session=SESSION)
     def send_command_list(self, commands_list, send_command_func=None, expected_map=None, error_map=None,**optional_args):
         output = ""
         if not send_command_func:
@@ -135,7 +136,7 @@ class CliService(CliServiceInterface):
             output += send_command_func(command=command, expected_map=expected_map, error_map=error_map,**optional_args)
         return output
 
-
+    @inject.params(logger=LOGGER,session=SESSION)
     def exit_configuration_mode(self, **optional_args):
         """Send 'enter' to SSH console to get prompt,
         if config prompt received , send 'exit' command, change _prompt to DEFAULT
@@ -154,7 +155,7 @@ class CliService(CliServiceInterface):
 
         return out
 
-    #@inject.params(logger=LOGGER)
+    @inject.params(logger=LOGGER)
     def _enter_configuration_mode(self, **optional_args):
         """Send 'enter' to SSH console to get prompt,
         if default prompt received , send 'configure terminal' command, change _prompt to CONFIG_MODE
