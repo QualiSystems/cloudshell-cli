@@ -29,6 +29,8 @@ class TelnetSession(ExpectSession):
         if self._handler.get_socket() is None:
             raise Exception('TelnetSession', "Failed to open telnet connection.")
 
+        self._handler.get_socket().send(telnetlib.IAC + telnetlib.WILL + telnetlib.ECHO)
+
         expect_map = OrderedDict()
         expect_map['[Ll]ogin:|[Uu]ser:|[Uu]sername:'] = lambda session: session.send_line(session._username)
         expect_map['[Pp]assword:'] = lambda session: session.send_line(session._password)
