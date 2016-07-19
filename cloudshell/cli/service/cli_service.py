@@ -78,7 +78,7 @@ class CliService(CliServiceInterface):
         :param session:
         :return: received output buffer
         """
-
+        print optional_args.get('session')
         self.exit_configuration_mode(optional_args.get('session'))
         try:
             out = self._send_command(command, expected_str, expected_map=expected_map, error_map=error_map,**optional_args )
@@ -146,7 +146,7 @@ class CliService(CliServiceInterface):
 
         out = None
         for retry in range(5):
-            out = self._send_command(' ',expected_str=self._prompt + "|" + self._config_mode_prompt ,session=optional_args.get('session'))
+            out = self._send_command(' ',expected_str=self._prompt + "|" + self._config_mode_prompt ,**optional_args)
             if re.search(self._config_mode_prompt, out):
                 self._send_command(self._exit_config_mode_prompt_command,expected_str=self._prompt + "|" + self._config_mode_prompt, **optional_args)
             else:
