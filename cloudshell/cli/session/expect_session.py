@@ -89,7 +89,7 @@ class ExpectSession(Session):
         self._send(data_str + self._new_line)
 
     def hardware_expect(self, data_str=None, re_string='', expect_map=OrderedDict(),
-                        error_map=OrderedDict(), timeout=None, retries_count=None):
+                        error_map=OrderedDict(), timeout=None, retries_count=None,check_action_loop_detector=True):
         """Get response form the device and compare it to expected_map, error_map and re_string patterns,
         perform actions specified in expected_map if any, and return output.
         Raise Exception if receive empty responce from device within a minute
@@ -137,10 +137,10 @@ class ExpectSession(Session):
                 result_match = re.search(expect_string, output_str, re.DOTALL)
                 if result_match:
 
-
-                    if not action_loop_detector.check_loops(expect_string) and output_str in output_list:
-                        self.logger.error('Loops detected, output_list: {}'.format(output_list))
-                        raise Exception('hardware_expect', 'Expected actions loops detected')
+                    if(check_action_loop_detector):
+                        if not action_loop_detector.check_loops(expect_string):
+                            self.logger.error('Loops detected, output_list: {}'.format(output_list))
+                            raise Exception('hardware_expect', 'Expected actions loops detected')
                     output_list.append(output_str)
                     expect_map[expect_string](self)
                     output_str = ''
