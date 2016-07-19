@@ -44,7 +44,7 @@ class CliService(CliServiceInterface):
 
     @inject.params(logger=LOGGER, session=SESSION)
     def send_config_command(self, command, expected_str=None, expected_map=None, error_map=None, timeout=None,
-                            retries=None, is_need_default_prompt=True, logger=None, session=None):
+                            retries=None, is_need_default_prompt=True, logger=None, session=None,check_action_loop_detector=True):
         """Send command into configuration mode, enter to config mode if needed
 
         :param command: command to send
@@ -60,13 +60,13 @@ class CliService(CliServiceInterface):
 
         out = self._send_command(command, expected_str, expected_map=expected_map, error_map=error_map,
                                  retries=retries, is_need_default_prompt=is_need_default_prompt, timeout=timeout,
-                                 session=session)
+                                 session=session,check_action_loop_detector=True)
         logger.info(out)
         return out
 
     @inject.params(logger=LOGGER, session=SESSION)
     def send_command(self, command, expected_str=None, expected_map=None, error_map=None, timeout=None,
-                     retries=None, is_need_default_prompt=True, logger=None, session=None):
+                     retries=None, is_need_default_prompt=True, logger=None, session=None,check_action_loop_detector=True):
         """Send command in default mode
 
         :param command: command to send
@@ -84,7 +84,7 @@ class CliService(CliServiceInterface):
         try:
             out = self._send_command(command, expected_str, expected_map=expected_map, error_map=error_map,
                                      retries=retries, is_need_default_prompt=is_need_default_prompt,
-                                     timeout=timeout, session=session)
+                                     timeout=timeout, session=session,check_action_loop_detector=True)
         except CommandExecutionException as e:
             self.rollback()
             logger.error(e)
@@ -93,7 +93,7 @@ class CliService(CliServiceInterface):
 
     @inject.params(logger=LOGGER)
     def _send_command(self, command, expected_str=None, expected_map=None, error_map=None, timeout=None, retries=None,
-                      is_need_default_prompt=True, logger=None, session=None):
+                      is_need_default_prompt=True, logger=None, session=None,check_action_loop_detector=True):
         """Send command
 
         :param command: command to send
@@ -118,7 +118,7 @@ class CliService(CliServiceInterface):
         for retry in range(self._command_retries):
             try:
                 out = session.hardware_expect(command, expected_str, expect_map=expected_map, error_map=error_map,
-                                              retries_count=retries, timeout=timeout)
+                                              retries_count=retries, timeout=timeout,check_action_loop_detector=check_action_loop_detector)
                 break
             except CommandExecutionException as command_error:
                 raise command_error
@@ -130,12 +130,12 @@ class CliService(CliServiceInterface):
                 session.reconnect(self._prompt)
         return out
 
-    def send_command_list(self, commands_list, send_command_func=None, expected_map=None, error_map=None):
+    def send_command_list(self, commands_list, send_command_func=None, expected_map=None, error_map=None,check_action_loop_detector=True):
         output = ""
         if not send_command_func:
             send_command_func = self.send_config_command
         for command in commands_list:
-            output += send_command_func(command=command, expected_map=expected_map, error_map=error_map)
+            output += send_command_func(command=command, expected_map=expected_map, error_map=error_map,check_action_loop_detector=check_action_loop_detector)
         return output
 
     @inject.params(logger=LOGGER, session=SESSION)
