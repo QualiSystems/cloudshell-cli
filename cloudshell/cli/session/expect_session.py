@@ -1,13 +1,13 @@
+import inject
+import re
 import socket
 import time
-from collections import OrderedDict
 
+from collections import OrderedDict
 from abc import ABCMeta
-import re
 from cloudshell.cli.session.session import Session
 from cloudshell.cli.helper.normalize_buffer import normalize_buffer
 from cloudshell.cli.service.cli_exceptions import CommandExecutionException
-import inject
 from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER
 from cloudshell.shell.core.config_utils import override_attributes_from_config
 
@@ -132,12 +132,9 @@ class ExpectSession(Session):
                 output_list.append(output_str)
                 is_correct_exit = True
 
-
             for expect_string in expect_map:
                 result_match = re.search(expect_string, output_str, re.DOTALL)
                 if result_match:
-
-
                     if not action_loop_detector.check_loops(expect_string) and output_str in output_list:
                         self.logger.error('Loops detected, output_list: {}'.format(output_list))
                         raise Exception('hardware_expect', 'Expected actions loops detected')
@@ -146,7 +143,8 @@ class ExpectSession(Session):
                     output_str = ''
                     is_matched = True
                     break
-            if(is_correct_exit):break
+            if is_correct_exit:
+                break
             if not is_matched:
                 time.sleep(self._empty_loop_timeout)
 
