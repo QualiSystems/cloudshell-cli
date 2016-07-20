@@ -8,12 +8,12 @@ def add_templates(commands):
     _TEMPLATE_DICT.update(commands)
 
 
-def send_commands_list(commands_list, send_command_func=None, expected_map=None, error_map=None):
+def send_commands_list(commands_list, send_command_func=None, expected_map=None, error_map=None, **optional_args):
     if not send_command_func:
-        raise Exception("send_commands_list:", "send_command function is None or empty")
-    output = ""
+        raise Exception('send_commands_list', 'send_command function is None or empty')
+    output = ''
     for command in commands_list:
-        out = send_command_func(command, expected_map=expected_map, error_map=error_map)
+        out = send_command_func(command, expected_map=expected_map, error_map=error_map, **optional_args)
         if out:
             output += out
     return output
