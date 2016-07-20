@@ -1,13 +1,13 @@
-import inject
-import re
 import socket
 import time
-
 from collections import OrderedDict
+
 from abc import ABCMeta
+import re
 from cloudshell.cli.session.session import Session
 from cloudshell.cli.helper.normalize_buffer import normalize_buffer
 from cloudshell.cli.service.cli_exceptions import CommandExecutionException
+import inject
 from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER
 from cloudshell.shell.core.config_utils import override_attributes_from_config
 
@@ -88,8 +88,9 @@ class ExpectSession(Session):
     def send_line(self, data_str):
         self._send(data_str + self._new_line)
 
-    def hardware_expect(self, data_str=None, re_string='', expect_map=OrderedDict(),
-                        error_map=OrderedDict(), timeout=None, retries_count=None):
+    def hardware_expect(self, data_str=None, re_string='', expect_map=OrderedDict(), error_map=OrderedDict(),
+                        timeout=None, retries=None, check_action_loop_detector=True, **optional_args):
+
         """Get response form the device and compare it to expected_map, error_map and re_string patterns,
         perform actions specified in expected_map if any, and return output.
         Raise Exception if receive empty responce from device within a minute
@@ -99,12 +100,12 @@ class ExpectSession(Session):
         :param expect_map: dict with {re_str: action} to trigger some action on received string
         :param error_map: expected error list
         :param timeout: session timeout
-        :param retries_count: maximal retries count
+        :param retries: maximal retries count
         :return:
         """
 
-        if retries_count is None:
-            retries_count = self._max_loop_retries
+        if retries is None:
+            retries = self._max_loop_retries
 
         if data_str is not None:
             self.logger.debug(data_str)
@@ -118,14 +119,14 @@ class ExpectSession(Session):
         # nothing is expected (usually used for exit)
         output_list = list()
         output_str = ''
-        retries = 0
+        retries_count = 0
         is_correct_exit = False
         action_loop_detector = ActionLoopDetector(self._loop_detector_max_action_loops,
                                                   self._loop_detector_max_combination_length)
 
-        while retries_count == 0 or retries < retries_count:
+        while retries == 0 or retries_count < retries:
             is_matched = False
-            retries += 1
+            retries_count += 1
             output_str += self._receive_with_retries(timeout, self._max_read_retries)
 
             if re.search(re_string, output_str, re.DOTALL):
@@ -135,21 +136,25 @@ class ExpectSession(Session):
             for expect_string in expect_map:
                 result_match = re.search(expect_string, output_str, re.DOTALL)
                 if result_match:
-                    if not action_loop_detector.check_loops(expect_string) and output_str in output_list:
-                        self.logger.error('Loops detected, output_list: {}'.format(output_list))
-                        raise Exception('hardware_expect', 'Expected actions loops detected')
                     output_list.append(output_str)
+
+                    if check_action_loop_detector:
+                        if not action_loop_detector.check_loops(expect_string):
+                            self.logger.error('Loops detected, output_list: {}'.format(output_list))
+                            raise Exception('hardware_expect', 'Expected actions loops detected')
                     expect_map[expect_string](self)
                     output_str = ''
                     is_matched = True
                     break
+
             if is_correct_exit:
                 break
+
             if not is_matched:
                 time.sleep(self._empty_loop_timeout)
 
         if not is_correct_exit:
-            raise Exception('ExpectSession', 'Session Loop limit exceeded')
+            raise Exception('ExpectSession', 'Session Loop limit exceeded, {} loops'.format(retries_count))
 
         result_output = ''.join(output_list)
 
@@ -175,6 +180,7 @@ class ExpectSession(Session):
 
 class ActionLoopDetector(object):
     """Class which helps to detect loops for action combinations"""
+
     def __init__(self, max_loops, max_combination_length):
         self._max_action_loops = max_loops
         self._max_combination_length = max_combination_length
