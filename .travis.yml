@@ -3,12 +3,17 @@ python:
 - '2.7'
 
 before_install:
-- pip install Inject==3.3.1
-- pip install paramiko==1.15.2
-- pip install pycrypto==2.6.1
-- pip install -r test_requirements.txt -i https://testpypi.python.org/pypi
+    - pip install coveralls
+    - pip install -r test_requirements.txt --extra-index-url https://testpypi.python.org/pypi
 
 install:
+    - pip install -r requirements.txt --extra-index-url https://testpypi.python.org/pypi
     - python setup.py install
 
-script: python setup.py sdist --format zip
+script:
+    - nosetests
+    - python setup.py develop
+    - python setup.py sdist --format zip
+
+after_success:
+    - coveralls

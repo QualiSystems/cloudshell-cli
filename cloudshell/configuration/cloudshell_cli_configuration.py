@@ -36,6 +36,7 @@ telnet_session = SessionCreator(TelnetSession)
 telnet_session.proxy = ReturnToPoolProxy
 telnet_session.kwargs = {'username': get_attribute_by_name_wrapper('User'),
                          'password': get_decrypted_password_by_attribute_name_wrapper('Password'),
+                         # 'password': get_attribute_by_name_wrapper('Password'),
                          'host': get_resource_address}
 CONNECTION_MAP[CONNECTION_TYPE_TELNET] = telnet_session
 
@@ -48,7 +49,7 @@ DEFAULT_SESSION_POOL_SIZE = 1
 SESSION_POOL_SIZE = get_attribute_by_name_wrapper('Sessions Concurrency Limit')
 
 """Max time waiting session from pool"""
-POOL_TIMEOUT = 60
+POOL_TIMEOUT = 600
 
 DEFAULT_PROMPT = r'.*[>$#]\s*$'
 # PROMPT = DEFAULT_PROMPT
@@ -58,7 +59,7 @@ EXIT_CONFIG_MODE_PROMPT_COMMAND = 'exit'
 
 """Commit rollback commands"""
 COMMIT_COMMAND = 'commit'
-ROLLBACK_COMAND = 'rollback'
+ROLLBACK_COMMAND = 'rollback'
 
 EXPECTED_MAP = OrderedDict()
 # ERROR_MAP = OrderedDict({r'.*':'ErrorError'})
