@@ -19,7 +19,7 @@ def send_commands_list(commands_list, send_command_func=None, expected_map=None,
     return output
 
 
-def execute_command_map(command_map, send_command_func=None, expected_map=None, error_map=None):
+def execute_command_map(command_map, send_command_func=None, expected_map=None, error_map=None, **optional_args):
     """Generate commands list based on command_map and run them
 
     :param command_map: map of commands
@@ -30,7 +30,8 @@ def execute_command_map(command_map, send_command_func=None, expected_map=None, 
     """
 
     commands_list = get_commands_list(command_map)
-    output = send_commands_list(commands_list, send_command_func, expected_map=expected_map, error_map=error_map)
+    output = send_commands_list(commands_list, send_command_func, expected_map=expected_map, error_map=error_map,
+                                **optional_args)
     return output
 
 
