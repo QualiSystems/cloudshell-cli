@@ -3,6 +3,7 @@ import time
 from collections import OrderedDict
 
 from abc import ABCMeta
+from cloudshell.cli.session.session_exceptions import SessionLoopDetectorException, SessionLoopLimitException
 import re
 from cloudshell.cli.session.session import Session
 from cloudshell.cli.helper.normalize_buffer import normalize_buffer
@@ -141,10 +142,12 @@ class ExpectSession(Session):
                     if check_action_loop_detector:
                         if not action_loop_detector.check_loops(expect_string):
                             self.logger.error('Loops detected, output_list: {}'.format(output_list))
-                            raise Exception('hardware_expect', 'Expected actions loops detected')
+                            raise SessionLoopDetectorException(self.__class__.__name__,
+                                                               'Expected actions loops detected')
                     expect_map[expect_string](self)
                     output_str = ''
                     is_matched = True
+                    retries_count = 0
                     break
 
             if is_correct_exit:
@@ -154,7 +157,8 @@ class ExpectSession(Session):
                 time.sleep(self._empty_loop_timeout)
 
         if not is_correct_exit:
-            raise Exception('ExpectSession', 'Session Loop limit exceeded, {} loops'.format(retries_count))
+            raise SessionLoopLimitException(self.__class__.__name__,
+                                            'Session Loop limit exceeded, {} loops'.format(retries_count))
 
         result_output = ''.join(output_list)
 
