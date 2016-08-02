@@ -107,8 +107,12 @@ class CliService(CliServiceInterface):
             if is_need_default_prompt:
                 expected_str = expected_str + '|' + self._prompt
 
+        command_retries = self._command_retries
+        if 'command_retries' in optional_args:
+            command_retries = optional_args['command_retries']
+
         out = ''
-        for retry in range(self._command_retries):
+        for retry in range(command_retries):
             try:
                 out = session.hardware_expect(command, expected_str, expect_map=expected_map, error_map=error_map,
                                               **optional_args)
@@ -117,7 +121,7 @@ class CliService(CliServiceInterface):
                 raise command_error
             except Exception as e:
                 logger.error(e)
-                if retry == self._command_retries - 1:
+                if retry == command_retries - 1:
                     logger.error(traceback.format_exc())
                     raise Exception('Failed to send command')
                 session.reconnect(self._prompt)
