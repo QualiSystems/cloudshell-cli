@@ -46,7 +46,10 @@ class SSHSession(ExpectSession):
 
         output = self.hardware_expect(re_string=re_string, timeout=self._timeout)
         logger.info(output)
-        self._default_actions()
+
+        default_actions_output = self._default_actions()
+        if default_actions_output :
+            output += default_actions_output
 
         return output
 
