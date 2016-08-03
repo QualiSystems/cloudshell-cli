@@ -77,6 +77,8 @@ class ExpectSession(Session):
             except socket.timeout:
                 time.sleep(0.5)
                 continue
+            except timeout:
+                break
             except Exception as err:
                 raise err
             break
@@ -108,6 +110,12 @@ class ExpectSession(Session):
             retries = self._max_loop_retries
 
         if data_str is not None:
+            try:
+                # Try to read buffer before sending command. Workaround for clear buffer
+                output_str = self._receive_with_retries(1, 1)
+            except:
+                pass
+
             self.logger.debug(data_str)
             self.send_line(data_str)
             time.sleep(0.2)
@@ -164,6 +172,12 @@ class ExpectSession(Session):
                 self.logger.error(result_output)
                 raise CommandExecutionException('ExpectSession',
                                                 'Session returned \'{}\''.format(error_map[error_string]))
+        try:
+            # Read buffer to the end. Useful when re_string isn't last in buffer
+            output_str = self._receive_with_retries(1, 1)
+            result_output += output_str
+        except:
+            pass
 
         result_output = normalize_buffer(result_output)
         self.logger.debug(result_output)
