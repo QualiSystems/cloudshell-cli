@@ -148,7 +148,7 @@ class ExpectSession(Session):
                     output_list.append(output_str)
 
                     if check_action_loop_detector:
-                        if not action_loop_detector.check_loops(expect_string):
+                        if action_loop_detector.loops_detected(expect_string):
                             self.logger.error('Loops detected, output_list: {}'.format(output_list))
                             raise SessionLoopDetectorException(self.__class__.__name__,
                                                                'Expected actions loops detected')
@@ -204,61 +204,31 @@ class ActionLoopDetector(object):
         self._max_combination_length = max_combination_length
         self._action_history = []
 
-    @property
-    def logger(self):
-        return inject.instance(LOGGER)
-
-    @property
-    def action_history_len(self):
-        return len(self._action_history)
-
-    def check_loops(self, action_key):
-        """Add action in history, look for loops in action history"""
-        is_correct = True
-
+    def loops_detected(self, action_key):
+        """Added action key to the history and detect for loops"""
+        loops_detected = False
         self._action_history.append(action_key)
-        for index in reversed(range(0, len(self._action_history))):
-            if not self._check_loop_for_index(index):
-                is_correct = False
-                self.logger.error('Action history: {}'.format(self._action_history))
+        for combination_length in xrange(1, self._max_combination_length + 1):
+            if self._is_combination_compatible(combination_length):
+                if self._detect_loops_for_combination_length(combination_length):
+                    loops_detected = True
+                    break
+        return loops_detected
+
+    def _is_combination_compatible(self, combination_length):
+        if len(self._action_history) / combination_length >= self._max_action_loops:
+            is_compatible = True
+        else:
+            is_compatible = False
+        return is_compatible
+
+    def _detect_loops_for_combination_length(self, combination_length):
+        reversed_history = self._action_history[::-1]
+        combinations = [reversed_history[x:x + combination_length] for x in
+                        xrange(0, len(reversed_history), combination_length)][:self._max_action_loops]
+        is_loops_exist = True
+        for x, y in [combinations[x:x + 2] for x in xrange(0, len(combinations) - 1)]:
+            if x != y:
+                is_loops_exist = False
                 break
-        return is_correct
-
-    def _check_loop_for_index(self, index):
-        """Check if index of history can have loops then check for loops"""
-        is_different = True
-        combination_len = self.action_history_len - index
-        if combination_len <= self._max_combination_length:
-            """Check if combination length is suitable"""
-            if self.action_history_len / (self.action_history_len - index) >= self._max_action_loops:
-                combinations = []
-                """Check if combinations count can be in the history"""
-                for combination_index in range(self._max_action_loops):
-                    index_start = (self.action_history_len - 1) - (combination_len * combination_index) - (
-                        combination_len - 1)
-                    """get start index for combination"""
-                    index_end = (self.action_history_len - 1) - (combination_len * combination_index)
-                    """get end index for combination"""
-                    combinations.append(self._get_combination(index_start, index_end))
-                is_different = self._are_combinations_different(combinations)
-        return is_different
-
-    def _get_combination(self, index_start, index_end):
-        """create combination from history by indexes"""
-        combination = []
-        for index in range(index_start, index_end + 1):
-            combination.append(self._action_history[index])
-        return combination
-
-    def _are_combinations_different(self, combinations):
-        """check if combinations are different"""
-        is_different = False
-        previous_combination = combinations.pop(0)
-        for combination in combinations:
-            if combination != previous_combination:
-                is_different = True
-                break
-            else:
-                previous_combination = combination
-
-        return is_different
+        return is_loops_exist
