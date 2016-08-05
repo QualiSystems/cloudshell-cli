@@ -14,6 +14,10 @@ from cloudshell.shell.core.config_utils import override_attributes_from_config
 
 
 class ExpectSession(Session):
+    """
+    Help to handle additional actions during send command
+    """
+
     __metaclass__ = ABCMeta
 
     DEFAULT_ACTIONS = None
@@ -25,6 +29,18 @@ class ExpectSession(Session):
 
     def __init__(self, handler=None, username=None, password=None, host=None, port=None,
                  timeout=60, new_line='\r', **kwargs):
+        """
+
+        :param handler:
+        :param username:
+        :param password:
+        :param host:
+        :param port:
+        :param timeout:
+        :param new_line:
+        :param kwargs:
+        :return:
+        """
         self.session_type = 'EXPECT'
         self._handler = handler
         self._port = port
@@ -197,15 +213,27 @@ class ExpectSession(Session):
 
 
 class ActionLoopDetector(object):
-    """Class which helps to detect loops for action combinations"""
+    """Help to detect loops for action combinations"""
 
     def __init__(self, max_loops, max_combination_length):
+        """
+
+        :param max_loops:
+        :param max_combination_length:
+        :return:
+        """
         self._max_action_loops = max_loops
         self._max_combination_length = max_combination_length
         self._action_history = []
 
     def loops_detected(self, action_key):
-        """Added action key to the history and detect for loops"""
+        """
+        Add action key to the history and detect loops
+
+        :param action_key:
+        :return:
+        """
+        # """Added action key to the history and detect for loops"""
         loops_detected = False
         self._action_history.append(action_key)
         for combination_length in xrange(1, self._max_combination_length + 1):
@@ -216,6 +244,12 @@ class ActionLoopDetector(object):
         return loops_detected
 
     def _is_combination_compatible(self, combination_length):
+        """
+        Check if combinations may exist
+
+        :param combination_length:
+        :return:
+        """
         if len(self._action_history) / combination_length >= self._max_action_loops:
             is_compatible = True
         else:
@@ -223,6 +257,12 @@ class ActionLoopDetector(object):
         return is_compatible
 
     def _detect_loops_for_combination_length(self, combination_length):
+        """
+        Detect loops for combination length
+
+        :param combination_length:
+        :return:
+        """
         reversed_history = self._action_history[::-1]
         combinations = [reversed_history[x:x + combination_length] for x in
                         xrange(0, len(reversed_history), combination_length)][:self._max_action_loops]
