@@ -204,10 +204,20 @@ class ExpectSession(Session):
         return result_output
 
     def reconnect(self, prompt):
+        """
+        Recconnect implementation
+
+        :param prompt:
+        :return:
+        """
         self.disconnect()
         self.connect(prompt)
 
     def _default_actions(self):
+        """
+        Call default action
+        :return:
+        """
         if self._default_actions_func:
             self._default_actions_func(session=self)
 
