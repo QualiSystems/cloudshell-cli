@@ -3,6 +3,7 @@ import traceback
 
 from cloudshell.cli.service.cli_service_interface import CliServiceInterface
 from cloudshell.cli.service.cli_exceptions import CommandExecutionException
+from cloudshell.cli.session.session_exceptions import SessionLoopDetectorException, SessionLoopLimitException
 from cloudshell.shell.core.config_utils import override_attributes_from_config
 import cloudshell.configuration.cloudshell_cli_configuration as package_config
 from cloudshell.configuration.cloudshell_cli_binding_keys import SESSION, CONNECTION_MANAGER
@@ -117,8 +118,8 @@ class CliService(CliServiceInterface):
                 out = session.hardware_expect(command, expected_str, expect_map=expected_map, error_map=error_map,
                                               **optional_args)
                 break
-            except CommandExecutionException as command_error:
-                raise command_error
+            except (CommandExecutionException, SessionLoopDetectorException, SessionLoopLimitException):
+                raise
             except Exception as e:
                 logger.error(e)
                 if retry == command_retries - 1:
