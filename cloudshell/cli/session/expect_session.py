@@ -24,7 +24,7 @@ class ExpectSession(Session):
     HE_MAX_LOOP_RETRIES = 100
     HE_MAX_READ_RETRIES = 5
     HE_EMPTY_LOOP_TIMEOUT = 0.2
-    HE_CLEAN_BUFFER_TIMEOUT = 0.1
+    HE_CLEAN_BUFFER_TIMEOUT = 0.01
     HE_LOOP_DETECTOR_MAX_ACTION_LOOPS = 3
     HE_LOOP_DETECTOR_MAX_COMBINATION_LENGTH = 4
 
@@ -131,7 +131,7 @@ class ExpectSession(Session):
         if data_str is not None:
             try:
                 # Try to read buffer before sending command. Workaround for clear buffer
-                output_str = self._receive_with_retries(self._clean_buffer_timeout, 1)
+                output_str = self._receive(self._clean_buffer_timeout)
             except:
                 pass
 
@@ -196,7 +196,7 @@ class ExpectSession(Session):
                                                 'Session returned \'{}\''.format(error_map[error_string]))
         try:
             # Read buffer to the end. Useful when re_string isn't last in buffer
-            output_str = self._receive_with_retries(self._clean_buffer_timeout, 1)
+            output_str = self._receive(self._clean_buffer_timeout)
             result_output += output_str
         except:
             pass
