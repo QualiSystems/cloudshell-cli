@@ -22,13 +22,14 @@ ssh_session = SessionCreator(SSHSession)
 ssh_session.proxy = ReturnToPoolProxy
 ssh_session.kwargs = {'username': get_attribute_by_name_wrapper('User'),
                       'password': get_decrypted_password_by_attribute_name_wrapper('Password'),
-                      'host': get_resource_address}
+                      'host': get_resource_address,
+                      'port': get_attribute_by_name_wrapper('CLI TCP Port')}
 CONNECTION_MAP[CONNECTION_TYPE_SSH] = ssh_session
 
 """Definition for TCP session"""
 tcp_session = SessionCreator(TCPSession)
 tcp_session.proxy = ReturnToPoolProxy
-tcp_session.kwargs = {'host': get_resource_address}
+tcp_session.kwargs = {'host': get_resource_address, 'port': get_attribute_by_name_wrapper('CLI TCP Port')}
 CONNECTION_MAP[CONNECTION_TYPE_TCP] = tcp_session
 
 """Definition for Telnet session"""
@@ -36,7 +37,7 @@ telnet_session = SessionCreator(TelnetSession)
 telnet_session.proxy = ReturnToPoolProxy
 telnet_session.kwargs = {'username': get_attribute_by_name_wrapper('User'),
                          'password': get_decrypted_password_by_attribute_name_wrapper('Password'),
-                         # 'password': get_attribute_by_name_wrapper('Password'),
+                         'port': get_attribute_by_name_wrapper('CLI TCP Port'),
                          'host': get_resource_address}
 CONNECTION_MAP[CONNECTION_TYPE_TELNET] = telnet_session
 
