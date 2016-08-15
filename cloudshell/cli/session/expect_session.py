@@ -24,7 +24,7 @@ class ExpectSession(Session):
     HE_MAX_LOOP_RETRIES = 20
     HE_READ_TIMEOUT = 30
     HE_EMPTY_LOOP_TIMEOUT = 0.2
-    HE_CLEAN_BUFFER_TIMEOUT = 0.1
+    HE_CLEAR_BUFFER_TIMEOUT = 0.1
     HE_LOOP_DETECTOR_MAX_ACTION_LOOPS = 3
     HE_LOOP_DETECTOR_MAX_COMBINATION_LENGTH = 4
 
@@ -67,7 +67,7 @@ class ExpectSession(Session):
         self._default_actions_func = overridden_config.DEFAULT_ACTIONS
         self._loop_detector_max_action_loops = overridden_config.HE_LOOP_DETECTOR_MAX_ACTION_LOOPS
         self._loop_detector_max_combination_length = overridden_config.HE_LOOP_DETECTOR_MAX_COMBINATION_LENGTH
-        self._clean_buffer_timeout = overridden_config.HE_CLEAN_BUFFER_TIMEOUT
+        self._clear_buffer_timeout = overridden_config.HE_CLEAR_BUFFER_TIMEOUT
         if not self._timeout:
             self._timeout = overridden_config.HE_READ_TIMEOUT
 
@@ -107,9 +107,9 @@ class ExpectSession(Session):
             raise Exception('ExpectSession', 'Failed to get response from device')
         return current_output
 
-    def _clean_buffer(self, timeout):
+    def _clear_buffer(self, timeout):
         """
-        Clean buffer
+        Clear buffer
 
         :param timeout:
         :return:
@@ -156,7 +156,7 @@ class ExpectSession(Session):
         empty_loop_timeout = empty_loop_timeout or self._empty_loop_timeout
 
         if data_str is not None:
-            self._clean_buffer(self._clean_buffer_timeout)
+            self._clear_buffer(self._clear_buffer_timeout)
 
             self.logger.debug('Command: {}'.format(data_str))
             self.send_line(data_str)
@@ -223,7 +223,7 @@ class ExpectSession(Session):
                                                 'Session returned \'{}\''.format(error_map[error_string]))
 
         # Read buffer to the end. Useful when re_string isn't last in buffer
-        result_output += self._clean_buffer(self._clean_buffer_timeout)
+        result_output += self._clear_buffer(self._clear_buffer_timeout)
 
         result_output = normalize_buffer(result_output)
         self.logger.debug(result_output)
