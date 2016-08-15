@@ -21,15 +21,15 @@ class ExpectSession(Session):
     __metaclass__ = ABCMeta
 
     DEFAULT_ACTIONS = None
-    HE_MAX_LOOP_RETRIES = 100
-    HE_MAX_READ_RETRIES = 5
+    HE_MAX_LOOP_RETRIES = 20
+    HE_READ_TIMEOUT = 30
     HE_EMPTY_LOOP_TIMEOUT = 0.2
-    HE_CLEAN_BUFFER_TIMEOUT = 0.1
+    HE_CLEAR_BUFFER_TIMEOUT = 0.1
     HE_LOOP_DETECTOR_MAX_ACTION_LOOPS = 3
     HE_LOOP_DETECTOR_MAX_COMBINATION_LENGTH = 4
 
     def __init__(self, handler=None, username=None, password=None, host=None, port=None,
-                 timeout=60, new_line='\r', **kwargs):
+                 timeout=None, new_line='\r', **kwargs):
         """
 
         :param handler:
@@ -62,13 +62,14 @@ class ExpectSession(Session):
         """Override constants with global config values"""
         overridden_config = override_attributes_from_config(ExpectSession)
 
-        self._max_read_retries = overridden_config.HE_MAX_READ_RETRIES
         self._max_loop_retries = overridden_config.HE_MAX_LOOP_RETRIES
         self._empty_loop_timeout = overridden_config.HE_EMPTY_LOOP_TIMEOUT
         self._default_actions_func = overridden_config.DEFAULT_ACTIONS
         self._loop_detector_max_action_loops = overridden_config.HE_LOOP_DETECTOR_MAX_ACTION_LOOPS
         self._loop_detector_max_combination_length = overridden_config.HE_LOOP_DETECTOR_MAX_COMBINATION_LENGTH
-        self._clean_buffer_timeout = overridden_config.HE_CLEAN_BUFFER_TIMEOUT
+        self._clear_buffer_timeout = overridden_config.HE_CLEAR_BUFFER_TIMEOUT
+        if not self._timeout:
+            self._timeout = overridden_config.HE_READ_TIMEOUT
 
     @property
     def logger(self):
@@ -106,11 +107,37 @@ class ExpectSession(Session):
             raise Exception('ExpectSession', 'Failed to get response from device')
         return current_output
 
+    def _clear_buffer(self, timeout):
+        """
+        Clear buffer
+
+        :param timeout:
+        :return:
+        """
+        out = ''
+        while True:
+            try:
+                read_buffer = self._receive(timeout)
+            except socket.timeout:
+                read_buffer = None
+            if read_buffer:
+                out += read_buffer
+            else:
+                break
+        return out
+
     def send_line(self, data_str):
+        """
+        Add new line to the end of command string and send
+
+        :param data_str:
+        :return:
+        """
         self._send(data_str + self._new_line)
 
     def hardware_expect(self, data_str=None, re_string='', expect_map=OrderedDict(), error_map=OrderedDict(),
-                        timeout=None, retries=None, check_action_loop_detector=True, **optional_args):
+                        timeout=None, retries=None, check_action_loop_detector=True, empty_loop_timeout=None,
+                        **optional_args):
 
         """Get response form the device and compare it to expected_map, error_map and re_string patterns,
         perform actions specified in expected_map if any, and return output.
@@ -125,19 +152,14 @@ class ExpectSession(Session):
         :return:
         """
 
-        if retries is None:
-            retries = self._max_loop_retries
+        retries = retries or self._max_loop_retries
+        empty_loop_timeout = empty_loop_timeout or self._empty_loop_timeout
 
         if data_str is not None:
-            try:
-                # Try to read buffer before sending command. Workaround for clear buffer
-                output_str = self._receive(self._clean_buffer_timeout)
-            except:
-                pass
+            self._clear_buffer(self._clear_buffer_timeout)
 
-            self.logger.debug(data_str)
+            self.logger.debug('Command: {}'.format(data_str))
             self.send_line(data_str)
-            time.sleep(0.2)
 
         if re_string is None or len(re_string) == 0:
             raise Exception('ExpectSession', 'List of expected messages can\'t be empty!')
@@ -152,9 +174,19 @@ class ExpectSession(Session):
                                                   self._loop_detector_max_combination_length)
 
         while retries == 0 or retries_count < retries:
-            is_matched = False
-            retries_count += 1
-            output_str += self._receive_with_retries(timeout, self._max_read_retries)
+
+            try:
+                read_buffer = self._receive(timeout)
+            except socket.timeout:
+                read_buffer = None
+
+            if read_buffer:
+                output_str += read_buffer
+                retries_count = 0
+            else:
+                retries_count += 1
+                time.sleep(empty_loop_timeout)
+                continue
 
             if re.search(re_string, output_str, re.DOTALL):
                 output_list.append(output_str)
@@ -172,15 +204,10 @@ class ExpectSession(Session):
                                                                'Expected actions loops detected')
                     expect_map[expect_string](self)
                     output_str = ''
-                    is_matched = True
-                    retries_count = 0
                     break
 
             if is_correct_exit:
                 break
-
-            if not is_matched:
-                time.sleep(self._empty_loop_timeout)
 
         if not is_correct_exit:
             raise SessionLoopLimitException(self.__class__.__name__,
@@ -194,12 +221,9 @@ class ExpectSession(Session):
                 self.logger.error(result_output)
                 raise CommandExecutionException('ExpectSession',
                                                 'Session returned \'{}\''.format(error_map[error_string]))
-        try:
-            # Read buffer to the end. Useful when re_string isn't last in buffer
-            output_str = self._receive(self._clean_buffer_timeout)
-            result_output += output_str
-        except:
-            pass
+
+        # Read buffer to the end. Useful when re_string isn't last in buffer
+        result_output += self._clear_buffer(self._clear_buffer_timeout)
 
         result_output = normalize_buffer(result_output)
         self.logger.debug(result_output)
