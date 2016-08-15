@@ -44,7 +44,9 @@ class ExpectSession(Session):
         """
         self.session_type = 'EXPECT'
         self._handler = handler
-        self._port = port
+        self._port = None
+        if port and int(port) > 0:
+            self._port = int(port)
         if host:
             temp_host = host.split(':')
             self._host = temp_host[0]

@@ -48,7 +48,7 @@ class SSHSession(ExpectSession):
         logger.info(output)
 
         default_actions_output = self._default_actions()
-        if default_actions_output :
+        if default_actions_output:
             output += default_actions_output
 
         return output
