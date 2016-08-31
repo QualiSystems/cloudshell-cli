@@ -1,4 +1,4 @@
-cloudshell-shell-core>=2.1.205,<2.5
+cloudshell-shell-core>=2.1.205,<2.4
 paramiko==1.15.2
 pycrypto>=2.6.1
 inject==3.3.1
