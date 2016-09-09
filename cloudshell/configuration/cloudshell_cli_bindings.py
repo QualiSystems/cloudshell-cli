@@ -21,7 +21,7 @@ def bindings(binder):
 
     """Binding for connection manager"""
     try:
-        binder.bind_to_constructor(CONNECTION_MANAGER, ConnectionManager)
+        binder.bind_to_provider(CONNECTION_MANAGER, ConnectionManager.get_instance)
     except inject.InjectorException:
         pass
 

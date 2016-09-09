@@ -1,12 +1,14 @@
 from cloudshell.cli.service.cli_exceptions import CommandExecutionException
-import inject
-from cloudshell.configuration.cloudshell_cli_binding_keys import CONNECTION_MANAGER
 
 
-class ReturnToPoolProxy(object):
-    """Proxy class, return session back to pool when GC destruct session"""
+class SessionValidationProxy(object):
+    """Proxy class for session validation"""
 
+    """Call of those methods change state to valid"""
     VALIDATED_CALLS = ('connect', 'reconnect')
+
+    """Those exceptions do not change state"""
+    IGNORED_EXCEPTIONS = [CommandExecutionException]
 
     def __init__(self, instance):
         self._instance = instance
@@ -20,26 +22,23 @@ class ReturnToPoolProxy(object):
 
     def call_wrapper(self, name, attr):
         def wrapper_func(*args, **kwargs):
+            """
+            Wrap session calls and change session state if exception was raised
+            :param args:
+            :param kwargs:
+            :return:
+            """
             try:
                 result = attr(*args, **kwargs)
                 if name in self.VALIDATED_CALLS:
                     self._valid = True
                 return result
-            except CommandExecutionException:
-                raise
-            except:
-                self._valid = False
+            except Exception as e:
+                if e.__class__ not in self.IGNORED_EXCEPTIONS:
+                    self._valid = False
                 raise
 
         return wrapper_func
-
-    def __del__(self):
-        if inject and inject.is_configured():
-            cm = inject.instance(CONNECTION_MANAGER)
-            if self._valid:
-                cm.return_session_to_pool(self)
-            else:
-                cm.decrement_sessions_count()
 
     def set_invalid(self):
         """Set session to invalid to remove it from session pull
@@ -48,3 +47,10 @@ class ReturnToPoolProxy(object):
         """
 
         self._valid = False
+
+    def is_valid(self):
+        """
+        Valid state
+        :rtype: bool
+        """
+        return self._valid
