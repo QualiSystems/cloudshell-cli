@@ -24,7 +24,7 @@ class SessionManager(object):
     DEFAULT_PROMPT = package_config.DEFAULT_PROMPT
     DEFAULT_CONNECTION_TYPE = package_config.DEFAULT_CONNECTION_TYPE
 
-    def __init__(self, logger=None, config=None):
+    def __init__(self, logger=None, config=None, connection_map=None):
         """
         SessionManager constructor
         :param logger:
@@ -33,13 +33,15 @@ class SessionManager(object):
         """
         self._logger = logger
         self._config = config
+        self._connection_map = connection_map
 
         self._sessions = []
         """Override default configuration attributes"""
         overridden_config = override_attributes_from_config(SessionManager, config=self.config)
         self._connection_type_auto = overridden_config.CONNECTION_TYPE_AUTO
         self._connection_type = overridden_config.CONNECTION_TYPE
-        self._connection_map = overridden_config.CONNECTION_MAP
+        if not self._connection_map:
+            self._connection_map = overridden_config.CONNECTION_MAP
         self._prompt = overridden_config.DEFAULT_PROMPT
         self._default_connection_type = overridden_config.DEFAULT_CONNECTION_TYPE
 
@@ -53,6 +55,10 @@ class SessionManager(object):
         :rtype: Logger
         """
         return self._logger or inject.instance(LOGGER)
+
+    @logger.setter
+    def logger(self, logger):
+        self._logger = logger
 
     @property
     def config(self):
@@ -91,7 +97,7 @@ class SessionManager(object):
 
         return connection_type.lower()
 
-    def _new_session(self, connection_type):
+    def _new_session(self, connection_type, prompt):
         """Creates new session
         :param str connection_type:
         :rtype: Session
@@ -101,7 +107,7 @@ class SessionManager(object):
         if connection_type in self._connection_map:
             try:
                 session_object = self._connection_map[connection_type].create_session()
-                session_object.connect(re_string=self._prompt)
+                session_object.connect(re_string=prompt)
             except Exception as exception:
                 self.logger.error('Cannot create session, Exception: {0}'.format(exception))
                 raise SessionManagerException(self.__class__.__name__,
@@ -114,14 +120,17 @@ class SessionManager(object):
         self._sessions.append(session_object)
         return session_object
 
-    def create_session(self):
+    def create_session(self, connection_type=None, prompt=None):
         """Creates session object for connection type
         :rtype: Session
         :raises: SessionManagerException
         """
-        connection_type = self.get_connection_type()
+        if not connection_type:
+            connection_type = self.get_connection_type()
 
-        if not self._prompt or len(self._prompt) == 0:
+        if not prompt:
+            prompt = self._prompt
+        if not prompt:
             self.logger.warning('Provided Prompt for the session is empty!')
 
         self.logger.info('\n-------------------------------------------------------------')
@@ -130,13 +139,13 @@ class SessionManager(object):
         with self._SESSION_LOCK:
             session_object = None
             if connection_type != self._connection_type_auto:
-                session_object = self._new_session(connection_type)
+                session_object = self._new_session(connection_type, prompt)
             else:
                 for key in self._connection_map:
                     self.logger.info('\n--------------------------------------')
                     self.logger.info('Trying to open {0} connection ...'.format(key))
                     try:
-                        session_object = self._new_session(key)
+                        session_object = self._new_session(key, prompt)
                         if session_object:
                             break
                     except Exception as error_object:

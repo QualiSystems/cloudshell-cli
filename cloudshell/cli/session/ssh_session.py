@@ -1,8 +1,7 @@
 import traceback
+
 import paramiko
-import inject
 from cloudshell.cli.session.expect_session import ExpectSession
-from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER
 
 
 class SSHSession(ExpectSession):
@@ -25,12 +24,10 @@ class SSHSession(ExpectSession):
     def __del__(self):
         self.disconnect()
 
-    @inject.params(logger=LOGGER)
-    def connect(self, re_string='', logger=None):
+    def connect(self, re_string=''):
         """Connect to device through ssh
 
         :param re_string: expected string in output
-        :param logger:
         :return: output
         """
 
@@ -38,14 +35,14 @@ class SSHSession(ExpectSession):
             self._handler.connect(self._host, self._port, self._username, self._password, timeout=self._timeout,
                                   banner_timeout=30, allow_agent=False, look_for_keys=False)
         except Exception as e:
-            logger.error(traceback.format_exc())
+            self.logger.error(traceback.format_exc())
             raise Exception('SSHSession', 'Failed to open connection to device: {0}'.format(e.message))
 
         self._current_channel = self._handler.invoke_shell()
         self._current_channel.settimeout(self._timeout)
 
         output = self.hardware_expect(re_string=re_string, timeout=self._timeout)
-        logger.info(output)
+        self.logger.info(output)
 
         default_actions_output = self._default_actions()
         if default_actions_output:
@@ -53,11 +50,8 @@ class SSHSession(ExpectSession):
 
         return output
 
-    # @inject.params(logger='logger')
-    def disconnect(self, logger=None):
+    def disconnect(self):
         """Disconnect from device
-
-        :param logger:
         :return:
         """
 
