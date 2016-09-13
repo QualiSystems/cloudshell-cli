@@ -1,5 +1,3 @@
-__author__ = 'g8y3e'
-
 import socket
 
 from cloudshell.cli.session.expect_session import ExpectSession
@@ -17,8 +15,6 @@ class TCPSession(ExpectSession):
         if self._port is not None:
             self._port = int(self._port)
 
-
-
     def connect(self, re_string=''):
         """Open connection to device / create session
 
@@ -31,7 +27,7 @@ class TCPSession(ExpectSession):
 
         self._handler.settimeout(self._timeout)
         output = self.hardware_expect(re_string=re_string)
-        self._logger.info(output)
+        self.logger.info(output)
 
         return output
 

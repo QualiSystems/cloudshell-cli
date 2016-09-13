@@ -29,7 +29,7 @@ class ExpectSession(Session):
     HE_LOOP_DETECTOR_MAX_COMBINATION_LENGTH = 4
 
     def __init__(self, handler=None, username=None, password=None, host=None, port=None,
-                 timeout=None, new_line='\r', **kwargs):
+                 timeout=None, new_line='\r', logger=None, **kwargs):
         """
 
         :param handler:
@@ -61,6 +61,8 @@ class ExpectSession(Session):
         self._new_line = new_line
         self._timeout = timeout
 
+        self._logger = logger
+
         """Override constants with global config values"""
         overridden_config = override_attributes_from_config(ExpectSession)
 
@@ -75,7 +77,11 @@ class ExpectSession(Session):
 
     @property
     def logger(self):
-        return inject.instance(LOGGER)
+        return self._logger or inject.instance(LOGGER)
+
+    @logger.setter
+    def logger(self, logger):
+        self._logger = logger
 
     def _receive_with_retries(self, timeout, retries_count):
         """Read session buffer with several retries

@@ -84,7 +84,7 @@ class ConsoleSession(ExpectSession):
         except Exception as error_object:
             if re.search('incompatible version', str(error_object).lower()) is None:
                 self._session_handler = TelnetSession(self._console_username, self._console_password,
-                                                      self._console_host, port=23, logger=self._logger)
+                                                      self._console_host, port=23, logger=self.logger)
                 self._session_handler.connect(re_string)
 
                 if self._console_port:
