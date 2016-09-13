@@ -223,6 +223,9 @@ class ConnectionManager(object):
         :rtype: Logger
         """
         return self._logger or inject.instance(LOGGER)
+    @logger.setter
+    def logger(self, logger):
+        self._logger = logger
 
     @property
     def config(self):
@@ -241,6 +244,10 @@ class ConnectionManager(object):
         if not self._session_manager:
             self._session_manager = SessionManager()
         return self._session_manager
+
+    @session_manager.setter
+    def session_manager(self, session_manager):
+        self._session_manager = session_manager
 
     @property
     def pool_manager(self):
