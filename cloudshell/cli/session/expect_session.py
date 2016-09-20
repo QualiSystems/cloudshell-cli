@@ -1,15 +1,16 @@
 import socket
 import time
 from collections import OrderedDict
-
 from abc import ABCMeta
+from types import ModuleType
+
 from cloudshell.cli.session.session_exceptions import SessionLoopDetectorException, SessionLoopLimitException
 import re
 from cloudshell.cli.session.session import Session
 from cloudshell.cli.helper.normalize_buffer import normalize_buffer
 from cloudshell.cli.service.cli_exceptions import CommandExecutionException
 import inject
-from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER
+from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER, CONFIG
 from cloudshell.shell.core.config_utils import override_attributes_from_config
 
 
@@ -29,7 +30,7 @@ class ExpectSession(Session):
     HE_LOOP_DETECTOR_MAX_COMBINATION_LENGTH = 4
 
     def __init__(self, handler=None, username=None, password=None, host=None, port=None,
-                 timeout=None, new_line='\r', logger=None, **kwargs):
+                 timeout=None, new_line='\r', logger=None, config=None, default_actions=None, **kwargs):
         """
 
         :param handler:
@@ -62,13 +63,18 @@ class ExpectSession(Session):
         self._timeout = timeout
 
         self._logger = logger
+        self._config = config
 
         """Override constants with global config values"""
-        overridden_config = override_attributes_from_config(ExpectSession)
+        overridden_config = override_attributes_from_config(ExpectSession, config=self.config)
 
         self._max_loop_retries = overridden_config.HE_MAX_LOOP_RETRIES
         self._empty_loop_timeout = overridden_config.HE_EMPTY_LOOP_TIMEOUT
-        self._default_actions_func = overridden_config.DEFAULT_ACTIONS
+        if default_actions:
+            self._default_actions_func = default_actions
+        else:
+            self._default_actions_func = overridden_config.DEFAULT_ACTIONS
+
         self._loop_detector_max_action_loops = overridden_config.HE_LOOP_DETECTOR_MAX_ACTION_LOOPS
         self._loop_detector_max_combination_length = overridden_config.HE_LOOP_DETECTOR_MAX_COMBINATION_LENGTH
         self._clear_buffer_timeout = overridden_config.HE_CLEAR_BUFFER_TIMEOUT
@@ -82,6 +88,20 @@ class ExpectSession(Session):
     @logger.setter
     def logger(self, logger):
         self._logger = logger
+
+    @property
+    def config(self):
+        """
+        Property for config
+        :rtype: ModuleType
+        """
+        if self._config:
+            config = self._config
+        elif inject.is_configured():
+            config = inject.instance(CONFIG)
+        else:
+            config = ModuleType('config')
+        return config
 
     def _receive_with_retries(self, timeout, retries_count):
         """Read session buffer with several retries
@@ -145,7 +165,7 @@ class ExpectSession(Session):
 
     def hardware_expect(self, data_str=None, re_string='', expect_map=OrderedDict(), error_map=OrderedDict(),
                         timeout=None, retries=None, check_action_loop_detector=True, empty_loop_timeout=None,
-                        **optional_args):
+                        logger=None,**optional_args):
 
         """Get response form the device and compare it to expected_map, error_map and re_string patterns,
         perform actions specified in expected_map if any, and return output.
@@ -159,6 +179,10 @@ class ExpectSession(Session):
         :param retries: maximal retries count
         :return:
         """
+        if(logger is not None):
+            self.logger=logger
+        if(data_str==None):
+            data_str=''
 
         retries = retries or self._max_loop_retries
         empty_loop_timeout = empty_loop_timeout or self._empty_loop_timeout

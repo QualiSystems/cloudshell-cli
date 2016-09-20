@@ -4,6 +4,7 @@ from threading import currentThread, Condition, RLock, Lock
 import time
 from logging import Logger
 
+from types import ModuleType
 from cloudshell.cli.session.connection_manager_exceptions import SessionManagerException, ConnectionManagerException
 import inject
 from cloudshell.cli.helper.weak_key_dictionary_with_callback import WeakKeyDictionaryWithCallback
@@ -18,13 +19,14 @@ class SessionManager(object):
     """
     Create or remove session for defined connection type
     """
+    '''
     CONNECTION_TYPE_AUTO = package_config.CONNECTION_TYPE_AUTO
     CONNECTION_TYPE = package_config.CONNECTION_TYPE
     CONNECTION_MAP = package_config.CONNECTION_MAP
     DEFAULT_PROMPT = package_config.DEFAULT_PROMPT
     DEFAULT_CONNECTION_TYPE = package_config.DEFAULT_CONNECTION_TYPE
-
-    def __init__(self, logger=None, config=None, connection_map=None):
+    '''
+    def __init__(self, connection_type,prompt,logger=None, config=None, connection_map=None):
         """
         SessionManager constructor
         :param logger:
@@ -34,16 +36,19 @@ class SessionManager(object):
         self._logger = logger
         self._config = config
         self._connection_map = connection_map
-
+        self._connection_type = connection_type
+        self._prompt = prompt
+        self._default_connection_type = 'auto'
+        self._connection_type_auto = 'auto'
         self._sessions = []
-        """Override default configuration attributes"""
-        overridden_config = override_attributes_from_config(SessionManager, config=self.config)
-        self._connection_type_auto = overridden_config.CONNECTION_TYPE_AUTO
-        self._connection_type = overridden_config.CONNECTION_TYPE
-        if not self._connection_map:
-            self._connection_map = overridden_config.CONNECTION_MAP
-        self._prompt = overridden_config.DEFAULT_PROMPT
-        self._default_connection_type = overridden_config.DEFAULT_CONNECTION_TYPE
+
+        if(config is not None):
+            """Override default configuration attributes"""
+            overridden_config = override_attributes_from_config(SessionManager, config=self.config)
+            self._connection_type_auto = overridden_config.CONNECTION_TYPE_AUTO
+            self._connection_type = overridden_config.CONNECTION_TYPE
+            self._prompt = overridden_config.DEFAULT_PROMPT
+            self._default_connection_type = overridden_config.DEFAULT_CONNECTION_TYPE
 
         """Lock"""
         self._SESSION_LOCK = RLock()
@@ -66,7 +71,13 @@ class SessionManager(object):
         Property for config
         :rtype: ModuleType
         """
-        return self._config or inject.instance(CONFIG)
+        if self._config:
+            config = self._config
+        elif inject.is_configured():
+            config = inject.instance(CONFIG)
+        else:
+            config = ModuleType('config')
+        return config
 
     @property
     def created_sessions(self):
@@ -97,7 +108,7 @@ class SessionManager(object):
 
         return connection_type.lower()
 
-    def _new_session(self, connection_type, prompt):
+    def _new_session(self, connection_type, prompt,logger=None):
         """Creates new session
         :param str connection_type:
         :rtype: Session
@@ -105,13 +116,14 @@ class SessionManager(object):
         """
 
         if connection_type in self._connection_map:
-            try:
-                session_object = self._connection_map[connection_type].create_session()
-                session_object.connect(re_string=prompt)
+            #try:
+            session_object = self._connection_map[connection_type].create_session()
+            session_object.connect(re_string=prompt,logger=logger)
+            '''
             except Exception as exception:
                 self.logger.error('Cannot create session, Exception: {0}'.format(exception))
-                raise SessionManagerException(self.__class__.__name__,
-                                              'Failed to open connection, see logs for more details')
+                raise SessionManagerException(self.__class__.__name__,'Failed to open connection, see logs for more details')
+            '''
             self.logger.debug('Created new session')
         else:
             err_msg = 'Connection type \'{0}\' not defined'.format(connection_type)
@@ -120,7 +132,7 @@ class SessionManager(object):
         self._sessions.append(session_object)
         return session_object
 
-    def create_session(self, connection_type=None, prompt=None):
+    def create_session(self, connection_type=None, prompt=None,logger=None):
         """Creates session object for connection type
         :rtype: Session
         :raises: SessionManagerException
@@ -139,7 +151,7 @@ class SessionManager(object):
         with self._SESSION_LOCK:
             session_object = None
             if connection_type != self._connection_type_auto:
-                session_object = self._new_session(connection_type, prompt)
+                session_object = self._new_session(connection_type, prompt,logger)
             else:
                 for key in self._connection_map:
                     self.logger.info('\n--------------------------------------')
@@ -178,10 +190,11 @@ class ConnectionManager(object):
     """Class implements Object Pool pattern for sessions, creates and pool sessions for specific types"""
 
     """Configuration attributes"""
+    '''
     POOL_TIMEOUT = package_config.POOL_TIMEOUT
     SESSION_POOL_SIZE = package_config.SESSION_POOL_SIZE
     DEFAULT_SESSION_POOL_SIZE = package_config.DEFAULT_SESSION_POOL_SIZE
-
+    '''
     """Thread session container"""
     _SESSION_CONTAINER = WeakKeyDictionaryWithCallback()
 
@@ -200,21 +213,22 @@ class ConnectionManager(object):
         :param pool_manager:
         :return:
         """
-        """Used for unittests"""
-        self._config = config
-        self._logger = logger
-        self._session_manager = session_manager
         self._pool_manager = pool_manager
+        self._pool_timeout = 100
+        self._max_pool_size = 1
+        """Used for unittests"""
 
-        """Override constants with global config values"""
-        overridden_config = override_attributes_from_config(ConnectionManager, config=self.config)
-        self._pool_timeout = overridden_config.POOL_TIMEOUT
-        self._max_pool_size = int(call_if_callable(
-            overridden_config.SESSION_POOL_SIZE) or overridden_config.DEFAULT_SESSION_POOL_SIZE)
+        if(config is not None):
+            self._config = config
+            """Override constants with global config values"""
+            overridden_config = override_attributes_from_config(ConnectionManager, config=self._config)
+            self._pool_timeout = overridden_config.POOL_TIMEOUT
+            self._max_pool_size = int(call_if_callable(
+                overridden_config.SESSION_POOL_SIZE) or overridden_config.DEFAULT_SESSION_POOL_SIZE)
 
         """Session manager condition"""
         self._SESSION_CONDITION = Condition()
-        self.logger.debug('Connection manager created')
+
 
     @property
     def logger(self):
@@ -223,6 +237,7 @@ class ConnectionManager(object):
         :rtype: Logger
         """
         return self._logger or inject.instance(LOGGER)
+
     @logger.setter
     def logger(self, logger):
         self._logger = logger
@@ -230,10 +245,16 @@ class ConnectionManager(object):
     @property
     def config(self):
         """
-        Property for the config
+        Property for config
         :rtype: ModuleType
         """
-        return self._config or inject.instance(CONFIG)
+        if self._config:
+            config = self._config
+        elif inject.is_configured():
+            config = inject.instance(CONFIG)
+        else:
+            config = ModuleType('config')
+        return config
 
     @property
     def session_manager(self):
@@ -259,7 +280,8 @@ class ConnectionManager(object):
             self._pool_manager = Queue(self._max_pool_size)
         return self._pool_manager
 
-    def get_session_instance(self):
+
+    def get_session_instance(self, logger=None,connection_type=None, prompt=None):
         """Return session object, takes it from pool or create new session
         :rtype: Session
         :raises: ConnectionManagerException
@@ -271,7 +293,7 @@ class ConnectionManager(object):
                 if not self.pool_manager.empty():
                     session = self.pool_manager.get(False)
                 elif self.session_manager.created_sessions < self.pool_manager.maxsize:
-                    session = self.session_manager.create_session()
+                    session = self.session_manager.create_session(connection_type=connection_type, prompt=prompt,logger=logger)
                 else:
                     self._SESSION_CONDITION.wait(self._pool_timeout)
                     if (time.time() - call_time) >= self._pool_timeout:

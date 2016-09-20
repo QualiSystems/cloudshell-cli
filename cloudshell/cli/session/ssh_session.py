@@ -24,7 +24,7 @@ class SSHSession(ExpectSession):
     def __del__(self):
         self.disconnect()
 
-    def connect(self, re_string=''):
+    def connect(self, re_string='',logger=None):
         """Connect to device through ssh
 
         :param re_string: expected string in output
@@ -32,6 +32,7 @@ class SSHSession(ExpectSession):
         """
 
         try:
+            self._handler.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             self._handler.connect(self._host, self._port, self._username, self._password, timeout=self._timeout,
                                   banner_timeout=30, allow_agent=False, look_for_keys=False)
         except Exception as e:
@@ -41,7 +42,7 @@ class SSHSession(ExpectSession):
         self._current_channel = self._handler.invoke_shell()
         self._current_channel.settimeout(self._timeout)
 
-        output = self.hardware_expect(re_string=re_string, timeout=self._timeout)
+        output = self.hardware_expect(re_string=re_string, timeout=self._timeout,logger=logger)
         self.logger.info(output)
 
         default_actions_output = self._default_actions()
