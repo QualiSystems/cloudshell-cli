@@ -62,5 +62,5 @@ if __name__ == '__main__':
     pp3.connect_prompt(pp4)
     pp4.connect_prompt(pp5)
     pp3.connect_prompt(pp6)
-    steps = NodeOperations.calculate_route_steps(pp6, pp5)
+    steps = NodeOperations.calculate_route_steps(pp4, pp1)
     map(lambda x: x(), steps)
