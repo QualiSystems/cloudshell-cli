@@ -24,8 +24,9 @@ class Session:
         pass
 
     @abstractmethod
-    def hardware_expect(self, data_str=None, re_string='', expect_map=OrderedDict(),
-                        error_map=OrderedDict(), timeout=None, retries_count=3):
+    def hardware_expect(self, command=None, expected_string=None, action_map=OrderedDict(), error_map=OrderedDict(),
+                        timeout=None, retries=None, check_action_loop_detector=True, empty_loop_timeout=None,
+                        logger=None, **optional_args):
         pass
 
     @abstractmethod

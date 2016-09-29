@@ -1,5 +1,5 @@
 from cloudshell.cli.node import Node
-from cloudshell.cli.session.expect_session import ExpectSession
+from cloudshell.cli.session.session import Session
 
 
 class CommandMode(Node):
@@ -40,7 +40,7 @@ class CommandMode(Node):
         """
         Enter command mode
         :param session:
-        :type session: ExpectSession
+        :type session: Session
         :return:
         """
         session.hardware_expect(self._enter_command, expected_string=self.prompt,
@@ -53,7 +53,7 @@ class CommandMode(Node):
         """
         Exit from command mode
         :param session:
-        :type session: ExpectSession
+        :type session: Session
         :return:
         """
         session.hardware_expect(self._exit_command, expected_string=self.parent_node.prompt,
