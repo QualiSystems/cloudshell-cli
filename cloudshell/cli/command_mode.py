@@ -1,4 +1,5 @@
 from cloudshell.cli.node import Node
+from cloudshell.cli.session.expect_session import ExpectSession
 
 
 class CommandMode(Node):
@@ -25,21 +26,36 @@ class CommandMode(Node):
         self._expected_actions = expected_map
         self._error_map = error_map
 
-    def connect_mode(self, command_mode):
+    def add_parent_mode(self, mode):
         """
-        Connect child mode
-        :param command_mode:
+        Add parent mode
+        :param mode:
+        :type mode: CommandMode
         :return:
         """
-        self.add_child_node(command_mode)
-        CommandMode.DEFINED_PROMPTS.append(command_mode)
+        mode.add_child_node(self)
+        self.parent_node = mode
 
     def step_up(self, session):
+        """
+        Enter command mode
+        :param session:
+        :type session: ExpectSession
+        :return:
+        """
         session.hardware_expect(self._enter_command, expected_string=self.prompt,
-                                expected_actions=self._expected_actions,
+                                action_map=self._expected_actions,
                                 error_map=self._error_map)
+        if self._default_actions:
+            self._default_actions(session)
 
     def step_down(self, session):
+        """
+        Exit from command mode
+        :param session:
+        :type session: ExpectSession
+        :return:
+        """
         session.hardware_expect(self._exit_command, expected_string=self.parent_node.prompt,
-                                expected_actions=self._expected_actions,
+                                action_map=self._expected_actions,
                                 error_map=self._error_map)

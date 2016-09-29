@@ -20,11 +20,12 @@ class Cli(object):
 
 class CommandModeContainer(object):
 
-    DEFAULT_MODE = CommandMode('default')
-    CONFIG_MODE = CommandMode('config')
-    VLAN_CONFIGURATION = CommandMode('vlan')
-    DEFAULT_MODE.connect_mode(CONFIG_MODE)
-    CONFIG_MODE.connect_mode(VLAN_CONFIGURATION)
+    DEFAULT_MODE = CommandMode(r'[>]/s*$', '', 'exit')
+    CONFIG_MODE = CommandMode(r'[#]/s*$', 'configure', 'exit')
+    CONFIG_MODE.add_parent_mode(DEFAULT_MODE)
+    # VLAN_CONFIGURATION = CommandMode('vlan')
+    # DEFAULT_MODE.connect_mode(CONFIG_MODE)
+    # CONFIG_MODE.connect_mode(VLAN_CONFIGURATION)
 
 
 if __name__ == '__main__':
@@ -33,9 +34,10 @@ if __name__ == '__main__':
     from cloudshell.cli.prompt import Prompt
     import paramiko
 
-    cli=Cli()
-    default_state = Prompt('root@%', 'enter', 'exit')
+    # cli=Cli()
+    # default_state = Prompt('root@%', 'enter', 'exit')
     with cli.get_session(session_type=Cli.SSH,ip='192.168.28.150',user='root',password='Juniper', default_mode = CommandModeContainer.VLAN_CONFIGURATION) as session:
-        with session.enter_mode(CommandMode('config t')) as config_mode_session:
+        config_mode = CommandMode('config')
+        with session.enter_mode(config_mode) as config_mode_session:
             config_mode_session.sesnd_command('hddjjd')
         with ...

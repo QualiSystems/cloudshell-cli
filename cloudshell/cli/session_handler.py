@@ -44,3 +44,7 @@ class SessionHandler(object):
         connection_manager.return_session_instance(session)
         return session,connection_manager
 
+    @staticmethod
+    def change_session_mode(session, mode):
+        pass
+

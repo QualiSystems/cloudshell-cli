@@ -1,9 +1,9 @@
 import socket
 import time
 from collections import OrderedDict
+
 from abc import ABCMeta
 from types import ModuleType
-
 from cloudshell.cli.session.session_exceptions import SessionLoopDetectorException, SessionLoopLimitException
 import re
 from cloudshell.cli.session.session import Session
@@ -154,46 +154,46 @@ class ExpectSession(Session):
                 break
         return out
 
-    def send_line(self, data_str):
+    def send_line(self, command):
         """
         Add new line to the end of command string and send
 
-        :param data_str:
+        :param command:
         :return:
         """
-        self._send(data_str + self._new_line)
+        self._send(command + self._new_line)
 
-    def hardware_expect(self, data_str=None, re_string='', expect_map=OrderedDict(), error_map=OrderedDict(),
+    def hardware_expect(self, command=None, expected_string=None, action_map=OrderedDict(), error_map=OrderedDict(),
                         timeout=None, retries=None, check_action_loop_detector=True, empty_loop_timeout=None,
-                        logger=None,**optional_args):
+                        logger=None, **optional_args):
 
-        """Get response form the device and compare it to expected_map, error_map and re_string patterns,
-        perform actions specified in expected_map if any, and return output.
+        """Get response form the device and compare it to action_map, error_map and expected_string patterns,
+        perform actions specified in action_map if any, and return output.
         Raise Exception if receive empty responce from device within a minute
 
-        :param data_str: command to send
-        :param re_string: expected string
+        :param command: command to send
+        :param expected_string: expected string
         :param expect_map: dict with {re_str: action} to trigger some action on received string
         :param error_map: expected error list
         :param timeout: session timeout
         :param retries: maximal retries count
         :return:
         """
-        if(logger is not None):
-            self.logger=logger
-        if(data_str==None):
-            data_str=''
+        if logger:
+            self.logger = logger
+        if command:
+            command = ''
 
         retries = retries or self._max_loop_retries
         empty_loop_timeout = empty_loop_timeout or self._empty_loop_timeout
 
-        if data_str is not None:
+        if command is not None:
             self._clear_buffer(self._clear_buffer_timeout)
 
-            self.logger.debug('Command: {}'.format(data_str))
-            self.send_line(data_str)
+            self.logger.debug('Command: {}'.format(command))
+            self.send_line(command)
 
-        if re_string is None or len(re_string) == 0:
+        if expected_string is None or len(expected_string) == 0:
             raise Exception('ExpectSession', 'List of expected messages can\'t be empty!')
 
         # Loop until one of the expressions is matched or MAX_RETRIES
@@ -220,11 +220,11 @@ class ExpectSession(Session):
                 time.sleep(empty_loop_timeout)
                 continue
 
-            if re.search(re_string, output_str, re.DOTALL):
+            if re.search(expected_string, output_str, re.DOTALL):
                 output_list.append(output_str)
                 is_correct_exit = True
 
-            for expect_string in expect_map:
+            for expect_string in action_map:
                 result_match = re.search(expect_string, output_str, re.DOTALL)
                 if result_match:
                     output_list.append(output_str)
@@ -234,7 +234,7 @@ class ExpectSession(Session):
                             self.logger.error('Loops detected, output_list: {}'.format(output_list))
                             raise SessionLoopDetectorException(self.__class__.__name__,
                                                                'Expected actions loops detected')
-                    expect_map[expect_string](self)
+                    action_map[expect_string](self)
                     output_str = ''
                     break
 
@@ -254,7 +254,7 @@ class ExpectSession(Session):
                 raise CommandExecutionException('ExpectSession',
                                                 'Session returned \'{}\''.format(error_map[error_string]))
 
-        # Read buffer to the end. Useful when re_string isn't last in buffer
+        # Read buffer to the end. Useful when expected_string isn't last in buffer
         result_output += self._clear_buffer(self._clear_buffer_timeout)
 
         result_output = normalize_buffer(result_output)
