@@ -52,7 +52,13 @@ class SessionModeWrapper(object):
     #     self.connection_manager.return_session_instance(session)
 
     def enter_mode(self, command_mode):
-        # self._command_mode = command_mode
+        """
+        Enter specific mode
+        :param command_mode:
+        :type command_mode: CommandMode
+        :return:
+        :rtype: CommandModeContextManager
+        """
         return CommandModeContextManager(self._session, command_mode)
 
     def send_command(self, command, expected_string=None, logger=None, *args, **kwargs):

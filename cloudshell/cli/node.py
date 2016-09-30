@@ -4,7 +4,7 @@ from abc import ABCMeta, abstractmethod
 class Node(object):
     __metaclass__ = ABCMeta
     """
-    Node object
+    Node
     """
 
     def __init__(self):

@@ -21,3 +21,7 @@ class SessionPool(object):
         :type session: Session
         """
         pass
+
+    @abstractmethod
+    def remove_session(self, session):
+        pass

@@ -6,9 +6,10 @@ class CommandMode(Node):
     """
     Class describes our prompt and implement enter and exit command functions
     """
-    DEFINED_PROMPTS = []
+    DEFINED_MODES = []
 
-    def __init__(self, prompt, enter_command, exit_command, default_action=None, expected_map=None, error_map=None):
+    def __init__(self, prompt, enter_command, exit_command, default_action=None, expected_map=None, error_map=None,
+                 parent_mode=None):
         """
             :param prompt:
             :param enter_command:
@@ -16,6 +17,7 @@ class CommandMode(Node):
             :param default_action:
             :param expected_map:
             :param error_map:
+            :param parent_mode:
             :return:
             """
         super(CommandMode, self).__init__()
@@ -25,6 +27,8 @@ class CommandMode(Node):
         self._default_actions = default_action
         self._expected_actions = expected_map
         self._error_map = error_map
+        if parent_mode:
+            self.add_parent_mode(parent_mode)
 
     def add_parent_mode(self, mode):
         """
@@ -34,7 +38,6 @@ class CommandMode(Node):
         :return:
         """
         mode.add_child_node(self)
-        self.parent_node = mode
 
     def step_up(self, session):
         """
