@@ -2,12 +2,12 @@ from cloudshell.cli.command_mode_helper import CommandModeHelper
 from cloudshell.cli.session_pool import SessionPool
 
 
-class SessionPoolContextManager(object):
+class CommandModeBasedSessionPoolContextManager(object):
     """
     Get and return session from pool
     """
 
-    def __init__(self, session_pool, **session_attributes):
+    def __init__(self, session_pool, command_mode, **session_attributes):
         """
         :param session_pool:
         :type session_pool: SessionPool

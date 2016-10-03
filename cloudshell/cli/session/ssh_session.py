@@ -24,7 +24,7 @@ class SSHSession(ExpectSession):
     def __del__(self):
         self.disconnect()
 
-    def connect(self, re_string='',logger=None):
+    def connect(self, prompt=None, logger=None):
         """Connect to device through ssh
 
         :param re_string: expected string in output
@@ -42,7 +42,7 @@ class SSHSession(ExpectSession):
         self._current_channel = self._handler.invoke_shell()
         self._current_channel.settimeout(self._timeout)
 
-        output = self.hardware_expect(re_string=re_string, timeout=self._timeout,logger=logger)
+        output = self.hardware_expect(expected_string=prompt, timeout=self._timeout, logger=logger)
         self.logger.info(output)
 
         default_actions_output = self._default_actions()
