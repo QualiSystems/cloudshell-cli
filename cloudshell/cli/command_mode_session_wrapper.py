@@ -5,7 +5,7 @@ from cloudshell.cli.cli_operations import CLIOperations
 
 class CommandModeContextManager(object):
     """
-    Enter to specific command mode
+    Context manager used to enter specific command mode
     """
 
     def __init__(self, session, command_mode, logger):
@@ -37,7 +37,7 @@ class CommandModeContextManager(object):
 
 class CommandModeSessionWrapper(CLIOperations):
     """
-    Keep session state wrapper
+    Session wrapper, used to keep session mode and enter any child mode
     """
 
     def __init__(self, session, command_mode, logger):
@@ -61,22 +61,9 @@ class CommandModeSessionWrapper(CLIOperations):
     def session(self):
         return self._session
 
-    # @property
-    # def command_mode(self):
-    #     """
-    #
-    #     :return:
-    #     :rtype: CommandMode
-    #     """
-    #     return self._command_mode
-    #
-    # @command_mode.setter
-    # def command_mode(self, command_mode):
-    #     self._command_mode = command_mode
-
     def enter_mode(self, command_mode):
         """
-        Enter specific mode
+        Enter child mode
         :param command_mode:
         :type command_mode: CommandMode
         :return:

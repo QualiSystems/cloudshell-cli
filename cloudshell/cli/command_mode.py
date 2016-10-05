@@ -2,6 +2,7 @@ from collections import OrderedDict
 
 from cloudshell.cli.node import Node
 from cloudshell.cli.session.session import Session
+from types import FunctionType
 
 
 class CommandModeException(Exception):
@@ -17,14 +18,16 @@ class CommandMode(Node):
     def __init__(self, prompt, enter_command, exit_command, default_actions=None, action_map={}, error_map={},
                  parent_mode=None):
         """
-            :param prompt:
-            :param enter_command:
-            :param exit_command:
-            :param default_action:
-            :param expected_map:
-            :param error_map:
-            :param parent_mode:
-            :return:
+            :param prompt: Prompt of this mode
+            :type prompt: str
+            :param enter_command: Command used to enter this mode
+            :type enter_command: str
+            :param exit_command: Command used to exit from this mode
+            :type exit_command: str
+            :param default_actions: Actions which needs to be done when entering this mode
+            :param action_map: Any expected actions
+            :param error_map: Defined error map
+            :param parent_mode: Connect parent mode
             """
         super(CommandMode, self).__init__()
         self.prompt = prompt

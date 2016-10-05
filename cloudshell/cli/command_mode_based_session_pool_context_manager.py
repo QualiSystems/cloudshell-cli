@@ -6,7 +6,7 @@ from cloudshell.cli.command_mode_session_wrapper import CommandModeSessionWrappe
 
 class CommandModeBasedSessionPoolContextManager(object):
     """
-    Get and return session from pool
+    Get and return session from pool and change mode if specified
     """
 
     def __init__(self, session_pool, command_mode=None, logger=None, **session_attributes):
