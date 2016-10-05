@@ -64,7 +64,7 @@ class SessionPoolManager(SessionPool):
             session = None
             while session is None:
                 if not self._pool.empty():
-                    session = self._get_from_pool(logger, **session_args)
+                    session = self._get_from_pool(logger, auth=auth,**session_args)
                 elif self.created_sessions < self._pool.maxsize:
                     session = self._new_session(logger,auth=auth, **session_args)
                 else:
@@ -115,13 +115,14 @@ class SessionPoolManager(SessionPool):
         :type session_args: dict
         """
         logger.debug('Creating new session')
-        print session_args
+
         session = self._session_factory.new_session(logger=logger,auth=auth, **session_args)
         session.session_args = session_args
+        session.auth = auth
         self._created_sessions.append(session)
         return session
 
-    def _get_from_pool(self, logger, **session_args):
+    def _get_from_pool(self, logger,auth=None, **session_args):
         """
         Get session from the pool
         :param logger:
@@ -130,8 +131,8 @@ class SessionPoolManager(SessionPool):
         """
         logger.debug('getting session from the pool')
         session = self._pool.get(False)
-        if session.session_args != session_args:
+        if session.auth != auth:
             logger.debug('Session args was changed, creating session with new args')
             self.remove_session(session, logger)
-            session = self._new_session(logger, **session_args)
+            session = self._new_session(logger,auth=auth, **session_args)
         return session
