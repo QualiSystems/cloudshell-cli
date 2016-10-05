@@ -1,8 +1,7 @@
 import re
-from cloudshell.cli.command_mode_session_wrapper import CommandModeSessionWrapper
-from cloudshell.cli.cli_operations import CLIOperations
 from cloudshell.cli.command_mode import CommandMode, CommandModeException
 from cloudshell.cli.node import NodeOperations
+from cloudshell.cli.cli_operations import CliOperations
 
 
 class CommandModeHelper(object):
@@ -11,7 +10,7 @@ class CommandModeHelper(object):
         """
         Change session command mode
         :param session:
-        :type session: CommandModeSessionWrapper
+        :type session: CliOperations
         :param command_mode:
         :type command_mode: CommandMode
         :param logger:
@@ -28,14 +27,14 @@ class CommandModeHelper(object):
         """
         Determine current command mode
         :param session:
-        :type session: CLIOperations
+        :type session: CliOperations
         :return: command_mode
         :rtype: CommandMode
         """
 
         prompts_re = r'|'.join(CommandMode.DEFINED_MODES.keys())
         try:
-            result = session.hardware_expect('', logger=logger, expected_string=prompts_re, timeout=5)
+            result = session.send_command('', logger=logger, expected_string=prompts_re, timeout=5)
         except Exception as e:
             logger.debug(e.message)
             raise CommandModeException(CommandModeHelper.__class__.__name__,

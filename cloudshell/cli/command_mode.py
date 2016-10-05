@@ -1,8 +1,7 @@
 from collections import OrderedDict
 
 from cloudshell.cli.node import Node
-from cloudshell.cli.session.session import Session
-from types import FunctionType
+from cloudshell.cli.cli_operations import CliOperations
 
 
 class CommandModeException(Exception):
@@ -53,11 +52,11 @@ class CommandMode(Node):
         """
         Enter command mode
         :param session:
-        :type session: Session
+        :type session: CliOperations
         :return:
         """
-        session.hardware_expect(self._enter_command, logger=logger, expected_string=self.prompt,
-                                action_map=self._action_map, error_map=self._error_map)
+        session.send_command(self._enter_command, logger=logger, expected_string=self.prompt,
+                             action_map=self._action_map, error_map=self._error_map)
         if self._default_actions:
             self._default_actions(session, logger)
 
@@ -65,8 +64,8 @@ class CommandMode(Node):
         """
         Exit from command mode
         :param session:
-        :type session: Session
+        :type session: CliOperations
         :return:
         """
-        session.hardware_expect(self._exit_command, logger=logger, expected_string=self.parent_node.prompt,
-                                action_map=self._action_map, error_map=self._error_map)
+        session.send_command(self._exit_command, logger=logger, expected_string=self.parent_node.prompt,
+                             action_map=self._action_map, error_map=self._error_map)

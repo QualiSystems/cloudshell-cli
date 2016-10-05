@@ -1,6 +1,6 @@
 from cloudshell.cli.session.session import Session
 from cloudshell.cli.command_mode import CommandMode
-from cloudshell.cli.cli_operations import CLIOperations
+from cloudshell.cli.cli_operations import CliOperations
 
 
 class CommandModeContextManager(object):
@@ -11,7 +11,7 @@ class CommandModeContextManager(object):
     def __init__(self, session, command_mode, logger):
         """
         :param session:
-        :type session: CommandModeSessionWrapper
+        :type session: CliOperations
         :param command_mode
         :type command_mode: CommandMode
         """
@@ -23,7 +23,7 @@ class CommandModeContextManager(object):
     def __enter__(self):
         """
         :return:
-        :rtype: CommandModeSessionWrapper
+        :rtype: CliOperations
         """
         self._command_mode.step_up(self._session, logger=self._logger)
         self._previous_mode = self._session.command_mode
@@ -35,7 +35,7 @@ class CommandModeContextManager(object):
         self._session.command_mode = self._previous_mode
 
 
-class CommandModeSessionWrapper(CLIOperations):
+class CliOperationsImpl(CliOperations):
     """
     Session wrapper, used to keep session mode and enter any child mode
     """

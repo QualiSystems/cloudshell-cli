@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 
-class CLIOperations(object):
+class CliOperations(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod

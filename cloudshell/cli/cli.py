@@ -1,6 +1,6 @@
 from logging import Logger
 
-from cloudshell.cli.command_mode_based_session_pool_context_manager import CommandModeBasedSessionPoolContextManager
+from cloudshell.cli.session_pool_context_manager import SessionPoolContextManager
 from cloudshell.cli.session_pool_manager import SessionPoolManager
 
 
@@ -16,8 +16,7 @@ class Cli(object):
         :return:
         :rtype: SessionModeWrapper
         """
-        return CommandModeBasedSessionPoolContextManager(self._session_pool, command_mode=command_mode,
-                                                         **session_attributes)
+        return SessionPoolContextManager(self._session_pool, command_mode=command_mode, **session_attributes)
 
     def get_thread_session(self, **session_attributes):
         """
