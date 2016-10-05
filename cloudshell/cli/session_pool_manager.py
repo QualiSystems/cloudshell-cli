@@ -50,7 +50,7 @@ class SessionPoolManager(SessionPool):
         """
         return len(self._created_sessions)
 
-    def get_session(self, logger, **session_args):
+    def get_session(self, logger, auth=None,**session_args):
         """Return session object, takes it from pool or create new session
         :param logger:
         :type logger: Logger
@@ -66,7 +66,7 @@ class SessionPoolManager(SessionPool):
                 if not self._pool.empty():
                     session = self._get_from_pool(logger, **session_args)
                 elif self.created_sessions < self._pool.maxsize:
-                    session = self._new_session(logger, **session_args)
+                    session = self._new_session(logger,auth=auth, **session_args)
                 else:
                     self._session_condition.wait(self._pool_timeout)
                     if (time.time() - call_time) >= self._pool_timeout:
@@ -107,7 +107,7 @@ class SessionPoolManager(SessionPool):
             finally:
                 self._session_condition.notify()
 
-    def _new_session(self, logger, **session_args):
+    def _new_session(self, logger,auth=None, **session_args):
         """
         Create new session using session factory
         :param logger:
@@ -115,7 +115,8 @@ class SessionPoolManager(SessionPool):
         :type session_args: dict
         """
         logger.debug('Creating new session')
-        session = self._session_factory.new_session(logger=logger, **session_args)
+        print session_args
+        session = self._session_factory.new_session(logger=logger,auth=auth, **session_args)
         session.session_args = session_args
         self._created_sessions.append(session)
         return session

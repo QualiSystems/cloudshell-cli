@@ -9,7 +9,7 @@ class CommandModeBasedSessionPoolContextManager(object):
     Get and return session from pool and change mode if specified
     """
 
-    def __init__(self, session_pool, command_mode=None, logger=None, **session_attributes):
+    def __init__(self, session_pool, auth=None,command_mode=None, logger=None, **session_attributes):
         """
         :param session_pool:
         :type session_pool: SessionPool
@@ -19,11 +19,12 @@ class CommandModeBasedSessionPoolContextManager(object):
         self._session_attributes = session_attributes
         self._logger = logger
         self._wrapped_session = None
+        self.auth = auth
 
     def __enter__(self):
         prompts_re = r'|'.join(CommandMode.DEFINED_MODES.keys())
         session = self._session_pool.get_session(logger=self._logger, prompt=prompts_re,
-                                                 **self._session_attributes)
+                                                auth=self.auth, **self._session_attributes)
         self._wrapped_session = CommandModeSessionWrapper(session, self._command_mode, self._logger)
         if self._command_mode:
             CommandModeHelper.change_session_mode(self._wrapped_session, self._command_mode, self._logger)
