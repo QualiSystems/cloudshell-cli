@@ -10,7 +10,7 @@ from cloudshell.cli.session.session import Session
 from cloudshell.cli.helper.normalize_buffer import normalize_buffer
 from cloudshell.cli.service.cli_exceptions import CommandExecutionException
 import inject
-from cloudshell.configuration.cloudshell_shell_core_binding_keys import LOGGER, CONFIG
+from cloudshell.configuration.cloudshell_shell_core_binding_keys import CONFIG
 from cloudshell.shell.core.config_utils import override_attributes_from_config
 
 
@@ -81,13 +81,13 @@ class ExpectSession(Session):
         if not self._timeout:
             self._timeout = overridden_config.HE_READ_TIMEOUT
 
-    @property
-    def logger(self):
-        return self._logger or inject.instance(LOGGER)
-
-    @logger.setter
-    def logger(self, logger):
-        self._logger = logger
+    # @property
+    # def logger(self):
+    #     return self._logger or inject.instance(LOGGER)
+    #
+    # @logger.setter
+    # def logger(self, logger):
+    #     self._logger = logger
 
     @property
     def config(self):
@@ -135,7 +135,7 @@ class ExpectSession(Session):
             raise Exception('ExpectSession', 'Failed to get response from device')
         return current_output
 
-    def _clear_buffer(self, timeout):
+    def _clear_buffer(self, timeout, logger):
         """
         Clear buffer
 
@@ -145,7 +145,7 @@ class ExpectSession(Session):
         out = ''
         while True:
             try:
-                read_buffer = self._receive(timeout)
+                read_buffer = self._receive(timeout, logger)
             except socket.timeout:
                 read_buffer = None
             if read_buffer:
@@ -154,18 +154,18 @@ class ExpectSession(Session):
                 break
         return out
 
-    def send_line(self, command):
+    def send_line(self, command, logger):
         """
         Add new line to the end of command string and send
 
         :param command:
         :return:
         """
-        self._send(command + self._new_line)
+        self._send(command + self._new_line, logger)
 
-    def hardware_expect(self, command=None, expected_string=None, action_map=OrderedDict(), error_map=OrderedDict(),
+    def hardware_expect(self, command, expected_string, logger, action_map=OrderedDict(), error_map=OrderedDict(),
                         timeout=None, retries=None, check_action_loop_detector=True, empty_loop_timeout=None,
-                        logger=None, **optional_args):
+                        **optional_args):
 
         """Get response form the device and compare it to action_map, error_map and expected_string patterns,
         perform actions specified in action_map if any, and return output.
@@ -181,17 +181,17 @@ class ExpectSession(Session):
         """
         if logger:
             self.logger = logger
-        if command:
+        if not command:
             command = ''
 
         retries = retries or self._max_loop_retries
         empty_loop_timeout = empty_loop_timeout or self._empty_loop_timeout
 
         if command is not None:
-            self._clear_buffer(self._clear_buffer_timeout)
+            self._clear_buffer(self._clear_buffer_timeout, logger)
 
             self.logger.debug('Command: {}'.format(command))
-            self.send_line(command)
+            self.send_line(command, logger)
 
         if expected_string is None or len(expected_string) == 0:
             raise Exception('ExpectSession', 'List of expected messages can\'t be empty!')
@@ -208,7 +208,7 @@ class ExpectSession(Session):
         while retries == 0 or retries_count < retries:
 
             try:
-                read_buffer = self._receive(timeout)
+                read_buffer = self._receive(timeout, logger)
             except socket.timeout:
                 read_buffer = None
 
@@ -255,13 +255,13 @@ class ExpectSession(Session):
                                                 'Session returned \'{}\''.format(error_map[error_string]))
 
         # Read buffer to the end. Useful when expected_string isn't last in buffer
-        result_output += self._clear_buffer(self._clear_buffer_timeout)
+        result_output += self._clear_buffer(self._clear_buffer_timeout, logger)
 
         result_output = normalize_buffer(result_output)
         self.logger.debug(result_output)
         return result_output
 
-    def reconnect(self, prompt):
+    def reconnect(self, prompt, logger):
         """
         Recconnect implementation
 

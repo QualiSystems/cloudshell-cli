@@ -24,7 +24,7 @@ class SSHSession(ExpectSession):
     def __del__(self):
         self.disconnect()
 
-    def connect(self, prompt=None, logger=None):
+    def connect(self, prompt, logger):
         """Connect to device through ssh
 
         :param re_string: expected string in output
@@ -36,13 +36,13 @@ class SSHSession(ExpectSession):
             self._handler.connect(self._host, self._port, self._username, self._password, timeout=self._timeout,
                                   banner_timeout=30, allow_agent=False, look_for_keys=False)
         except Exception as e:
-            self.logger.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             raise Exception('SSHSession', 'Failed to open connection to device: {0}'.format(e.message))
 
         self._current_channel = self._handler.invoke_shell()
         self._current_channel.settimeout(self._timeout)
 
-        output = self.hardware_expect(expected_string=prompt, timeout=self._timeout, logger=logger)
+        output = self.hardware_expect(None, expected_string=prompt, timeout=self._timeout, logger=logger)
         self.logger.info(output)
 
         default_actions_output = self._default_actions()
@@ -59,16 +59,16 @@ class SSHSession(ExpectSession):
         self._current_channel = None
         self._handler.close()
 
-    def _send(self, data_str):
+    def _send(self, command, logger):
         """Send message to device
 
         :param data_str:  message/command
         :return:
         """
 
-        self._current_channel.send(data_str)
+        self._current_channel.send(command)
 
-    def _receive(self, timeout=None):
+    def _receive(self, timeout, logger):
         """Read session buffer
 
         :param timeout: time between retries

@@ -6,7 +6,7 @@ class SessionPool(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def get_session(self, session_type, **session_args):
+    def get_session(self, logger, **session_args):
         """
         Get session from pool
         :rtype Session
@@ -14,7 +14,7 @@ class SessionPool(object):
         pass
 
     @abstractmethod
-    def return_session(self, session):
+    def return_session(self, session, logger):
         """
         Return session to pool
         :param session:
@@ -23,7 +23,7 @@ class SessionPool(object):
         pass
 
     @abstractmethod
-    def remove_session(self, session):
+    def remove_session(self, session, logger):
         """
         Remove session from pool
         :param session:
