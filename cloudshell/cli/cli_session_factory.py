@@ -12,11 +12,11 @@ class CLISessionFactory(SessionFactory):
     def __init__(self, defined_sessions=DEFINED_SESSIONS):
         self._defined_sessions = defined_sessions
 
-    def new_session(self, session_type, prompt, logger, **session_attributes):
-        if session_type in self._defined_sessions:
-            session = self._defined_sessions[session_type](logger=logger, **session_attributes)
+    def new_session(self, prompt, logger, auth=None, **session_attributes):
+        if auth.session_type in self._defined_sessions:
+            session = self._defined_sessions[auth.session_type](logger=logger, auth=auth,**session_attributes)
             session.connect(prompt, logger)
-            logger.debug('Created new {} session'.format(session_type))
+            logger.debug('Created new {} session'.format(auth.session_type))
             return session
         else:
             raise SessionFactoryException(self.__class__.__name__, 'Session type does not defined')

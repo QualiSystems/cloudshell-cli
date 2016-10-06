@@ -40,7 +40,7 @@ class CliOperationsImpl(CliOperations):
     Session wrapper, used to keep session mode and enter any child mode
     """
 
-    def __init__(self, session, command_mode, logger):
+    def __init__(self, session, logger, command_mode=None):
         """
         :param session:
         :type session: Session

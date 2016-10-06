@@ -28,9 +28,12 @@ class ExpectSession(Session):
     HE_CLEAR_BUFFER_TIMEOUT = 0.1
     HE_LOOP_DETECTOR_MAX_ACTION_LOOPS = 3
     HE_LOOP_DETECTOR_MAX_COMBINATION_LENGTH = 4
-
+    '''
     def __init__(self, handler=None, username=None, password=None, host=None, port=None,
                  timeout=None, new_line='\r', logger=None, config=None, default_actions=None, **kwargs):
+    '''
+
+    def __init__(self, handler=None, auth=None,timeout=None, new_line='\r', logger=None, config=None, default_actions=None, **kwargs):
         """
 
         :param handler:
@@ -46,18 +49,18 @@ class ExpectSession(Session):
         self.session_type = 'EXPECT'
         self._handler = handler
         self._port = None
-        if port and int(port) > 0:
-            self._port = int(port)
-        if host:
-            temp_host = host.split(':')
+        if auth.port and int(auth.port) > 0:
+            self._port = int(auth.port)
+        if auth.ip:
+            temp_host = auth.ip.split(':')
             self._host = temp_host[0]
             if not self._port and len(temp_host) > 1:
                 self._port = int(temp_host[1])
         else:
-            self._host = host
+            self._host = auth.ip
 
-        self._username = username
-        self._password = password
+        self._username = auth.username
+        self._password = auth.password
 
         self._new_line = new_line
         self._timeout = timeout

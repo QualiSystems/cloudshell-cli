@@ -22,8 +22,7 @@ class SessionPoolContextManager(object):
 
     def __enter__(self):
         prompts_re = r'|'.join(CommandMode.DEFINED_MODES.keys())
-        session = self._session_pool.get_session(logger=self._logger, prompt=prompts_re,
-                                                 **self._session_attributes)
+        session = self._session_pool.get_session(logger=self._logger, prompt=prompts_re, **self._session_attributes)
         self._cli_operations = CliOperations(session, self._command_mode, self._logger)
         if self._command_mode:
             CommandModeHelper.change_session_mode(self._cli_operations, self._command_mode, self._logger)

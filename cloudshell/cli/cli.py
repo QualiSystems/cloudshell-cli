@@ -4,6 +4,15 @@ from cloudshell.cli.session_pool_context_manager import SessionPoolContextManage
 from cloudshell.cli.session_pool_manager import SessionPoolManager
 
 
+class Auth(object):
+    def __init__(self, session_type, host, username='', password='', port=''):
+        self.session_type = session_type
+        self.username = username
+        self.password = password
+        self.host = host
+        self.port = port
+
+
 class Cli(object):
     def __init__(self, session_pool=SessionPoolManager(), logger=Logger('Qualisystems')):
         self.logger = logger
