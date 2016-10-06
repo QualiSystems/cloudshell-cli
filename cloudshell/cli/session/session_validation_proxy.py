@@ -8,7 +8,7 @@ class SessionValidationProxy(object):
     VALIDATED_CALLS = ('connect', 'reconnect')
 
     """Those exceptions do not change state"""
-    IGNORED_EXCEPTIONS = [CommandExecutionException]
+    IGNORED_EXCEPTIONS = [    CommandExecutionException]
 
     def __init__(self, instance):
         self._instance = instance

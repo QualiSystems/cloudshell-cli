@@ -2,13 +2,14 @@ from Queue import Queue
 from threading import Condition
 import time
 
+from cloudshell.cli.cli_exception import CliException
 from cloudshell.cli.cli_session_factory import CLISessionFactory
 from cloudshell.cli.session_factory import SessionFactory
 from cloudshell.cli.session_pool import SessionPool
 from cloudshell.cli.session.session import Session
 
 
-class SessionPoolException(Exception):
+class SessionPoolException(CliException):
     """
     Session pool exception
     """
@@ -50,7 +51,7 @@ class SessionPoolManager(SessionPool):
         """
         return len(self._created_sessions)
 
-    def get_session(self, logger, auth=None,**session_args):
+    def get_session(self, session_type, connection_attrs, prompt, logger):
         """Return session object, takes it from pool or create new session
         :param logger:
         :type logger: Logger
@@ -61,19 +62,19 @@ class SessionPoolManager(SessionPool):
         """
         call_time = time.time()
         with self._session_condition:
-            session = None
-            while session is None:
+            session_obj = None
+            while session_obj is None:
                 if not self._pool.empty():
-                    session = self._get_from_pool(logger, **session_args)
+                    session_obj = self._get_from_pool(session_type, connection_attrs, prompt, logger)
                 elif self.created_sessions < self._pool.maxsize:
-                    session = self._new_session(logger,auth=auth, **session_args)
+                    session_obj = self._new_session(session_type, connection_attrs, prompt, logger)
                 else:
                     self._session_condition.wait(self._pool_timeout)
                     if (time.time() - call_time) >= self._pool_timeout:
                         raise SessionPoolException(self.__class__.__name__,
                                                    'Cannot get session instance during {} sec.'.format(
                                                        self._pool_timeout))
-            return session
+            return session_obj
 
     def remove_session(self, session, logger):
         """
@@ -107,7 +108,7 @@ class SessionPoolManager(SessionPool):
             finally:
                 self._session_condition.notify()
 
-    def _new_session(self, logger,auth=None, **session_args):
+    def _new_session(self, session_type, connection_attrs, prompt, logger):
         """
         Create new session using session factory
         :param logger:
@@ -115,13 +116,13 @@ class SessionPoolManager(SessionPool):
         :type session_args: dict
         """
         logger.debug('Creating new session')
-        print session_args
-        session = self._session_factory.new_session(logger=logger,auth=auth, **session_args)
-        session.session_args = session_args
+
+        session = self._session_factory.new_session(session_type, connection_attrs, prompt, logger)
+        session.connection_attrs = connection_attrs
         self._created_sessions.append(session)
         return session
 
-    def _get_from_pool(self, logger, **session_args):
+    def _get_from_pool(self, session_type, connection_attrs, prompt, logger):
         """
         Get session from the pool
         :param logger:
@@ -130,8 +131,8 @@ class SessionPoolManager(SessionPool):
         """
         logger.debug('getting session from the pool')
         session = self._pool.get(False)
-        if session.session_args != session_args:
+        if session.connection_attrs != connection_attrs or not isinstance(session, session_type):
             logger.debug('Session args was changed, creating session with new args')
             self.remove_session(session, logger)
-            session = self._new_session(logger, **session_args)
+            session = self._new_session(session_type, connection_attrs, prompt, logger)
         return session

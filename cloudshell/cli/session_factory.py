@@ -9,7 +9,7 @@ class SessionFactory(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def new_session(self, auth, prompt, logger, **session_attributes):
+    def new_session(self, session_type, connection_attrs, prompt, logger):
         """
         Create new session specified type
         :param session_type:

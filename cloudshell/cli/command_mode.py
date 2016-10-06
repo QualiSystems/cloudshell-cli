@@ -1,10 +1,11 @@
 from collections import OrderedDict
+from cloudshell.cli.cli_exception import CliException
 
 from cloudshell.cli.node import Node
 from cloudshell.cli.cli_operations import CliOperations
 
 
-class CommandModeException(Exception):
+class CommandModeException(CliException):
     pass
 
 

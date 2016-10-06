@@ -4,28 +4,19 @@ from cloudshell.cli.session_pool_context_manager import SessionPoolContextManage
 from cloudshell.cli.session_pool_manager import SessionPoolManager
 
 
-class Auth(object):
-    def __init__(self, session_type, host, username='', password='', port=''):
-        self.session_type = session_type
-        self.username = username
-        self.password = password
-        self.host = host
-        self.port = port
-
-
 class Cli(object):
     def __init__(self, session_pool=SessionPoolManager(), logger=Logger('Qualisystems')):
         self.logger = logger
         self._session_pool = session_pool
 
-    def get_session(self, command_mode=None, **session_attributes):
+    def get_session(self, session_type, connection_attrs, command_mode, logger):
         """
         Get session from pool or create new
         :param session_attributes:
         :return:
         :rtype: SessionModeWrapper
         """
-        return SessionPoolContextManager(self._session_pool, command_mode=command_mode, **session_attributes)
+        return SessionPoolContextManager(self._session_pool, session_type, connection_attrs, command_mode, logger)
 
     def get_thread_session(self, **session_attributes):
         """
