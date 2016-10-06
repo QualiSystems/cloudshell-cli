@@ -77,3 +77,6 @@ class CommandModeSessionWrapper(CLIOperations):
 
         self._session.logger = logger
         return self._session.hardware_expect(command, expected_string=expected_string, logger=logger, *args, **kwargs)
+
+
+
