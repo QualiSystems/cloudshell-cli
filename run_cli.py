@@ -1,7 +1,7 @@
 from threading import Thread
 from cloudshell.cli.cli import Cli
 from cloudshell.cli.command_mode import CommandMode
-#from cloudshell.cli import cli_session_type
+
 from cloudshell.core.logger.qs_logger import get_qs_logger
 from cloudshell.cli.cli import Auth
 from cloudshell.cli.session.ssh_session import SSHSession
