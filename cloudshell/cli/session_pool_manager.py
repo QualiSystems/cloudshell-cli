@@ -100,6 +100,7 @@ class SessionPoolManager(SessionPool):
         """
         logger.debug('Return session to the pool')
         with self._session_condition:
+            session.new_session = False
             try:
                 if hasattr(session, 'is_valid') and not session.is_valid():
                     self.remove_session(session, logger)
@@ -119,6 +120,7 @@ class SessionPoolManager(SessionPool):
 
         session = self._session_factory.new_session(session_type, connection_attrs, prompt, logger)
         session.connection_attrs = connection_attrs
+        session.new_session = True
         self._created_sessions.append(session)
         return session
 

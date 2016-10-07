@@ -6,23 +6,22 @@ from cloudshell.cli.session.ssh_session import SSHSession
 from cloudshell.cli.session_pool_manager import SessionPoolManager
 from cloudshell.core.logger.qs_logger import get_qs_logger
 
-CLI_MODE = CommandMode(r'%\s*$', '', 'exit')
+CLI_MODE = CommandMode(r'%\s*$', '', 'exit', default_actions=lambda s: s.send_command('echo 123'))
 DEFAULT_MODE = CommandMode(r'>\s*$', 'cli', 'exit', parent_mode=CLI_MODE,
-                           default_actions=lambda session, logger: session.hardware_expect(
-                               command='set cli screen-length 0', expected_string=r'>\s*$', logger=logger))
+                           default_actions=lambda s: s.send_command('set cli screen-length 0'))
 CONFIG_MODE = CommandMode(r'#\s*$', 'configure', 'exit', parent_mode=DEFAULT_MODE)
 
 
 def do_action(cli, mode, attrs):
     session_type = SSHSession
     with cli.get_session(session_type, attrs, mode, cli.logger) as default_session:
-        out = default_session.send_command('show interfaces', logger=cli.logger)
-        # print(out)
-        # with default_session.enter_mode(CONFIG_MODE) as config_session:
-        #     out = config_session.send_command('show interfaces', logger=cli.logger)
-        #     print(out)
-        # out = config_session.send_command('show interfaces', logger=cli.logger)
-        # print(out)
+        out = default_session.send_command('show interfaces')
+        print(out)
+        with default_session.enter_mode(CONFIG_MODE) as config_session:
+            out = config_session.send_command('show interfaces')
+            print(out)
+            # out = config_session.send_command('show interfaces', logger=cli.logger)
+            # print(out)
 
 
 if __name__ == '__main__':
@@ -38,7 +37,7 @@ if __name__ == '__main__':
     connection_attrs1 = {
         'host': '192.168.28.150',
         'username': 'root',
-        'password': 'Juniper'
+        'password': 'Juniper1'
     }
 
     Thread(target=do_action, args=(cli, DEFAULT_MODE, connection_attrs)).start()

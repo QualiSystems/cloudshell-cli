@@ -1,8 +1,7 @@
 from collections import OrderedDict
-from cloudshell.cli.cli_exception import CliException
 
+from cloudshell.cli.cli_exception import CliException
 from cloudshell.cli.node import Node
-from cloudshell.cli.cli_operations import CliOperations
 
 
 class CommandModeException(CliException):
@@ -14,6 +13,15 @@ class CommandMode(Node):
     Class describes our prompt and implement enter and exit command functions
     """
     DEFINED_MODES = OrderedDict()
+
+    @staticmethod
+    def modes_pattern():
+        """
+        Generate pattern for defined modes
+        :return:
+        :rtype: str
+        """
+        return r'|'.join(CommandMode.DEFINED_MODES.keys())
 
     def __init__(self, prompt, enter_command, exit_command, default_actions=None, action_map={}, error_map={},
                  parent_mode=None):
@@ -49,24 +57,33 @@ class CommandMode(Node):
         """
         mode.add_child_node(self)
 
-    def step_up(self, session, logger):
+    def step_up(self, cli_operations):
         """
         Enter command mode
-        :param session:
-        :type session: CliOperations
-        :return:
+        :param cli_operations:
+        :type cli_operations: CliOperations
         """
-        session.send_command(self._enter_command, logger=logger, expected_string=self.prompt,
-                             action_map=self._action_map, error_map=self._error_map)
-        if self._default_actions:
-            self._default_actions(session, logger)
+        cli_operations.send_command(self._enter_command, expected_string=self.prompt,
+                                    action_map=self._action_map, error_map=self._error_map)
+        cli_operations.command_mode = self
+        self.default_actions(cli_operations)
 
-    def step_down(self, session, logger):
+    def step_down(self, cli_operations):
         """
         Exit from command mode
-        :param session:
-        :type session: CliOperations
+        :param cli_operations:
+        :type cli_operations: CliOperations
         :return:
         """
-        session.send_command(self._exit_command, logger=logger, expected_string=self.parent_node.prompt,
-                             action_map=self._action_map, error_map=self._error_map)
+        cli_operations.send_command(self._exit_command, expected_string=self.parent_node.prompt,
+                                    action_map=self._action_map, error_map=self._error_map)
+        cli_operations.command_mode = self.parent_node
+
+    def default_actions(self, cli_operations):
+        """
+        Default actions
+        :param cli_operations:
+        :return:
+        """
+        if self._default_actions:
+            self._default_actions(cli_operations)

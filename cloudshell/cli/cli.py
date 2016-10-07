@@ -16,6 +16,7 @@ class Cli(object):
         :return:
         :rtype: SessionModeWrapper
         """
+
         return SessionPoolContextManager(self._session_pool, session_type, connection_attrs, command_mode, logger)
 
     def get_thread_session(self, **session_attributes):
