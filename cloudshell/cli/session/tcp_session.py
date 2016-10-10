@@ -16,10 +16,11 @@ class TCPSession(ExpectSession):
         if self._port is not None:
             self._port = int(self._port)
 
-    def connect(self, re_string=''):
-        """Open connection to device / create session
-
-        :param re_string: expected message from device
+    def connect(self, prompt, logger):
+        """
+        Open connection to device / create session
+        :param prompt:
+        :param logger:
         :return:
         """
 
@@ -27,7 +28,7 @@ class TCPSession(ExpectSession):
         self._handler.connect(server_address)
 
         self._handler.settimeout(self._timeout)
-        output = self.hardware_expect(re_string=re_string)
+        output = self.hardware_expect(command=None, expected_string=prompt, logger=logger)
         self.logger.info(output)
 
         return output
@@ -40,16 +41,16 @@ class TCPSession(ExpectSession):
 
         self._handler.close()
 
-    def _send(self, data_str):
+    def _send(self, command, logger):
         """Send message to the session
 
-        :param data_str: message/command to send
+        :param command: message/command to send
         :return:
         """
 
-        self._handler.sendall(data_str)
+        self._handler.sendall(command)
 
-    def _receive(self, timeout=None):
+    def _receive(self, timeout, logger):
         """Read session buffer
 
         :param timeout:

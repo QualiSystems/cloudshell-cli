@@ -46,19 +46,19 @@ class SessionPoolManager(SessionPool):
     @property
     def created_sessions(self):
         """
-        Created session count
+        Counter for created sessions
         :rtype: int
         """
         return len(self._created_sessions)
 
     def get_session(self, session_type, connection_attrs, prompt, logger):
-        """Return session object, takes it from pool or create new session
+        """
+        Return session object, takes it from pool or create new session
+        :param session_type:
+        :param connection_attrs:
+        :param prompt:
         :param logger:
-        :type logger: Logger
-        :param session_args: Session arguments
-        :type session_args: dict
-        :rtype: Session
-        :raises: ConnectionManagerException
+        :return:
         """
         call_time = time.time()
         with self._session_condition:
@@ -112,9 +112,11 @@ class SessionPoolManager(SessionPool):
     def _new_session(self, session_type, connection_attrs, prompt, logger):
         """
         Create new session using session factory
+        :param session_type:
+        :param connection_attrs:
+        :param prompt:
         :param logger:
-        :param session_args:
-        :type session_args: dict
+        :return:
         """
         logger.debug('Creating new session')
 
@@ -127,9 +129,11 @@ class SessionPoolManager(SessionPool):
     def _get_from_pool(self, session_type, connection_attrs, prompt, logger):
         """
         Get session from the pool
+        :param session_type:
+        :param connection_attrs:
+        :param prompt:
         :param logger:
-        :param session_args:
-        :type session_args: dict
+        :return:
         """
         logger.debug('getting session from the pool')
         session = self._pool.get(False)
@@ -143,7 +147,7 @@ class SessionPoolManager(SessionPool):
     @staticmethod
     def _suitable_session(session, session_type, connection_attrs):
         """
-
+        Compare session instance with new parameters
         :param session:
         :param session_type:
         :param connection_attrs:
@@ -151,7 +155,7 @@ class SessionPoolManager(SessionPool):
         """
         if isinstance(session_type, list) and session.__class__ in session_type:
             suitable_type = True
-        elif isinstance(session, session_type):
+        elif not isinstance(session_type, list) and isinstance(session, session_type):
             suitable_type = True
         else:
             suitable_type = False

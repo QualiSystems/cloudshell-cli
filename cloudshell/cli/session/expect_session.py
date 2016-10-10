@@ -3,15 +3,11 @@ import time
 from collections import OrderedDict
 
 from abc import ABCMeta
-from types import ModuleType
 from cloudshell.cli.session.session_exceptions import SessionLoopDetectorException, SessionLoopLimitException
 import re
 from cloudshell.cli.session.session import Session
 from cloudshell.cli.helper.normalize_buffer import normalize_buffer
 from cloudshell.cli.service.cli_exceptions import CommandExecutionException
-import inject
-from cloudshell.configuration.cloudshell_shell_core_binding_keys import CONFIG
-from cloudshell.shell.core.config_utils import override_attributes_from_config
 
 
 class ExpectSession(Session):
@@ -24,19 +20,21 @@ class ExpectSession(Session):
     SESSION_TYPE = 'EXPECT'
 
     DEFAULT_ACTIONS = None
-    HE_MAX_LOOP_RETRIES = 20
-    HE_READ_TIMEOUT = 30
-    HE_EMPTY_LOOP_TIMEOUT = 0.2
-    HE_CLEAR_BUFFER_TIMEOUT = 0.1
-    HE_LOOP_DETECTOR_MAX_ACTION_LOOPS = 3
-    HE_LOOP_DETECTOR_MAX_COMBINATION_LENGTH = 4
+    MAX_LOOP_RETRIES = 20
+    READ_TIMEOUT = 30
+    EMPTY_LOOP_TIMEOUT = 0.2
+    CLEAR_BUFFER_TIMEOUT = 0.1
+    LOOP_DETECTOR_MAX_ACTION_LOOPS = 3
+    LOOP_DETECTOR_MAX_COMBINATION_LENGTH = 4
     '''
     def __init__(self, handler=None, username=None, password=None, host=None, port=None,
                  timeout=None, new_line='\r', logger=None, config=None, default_actions=None, **kwargs):
     '''
 
     def __init__(self, handler=None, host=None, port=None, username=None, password=None, timeout=None, new_line='\r',
-                 logger=None, config=None, default_actions=None, **kwargs):
+                 default_actions=None, max_loop_retries=None, empty_loop_timeout=None,
+                 loop_detector_max_action_loops=None, loop_detector_max_combination_length=None,
+                 clear_buffer_timeout=None, logger=None):
         """
 
         :param handler:
@@ -68,46 +66,15 @@ class ExpectSession(Session):
         self._new_line = new_line
         self._timeout = timeout
 
-        self._logger = logger
-        self._config = config
+        self._default_actions_func = default_actions
 
-        """Override constants with global config values"""
-        overridden_config = override_attributes_from_config(ExpectSession, config=self.config)
+        self._max_loop_retries = max_loop_retries or self.MAX_LOOP_RETRIES
+        self._empty_loop_timeout = empty_loop_timeout or self.EMPTY_LOOP_TIMEOUT
 
-        self._max_loop_retries = overridden_config.HE_MAX_LOOP_RETRIES
-        self._empty_loop_timeout = overridden_config.HE_EMPTY_LOOP_TIMEOUT
-        if default_actions:
-            self._default_actions_func = default_actions
-        else:
-            self._default_actions_func = overridden_config.DEFAULT_ACTIONS
-
-        self._loop_detector_max_action_loops = overridden_config.HE_LOOP_DETECTOR_MAX_ACTION_LOOPS
-        self._loop_detector_max_combination_length = overridden_config.HE_LOOP_DETECTOR_MAX_COMBINATION_LENGTH
-        self._clear_buffer_timeout = overridden_config.HE_CLEAR_BUFFER_TIMEOUT
-        if not self._timeout:
-            self._timeout = overridden_config.HE_READ_TIMEOUT
-
-    # @property
-    # def logger(self):
-    #     return self._logger or inject.instance(LOGGER)
-    #
-    # @logger.setter
-    # def logger(self, logger):
-    #     self._logger = logger
-
-    @property
-    def config(self):
-        """
-        Property for config
-        :rtype: ModuleType
-        """
-        if self._config:
-            config = self._config
-        elif inject.is_configured():
-            config = inject.instance(CONFIG)
-        else:
-            config = ModuleType('config')
-        return config
+        self._loop_detector_max_action_loops = loop_detector_max_action_loops or self.LOOP_DETECTOR_MAX_ACTION_LOOPS
+        self._loop_detector_max_combination_length = loop_detector_max_combination_length or self.LOOP_DETECTOR_MAX_COMBINATION_LENGTH
+        self._clear_buffer_timeout = clear_buffer_timeout or self.CLEAR_BUFFER_TIMEOUT
+        self._timeout = timeout or self.READ_TIMEOUT
 
     @property
     def session_type(self):
