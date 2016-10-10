@@ -42,17 +42,17 @@ if __name__ == '__main__':
         'password': 'Juniper1'
     }
 
-    session_types = {'ssh': SSHSession, 'telnet':TelnetSession}
-
+    session_types = [TelnetSession,SSHSession]
+    '''
     if context.session_type in session_types:
         session_type = session_types.get(context_session_type)
     else:
         session_type = session_types.values()
-
+    '''
     # auto_session = [SSHSession, TelnetSession]
-
-    Thread(target=do_action, args=(cli, SSHSession, DEFAULT_MODE, connection_attrs)).start()
-    Thread(target=do_action, args=(cli, auto_session, DEFAULT_MODE, connection_attrs)).start()
+    do_action(cli, session_types, DEFAULT_MODE, connection_attrs)
+    #Thread(target=do_action, args=(cli, SSHSession, DEFAULT_MODE, connection_attrs)).start()
+    #Thread(target=do_action, args=(cli, auto_session, DEFAULT_MODE, connection_attrs)).start()
     # Thread(target=do_action, args=(cli, DEFAULT_MODE)).start()
 
     # config_vlan_mode = CommandMode(r'vlan#/s*$', 'config vlan', 'exit')
