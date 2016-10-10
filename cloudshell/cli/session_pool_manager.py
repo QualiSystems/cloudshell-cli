@@ -59,6 +59,7 @@ class SessionPoolManager(SessionPool):
         :param prompt:
         :param logger:
         :return:
+        :rtype: Session
         """
         call_time = time.time()
         with self._session_condition:

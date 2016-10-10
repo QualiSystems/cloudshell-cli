@@ -25,6 +25,10 @@ class SessionPoolContextManager(object):
         self._cli_operations = None
 
     def __enter__(self):
+        """
+        :return:
+        :rtype: CliOperationsImpl
+        """
         prompts_re = CommandMode.modes_pattern()
         session = self._session_pool.get_session(logger=self._logger, prompt=prompts_re,
                                                  session_type=self._session_type,

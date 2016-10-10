@@ -17,6 +17,7 @@ class Cli(object):
         :param command_mode:
         :param logger:
         :return:
+        :rtype: SessionPoolContextManager
         """
 
         return SessionPoolContextManager(self._session_pool, session_type, connection_attrs, command_mode, logger)
