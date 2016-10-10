@@ -19,7 +19,7 @@ class TelnetSession(ExpectSession):
     def __del__(self):
         self.disconnect()
 
-    def connect(self, re_string=''):
+    def connect(self, prompt, logger,re_string=''):
         """Open connection to device / create session
 
         :param re_string:
@@ -33,11 +33,11 @@ class TelnetSession(ExpectSession):
         self._handler.get_socket().send(telnetlib.IAC + telnetlib.WILL + telnetlib.ECHO)
 
         expect_map = OrderedDict()
-        expect_map['[Ll]ogin:|[Uu]ser:|[Uu]sername:'] = lambda session: session.send_line(session._username)
-        expect_map['[Pp]assword:'] = lambda session: session.send_line(session._password)
+        expect_map['[Ll]ogin:|[Uu]ser:|[Uu]sername:'] = lambda session: session.send_line(session._username,self.logger)
+        expect_map['[Pp]assword:'] = lambda session: session.send_line(session._password,self.logger)
         re_string += '|' + self.AUTHENTICATION_ERROR_PATTERN
 
-        out = self.hardware_expect(re_string=re_string, expect_map=expect_map)
+        out = self.hardware_expect(None, expected_string=prompt, timeout=self._timeout, logger=logger,action_map=expect_map)
 
         match_error = re.search(self.AUTHENTICATION_ERROR_PATTERN, out)
         if match_error:
@@ -59,16 +59,16 @@ class TelnetSession(ExpectSession):
 
         self._handler.close()
 
-    def _send(self, data_str):
+    def _send(self, command, logger):
         """send message / command to device
 
         :param data_str: message / command to send
         :return:
         """
 
-        self._handler.write(data_str)
+        self._handler.write(command)
 
-    def _receive(self, timeout=None):
+    def _receive(self, timeout, logger):
         """read session buffer
 
         :param timeout:

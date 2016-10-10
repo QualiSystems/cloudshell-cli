@@ -14,20 +14,15 @@ CONFIG_MODE = CommandMode(r'#\s*$', 'configure', 'exit', parent_mode=DEFAULT_MOD
 
 
 def do_action(cli, session_type, mode, attrs):
-    defined_session_types = {'ssh': SSHSession, 'telnet':TelnetSession}
+    # session_type = SSHSession
 
-    if session_type in defined_session_types:
-        session_classobj = defined_session_types[session_type]
-    else:
-        session_classobj = defined_session_types.values()
-
-    with cli.get_session(session_classobj, attrs, mode, cli.logger) as default_session:
-        out = default_session.send_command('show version')
+    with cli.get_session(session_type, attrs, mode, cli.logger) as default_session:
+        out = default_session.send_command('show interfaces')
         print(out)
-        # with default_session.enter_mode(CONFIG_MODE) as config_session:
-        #     out = config_session.send_command('show interfaces')
-        #     print(out)
-        #     # out = config_session.send_command('show interfaces', logger=cli.logger)
+        with default_session.enter_mode(CONFIG_MODE) as config_session:
+            out = config_session.send_command('show interfaces')
+            print(out)
+            # out = config_session.send_command('show interfaces', logger=cli.logger)
             # print(out)
 
 
@@ -47,10 +42,17 @@ if __name__ == '__main__':
         'password': 'Juniper1'
     }
 
-    session_type_attr = 'auto'
-
-    Thread(target=do_action, args=(cli, session_type_attr, DEFAULT_MODE, connection_attrs1)).start()
-    # Thread(target=do_action, args=(cli, session_type_attr, DEFAULT_MODE, connection_attrs)).start()
+    session_types = [TelnetSession,SSHSession]
+    '''
+    if context.session_type in session_types:
+        session_type = session_types.get(context_session_type)
+    else:
+        session_type = session_types.values()
+    '''
+    # auto_session = [SSHSession, TelnetSession]
+    do_action(cli, session_types, DEFAULT_MODE, connection_attrs)
+    #Thread(target=do_action, args=(cli, SSHSession, DEFAULT_MODE, connection_attrs)).start()
+    #Thread(target=do_action, args=(cli, auto_session, DEFAULT_MODE, connection_attrs)).start()
     # Thread(target=do_action, args=(cli, DEFAULT_MODE)).start()
 
     # config_vlan_mode = CommandMode(r'vlan#/s*$', 'config vlan', 'exit')
