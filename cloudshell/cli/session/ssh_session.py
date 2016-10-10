@@ -5,9 +5,10 @@ from cloudshell.cli.session.expect_session import ExpectSession
 
 
 class SSHSession(ExpectSession):
+    SESSION_TYPE = 'SSH'
+
     def __init__(self, *args, **kwargs):
         ExpectSession.__init__(self, paramiko.SSHClient(), *args, **kwargs)
-        self.session_type = 'SSH'
 
         self._handler.load_system_host_keys()
         self._handler.set_missing_host_key_policy(paramiko.AutoAddPolicy())

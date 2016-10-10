@@ -140,7 +140,15 @@ class SessionPoolManager(SessionPool):
             session = self._new_session(session_type, connection_attrs, prompt, logger)
         return session
 
-    def _suitable_session(self, session, session_type, connection_attrs):
+    @staticmethod
+    def _suitable_session(session, session_type, connection_attrs):
+        """
+
+        :param session:
+        :param session_type:
+        :param connection_attrs:
+        :return:
+        """
         if isinstance(session_type, list) and session.__class__ in session_type:
             suitable_type = True
         elif isinstance(session, session_type):

@@ -4,10 +4,11 @@ from cloudshell.cli.session.expect_session import ExpectSession
 
 
 class TCPSession(ExpectSession):
+    SESSION_TYPE = 'TCP'
+
     def __init__(self, *args, **kwargs):
         ExpectSession.__init__(self, socket.socket(socket.AF_INET, socket.SOCK_STREAM), *args, **kwargs)
 
-        self.session_type = 'TCP'
         self._buffer_size = 1024
         if 'buffer_size' in kwargs:
             self._buffer_size = kwargs['buffer_size']

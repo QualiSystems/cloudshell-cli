@@ -21,6 +21,8 @@ class ExpectSession(Session):
 
     __metaclass__ = ABCMeta
 
+    SESSION_TYPE = 'EXPECT'
+
     DEFAULT_ACTIONS = None
     HE_MAX_LOOP_RETRIES = 20
     HE_READ_TIMEOUT = 30
@@ -47,7 +49,7 @@ class ExpectSession(Session):
         :param kwargs:
         :return:
         """
-        self.session_type = 'EXPECT'
+
         self._handler = handler
         self._port = None
         if port and int(port) > 0:
@@ -106,6 +108,10 @@ class ExpectSession(Session):
         else:
             config = ModuleType('config')
         return config
+
+    @property
+    def session_type(self):
+        return self.SESSION_TYPE
 
     def _receive_with_retries(self, timeout, retries_count):
         """Read session buffer with several retries

@@ -6,12 +6,13 @@ from cloudshell.cli.session.expect_session import ExpectSession
 
 
 class TelnetSession(ExpectSession):
+    SESSION_TYPE = 'TELNET'
+
     AUTHENTICATION_ERROR_PATTERN = '%.*($|\n)'
 
     def __init__(self, *args, **kwargs):
         ExpectSession.__init__(self, telnetlib.Telnet(), *args, **kwargs)
 
-        self.session_type = 'TELNET'
         if self._port is None:
             self._port = 23
 
