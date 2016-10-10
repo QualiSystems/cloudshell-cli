@@ -133,8 +133,22 @@ class SessionPoolManager(SessionPool):
         """
         logger.debug('getting session from the pool')
         session = self._pool.get(False)
-        if session.connection_attrs != connection_attrs or not isinstance(session, session_type):
+
+        if not self._suitable_session(session, session_type, connection_attrs):
             logger.debug('Session args was changed, creating session with new args')
             self.remove_session(session, logger)
             session = self._new_session(session_type, connection_attrs, prompt, logger)
         return session
+
+    def _suitable_session(self, session, session_type, connection_attrs):
+        if isinstance(session_type, list) and session.__class__ in session_type:
+            suitable_type = True
+        elif isinstance(session, session_type):
+            suitable_type = True
+        else:
+            suitable_type = False
+
+        suitable_session = False
+        if suitable_type and session.connection_attrs == connection_attrs:
+            suitable_session = True
+        return suitable_session

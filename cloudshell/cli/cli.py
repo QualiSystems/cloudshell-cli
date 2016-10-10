@@ -11,10 +11,12 @@ class Cli(object):
 
     def get_session(self, session_type, connection_attrs, command_mode, logger):
         """
-        Get session from pool or create new
-        :param session_attributes:
+
+        :param session_type:
+        :param connection_attrs:
+        :param command_mode:
+        :param logger:
         :return:
-        :rtype: SessionModeWrapper
         """
 
         return SessionPoolContextManager(self._session_pool, session_type, connection_attrs, command_mode, logger)
