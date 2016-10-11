@@ -8,7 +8,7 @@ class SessionValidationProxy(object):
     VALIDATED_CALLS = ('connect', 'reconnect')
 
     """Those exceptions do not change state"""
-    IGNORED_EXCEPTIONS = [    CommandExecutionException]
+    IGNORED_EXCEPTIONS = [CommandExecutionException]
 
     def __init__(self, instance):
         self._instance = instance
@@ -28,17 +28,16 @@ class SessionValidationProxy(object):
             :param kwargs:
             :return:
             """
-            #try:
-            result = attr(*args, **kwargs)
-            if name in self.VALIDATED_CALLS:
-                self._valid = True
-            return result
-            '''
+            try:
+                result = attr(*args, **kwargs)
+                if name in self.VALIDATED_CALLS:
+                    self._valid = True
+                return result
+
             except Exception as e:
                 if e.__class__ not in self.IGNORED_EXCEPTIONS:
                     self._valid = False
                 raise
-            '''
         return wrapper_func
 
     def set_invalid(self):
