@@ -13,18 +13,17 @@ DEFAULT_MODE = CommandMode(r'>\s*$', 'cli', 'exit', parent_mode=CLI_MODE,
 CONFIG_MODE = CommandMode(r'#\s*$', 'configure', 'exit', parent_mode=DEFAULT_MODE)
 
 
+@unittest.skip
 class CLITest(unittest.TestCase):
-
     def set_attributes(self):
         self.logger = MagicMock()
 
         self._previous_mode = None
         self._session_pool = SessionPoolManager()
         self._connection_attrs = {
-        'host': '192.168.28.150',
-        'username': 'root',
-        'password': 'Juniper'}
-
+            'host': '192.168.28.150',
+            'username': 'root',
+            'password': 'Juniper'}
 
     def test_enter_mode(self):
         self.set_attributes()
@@ -661,13 +660,11 @@ class CLITest(unittest.TestCase):
         print out
         self.assertEqual(out, res)
 
-
-
-
-def suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(CLITest))
-    return suite
-
-if __name__ == '__main__':
-    unittest.main()
+# def suite():
+#     suite = unittest.TestSuite()
+#     suite.addTest(unittest.makeSuite(CLITest))
+#     return suite
+#
+#
+# if __name__ == '__main__':
+#     unittest.main()

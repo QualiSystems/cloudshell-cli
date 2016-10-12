@@ -25,7 +25,7 @@ class SessionPoolManager(SessionPool):
     POOL_TIMEOUT = 100
 
     def __init__(self, session_manager=SessionManager(), max_pool_size=MAX_POOL_SIZE,
-                 pool_timeout=POOL_TIMEOUT):
+                 pool_timeout=POOL_TIMEOUT, pool=None):
         """
         :param session_manager:
         :type session_manager: SessionManagerImpl
@@ -39,7 +39,7 @@ class SessionPoolManager(SessionPool):
         self._max_pool_size = max_pool_size
         self._pool_timeout = pool_timeout
 
-        self._pool = Queue(self._max_pool_size)
+        self._pool = pool or Queue(self._max_pool_size)
 
     def get_session(self, session_type, connection_attrs, prompt, logger):
         """

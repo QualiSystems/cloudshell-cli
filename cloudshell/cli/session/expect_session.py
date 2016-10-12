@@ -19,7 +19,6 @@ class ExpectSession(Session):
 
     SESSION_TYPE = 'EXPECT'
 
-    DEFAULT_ACTIONS = None
     MAX_LOOP_RETRIES = 20
     READ_TIMEOUT = 30
     EMPTY_LOOP_TIMEOUT = 0.2
@@ -31,10 +30,12 @@ class ExpectSession(Session):
                  timeout=None, new_line='\r', logger=None, config=None, default_actions=None, **kwargs):
     '''
 
-    def __init__(self, handler=None, host=None, port=None, username=None, password=None, timeout=None, new_line='\r',
-                 default_actions=None, max_loop_retries=None, empty_loop_timeout=None,
-                 loop_detector_max_action_loops=None, loop_detector_max_combination_length=None,
-                 clear_buffer_timeout=None, logger=None):
+    def __init__(self, handler=None, host=None, port=None, username=None, password=None, timeout=READ_TIMEOUT,
+                 new_line='\r', default_actions=None, max_loop_retries=MAX_LOOP_RETRIES,
+                 empty_loop_timeout=EMPTY_LOOP_TIMEOUT,
+                 loop_detector_max_action_loops=LOOP_DETECTOR_MAX_ACTION_LOOPS,
+                 loop_detector_max_combination_length=LOOP_DETECTOR_MAX_COMBINATION_LENGTH,
+                 clear_buffer_timeout=CLEAR_BUFFER_TIMEOUT, logger=None):
         """
 
         :param handler:
@@ -68,13 +69,13 @@ class ExpectSession(Session):
 
         self._default_actions_func = default_actions
 
-        self._max_loop_retries = max_loop_retries or self.MAX_LOOP_RETRIES
-        self._empty_loop_timeout = empty_loop_timeout or self.EMPTY_LOOP_TIMEOUT
+        self._max_loop_retries = max_loop_retries
+        self._empty_loop_timeout = empty_loop_timeout
 
-        self._loop_detector_max_action_loops = loop_detector_max_action_loops or self.LOOP_DETECTOR_MAX_ACTION_LOOPS
-        self._loop_detector_max_combination_length = loop_detector_max_combination_length or self.LOOP_DETECTOR_MAX_COMBINATION_LENGTH
-        self._clear_buffer_timeout = clear_buffer_timeout or self.CLEAR_BUFFER_TIMEOUT
-        self._timeout = timeout or self.READ_TIMEOUT
+        self._loop_detector_max_action_loops = loop_detector_max_action_loops
+        self._loop_detector_max_combination_length = loop_detector_max_combination_length
+        self._clear_buffer_timeout = clear_buffer_timeout
+        self._timeout = timeout
 
     @property
     def session_type(self):

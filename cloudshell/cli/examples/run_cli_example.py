@@ -12,11 +12,12 @@ DEFAULT_MODE = CommandMode(r'>\s*$', 'cli', 'exit', parent_mode=CLI_MODE,
                            default_actions=lambda s: s.send_command('set cli screen-length 0'))
 CONFIG_MODE = CommandMode(r'#\s*$', 'configure', 'exit', parent_mode=DEFAULT_MODE)
 
+LOGGER = get_qs_logger()
 
 def do_action(cli, session_type, mode, attrs):
     # session_type = SSHSession
 
-    with cli.get_session(session_type, attrs, mode, cli.logger) as default_session:
+    with cli.get_session(session_type, attrs, mode, LOGGER) as default_session:
         out = default_session.send_command('show version', error_map={'srx220h-poe': 'big error'})
         print(out)
         # with default_session.enter_mode(CONFIG_MODE) as config_session:
@@ -27,9 +28,8 @@ def do_action(cli, session_type, mode, attrs):
 
 
 if __name__ == '__main__':
-    logger = get_qs_logger()
     pool = SessionPoolManager(max_pool_size=2)
-    cli = Cli(logger=logger, session_pool=pool)
+    cli = Cli(session_pool=pool)
     connection_attrs = {
         'host': '192.168.28.150',
         'username': 'root',
