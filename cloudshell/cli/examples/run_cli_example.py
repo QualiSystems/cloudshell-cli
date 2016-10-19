@@ -5,14 +5,43 @@ from cloudshell.cli.command_mode import CommandMode
 from cloudshell.cli.session.ssh_session import SSHSession
 from cloudshell.cli.session.telnet_session import TelnetSession
 from cloudshell.cli.session_pool_manager import SessionPoolManager
+from cloudshell.cli.cli_operations import CliOperations
 from cloudshell.core.logger.qs_logger import get_qs_logger
 
-CLI_MODE = CommandMode(r'%\s*$', '', 'exit', default_actions=lambda s: s.send_command('echo 123'))
-DEFAULT_MODE = CommandMode(r'>\s*$', 'cli', 'exit', parent_mode=CLI_MODE,
-                           default_actions=lambda s: s.send_command('set cli screen-length 0'))
-CONFIG_MODE = CommandMode(r'#\s*$', 'configure', 'exit', parent_mode=DEFAULT_MODE)
+
+class CommandModeTemplate(object):
+    def __init__(self, context):
+        self._context = context
+
+    def _cli_mode_default_actions(self, cli_operations):
+        """
+
+        :param cli_operations:
+        :type cli_operations: CliOperations
+        :return:
+        """
+        cli_operations.send_command('echo ' + self._context.resource.name)
+
+    def cli_mode(self):
+        return CommandMode(r'%\s*$', '', 'exit', default_actions=self._cli_mode_default_actions)
+
+    def _default_mode_default_actions(self, cli_operations):
+        cli_operations.send_command('set cli screen-length 0')
+
+    def default_mode(self):
+        return CommandMode(r'>\s*$', 'cli', 'exit', parent_mode=self.cli_mode(),
+                           default_actions=self._default_mode_default_actions)
+
+    def _config_mode_default_actions(self, cli_operations):
+        pass
+
+    def config_mode(self):
+        CommandMode(r'#\s*$', 'configure', 'exit', default_actions=self._config_mode_default_actions,
+                    parent_mode=self.default_mode())
+
 
 LOGGER = get_qs_logger()
+
 
 def do_action(cli, session_type, mode, attrs):
     # session_type = SSHSession
@@ -51,8 +80,14 @@ if __name__ == '__main__':
     '''
     # auto_session = [SSHSession, TelnetSession]
     # do_action(cli, session_types, DEFAULT_MODE, connection_attrs)
-    Thread(target=do_action, args=(cli, SSHSession, DEFAULT_MODE, connection_attrs)).start()
-    Thread(target=do_action, args=(cli, session_types, DEFAULT_MODE, connection_attrs)).start()
+    context = object()
+    context.resource = object()
+    context.resource.name = "test name"
+
+    mode_template = CommandModeTemplate(context)
+
+    Thread(target=do_action, args=(cli, SSHSession, mode_template.config_mode(), connection_attrs)).start()
+    Thread(target=do_action, args=(cli, session_types, mode_template.default_mode(), connection_attrs)).start()
     # Thread(target=do_action, args=(cli, DEFAULT_MODE)).start()
 
     # config_vlan_mode = CommandMode(r'vlan#/s*$', 'config vlan', 'exit')

@@ -1,5 +1,4 @@
 from collections import OrderedDict
-
 from cloudshell.cli.cli_exception import CliException
 from cloudshell.cli.node import Node
 
@@ -12,16 +11,6 @@ class CommandMode(Node):
     """
     Class describes our prompt and implement enter and exit command functions
     """
-    DEFINED_MODES = OrderedDict()
-
-    @staticmethod
-    def modes_pattern():
-        """
-        Generate pattern for defined modes
-        :return:
-        :rtype: str
-        """
-        return r'|'.join(CommandMode.DEFINED_MODES.keys())
 
     def __init__(self, prompt, enter_command, exit_command, default_actions=None, action_map={}, error_map={},
                  parent_mode=None):
@@ -46,7 +35,6 @@ class CommandMode(Node):
         self._error_map = error_map
         if parent_mode:
             self.add_parent_mode(parent_mode)
-        CommandMode.DEFINED_MODES[self.prompt] = self
 
     def add_parent_mode(self, mode):
         """
@@ -56,6 +44,25 @@ class CommandMode(Node):
         :return:
         """
         mode.add_child_node(self)
+
+    def defined_modes_by_prompt(self):
+        """
+        Generate dict of defined modes
+        :return:
+        :rtype: OrderedDict
+        """
+
+        def _get_child_nodes(command_node):
+            return reduce(lambda x, y: x + _get_child_nodes(y), [command_node.childs] + command_node.childs)
+
+        node = self
+        while node.parent_node is not None:
+            node = node.parent_node
+        root_node = node
+
+        node_list = [root_node] + _get_child_nodes(root_node)
+
+        return OrderedDict(map(lambda x: (x.prompt, x), node_list))
 
     def step_up(self, cli_operations):
         """
