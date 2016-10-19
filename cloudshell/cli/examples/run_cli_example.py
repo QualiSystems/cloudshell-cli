@@ -80,9 +80,7 @@ if __name__ == '__main__':
     '''
     # auto_session = [SSHSession, TelnetSession]
     # do_action(cli, session_types, DEFAULT_MODE, connection_attrs)
-    context = object()
-    context.resource = object()
-    context.resource.name = "test name"
+    context = type('context', (object,), {'resource': type('resource', (object,), {'name': 'test name'})})
 
     mode_template = CommandModeTemplate(context)
 
