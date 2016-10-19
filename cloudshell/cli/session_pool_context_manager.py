@@ -16,6 +16,7 @@ class SessionPoolContextManager(object):
         :param session_type:
         :param connection_attrs:
         :param command_mode:
+        :type command_mode: CommandMode
         :param logger:
         """
 
@@ -32,7 +33,7 @@ class SessionPoolContextManager(object):
         :return:
         :rtype: CliOperationsImpl
         """
-        prompts_re = CommandMode.modes_pattern()
+        prompts_re = r'|'.join(self._command_mode.defined_modes_by_prompt().keys())
         self._session = self._session_pool.get_session(logger=self._logger, prompt=prompts_re,
                                                        session_type=self._session_type,
                                                        connection_attrs=self._connection_attrs)
