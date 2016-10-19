@@ -53,7 +53,7 @@ class CommandMode(Node):
         """
 
         def _get_child_nodes(command_node):
-            return reduce(lambda x, y: x + _get_child_nodes(y), [command_node.childs] + command_node.childs)
+            return reduce(lambda x, y: x + _get_child_nodes(y), [command_node.child_nodes] + command_node.child_nodes)
 
         node = self
         while node.parent_node is not None:

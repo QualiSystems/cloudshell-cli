@@ -36,7 +36,7 @@ class CommandModeTemplate(object):
         pass
 
     def config_mode(self):
-        CommandMode(r'#\s*$', 'configure', 'exit', default_actions=self._config_mode_default_actions,
+        return CommandMode(r'#\s*$', 'configure', 'exit', default_actions=self._config_mode_default_actions,
                     parent_mode=self.default_mode())
 
 
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     mode_template = CommandModeTemplate(context)
 
     Thread(target=do_action, args=(cli, SSHSession, mode_template.config_mode(), connection_attrs)).start()
-    Thread(target=do_action, args=(cli, session_types, mode_template.default_mode(), connection_attrs)).start()
+    # Thread(target=do_action, args=(cli, session_types, mode_template.default_mode(), connection_attrs)).start()
     # Thread(target=do_action, args=(cli, DEFAULT_MODE)).start()
 
     # config_vlan_mode = CommandMode(r'vlan#/s*$', 'config vlan', 'exit')
