@@ -22,3 +22,25 @@ class TestSessionPoolManager(TestCase):
                                                          self._logger)
         self._session_pool_manager._get_from_pool.assert_called_once_with(self._session_type, self._connection_attrs,
                                                                           self._prompt, self._logger)
+
+    def test_get_session_create_new(self):
+        self._pool.empty.return_value = True
+        self._pool.maxsize = 2
+        self._session_manager.existing_sessions_count.return_value = 1
+        self._session_pool_manager._new_session = Mock()
+        session = self._session_pool_manager.get_session(self._session_type, self._connection_attrs, self._prompt,
+                                                         self._logger)
+        self._session_pool_manager._new_session.assert_called_once_with(self._session_type, self._connection_attrs,
+                                                                        self._prompt, self._logger)
+
+    def test_get_session_condition_wait_call(self):
+        self._pool.empty.return_value = True
+        self._pool.maxsize = 1
+        self._session_manager.existing_sessions_count.return_value = 1
+        self._session_pool_manager._new_session = Mock()
+        self._session_pool_manager._pool_timeout
+
+        session = self._session_pool_manager.get_session(self._session_type, self._connection_attrs, self._prompt,
+                                                         self._logger)
+        self._session_pool_manager._new_session.assert_called_once_with(self._session_type, self._connection_attrs,
+                                                                        self._prompt, self._logger)
