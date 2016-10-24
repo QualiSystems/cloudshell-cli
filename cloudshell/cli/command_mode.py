@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from cloudshell.cli.cli_exception import CliException
 from cloudshell.cli.node import Node
 
@@ -12,8 +11,10 @@ class CommandMode(Node):
     Class describes our prompt and implement enter and exit command functions
     """
 
-    def __init__(self, prompt, enter_command, exit_command, default_actions=None, action_map={}, error_map={},
-                 parent_mode=None):
+    RELATIONS_DICT = {}
+
+    def __init__(self, prompt, enter_command, exit_command, enter_action_map=None, exit_action_map=None,
+                 enter_error_map=None, exit_error_map=None, parent_mode=None, default_actions=None):
         """
             :param prompt: Prompt of this mode
             :type prompt: str
@@ -22,17 +23,36 @@ class CommandMode(Node):
             :param exit_command: Command used to exit from this mode
             :type exit_command: str
             :param default_actions: Actions which needs to be done when entering this mode
-            :param action_map: Any expected actions
-            :param error_map: Defined error map
+            :param enter_action_map: Enter expected actions
+            :type enter_action_map: dict
+            :param enter_error_map: Enter error map
+            :type enter_error_map: dict
+            :param exit_action_map:
+            :type exit_action_map: dict
+            :param exit_error_map:
+            :type exit_error_map: dict
+            :param
             :param parent_mode: Connect parent mode
             """
+        if not exit_error_map:
+            exit_error_map = {}
+        if not enter_error_map:
+            enter_error_map = {}
+        if not exit_action_map:
+            exit_action_map = {}
+        if not enter_action_map:
+            enter_action_map = {}
+
         super(CommandMode, self).__init__()
         self.prompt = prompt
         self._enter_command = enter_command
         self._exit_command = exit_command
+        self._enter_action_map = enter_action_map
+        self._exit_action_map = exit_action_map
+        self._enter_error_map = enter_error_map
+        self._exit_error_map = exit_error_map
         self._default_actions = default_actions
-        self._action_map = action_map
-        self._error_map = error_map
+
         if parent_mode:
             self.add_parent_mode(parent_mode)
 
@@ -43,26 +63,8 @@ class CommandMode(Node):
         :type mode: CommandMode
         :return:
         """
-        mode.add_child_node(self)
-
-    def defined_modes_by_prompt(self):
-        """
-        Generate dict of defined modes
-        :return:
-        :rtype: OrderedDict
-        """
-
-        def _get_child_nodes(command_node):
-            return reduce(lambda x, y: x + _get_child_nodes(y), [command_node.child_nodes] + command_node.child_nodes)
-
-        node = self
-        while node.parent_node is not None:
-            node = node.parent_node
-        root_node = node
-
-        node_list = [root_node] + _get_child_nodes(root_node)
-
-        return OrderedDict(map(lambda x: (x.prompt, x), node_list))
+        if mode:
+            mode.add_child_node(self)
 
     def step_up(self, cli_operations):
         """
@@ -71,7 +73,7 @@ class CommandMode(Node):
         :type cli_operations: CliOperations
         """
         cli_operations.send_command(self._enter_command, expected_string=self.prompt,
-                                    action_map=self._action_map, error_map=self._error_map)
+                                    action_map=self._enter_action_map, error_map=self._enter_error_map)
         cli_operations.command_mode = self
         self.default_actions(cli_operations)
 
@@ -83,7 +85,7 @@ class CommandMode(Node):
         :return:
         """
         cli_operations.send_command(self._exit_command, expected_string=self.parent_node.prompt,
-                                    action_map=self._action_map, error_map=self._error_map)
+                                    action_map=self._exit_action_map, error_map=self._exit_error_map)
         cli_operations.command_mode = self.parent_node
 
     def default_actions(self, cli_operations):
