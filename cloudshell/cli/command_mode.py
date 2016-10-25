@@ -14,7 +14,7 @@ class CommandMode(Node):
     RELATIONS_DICT = {}
 
     def __init__(self, prompt, enter_command, exit_command, enter_action_map=None, exit_action_map=None,
-                 enter_error_map=None, exit_error_map=None, parent_mode=None, default_actions=None):
+                 enter_error_map=None, exit_error_map=None, parent_mode=None, enter_actions=None):
         """
             :param prompt: Prompt of this mode
             :type prompt: str
@@ -22,7 +22,7 @@ class CommandMode(Node):
             :type enter_command: str
             :param exit_command: Command used to exit from this mode
             :type exit_command: str
-            :param default_actions: Actions which needs to be done when entering this mode
+            :param enter_actions: Actions which needs to be done when entering this mode
             :param enter_action_map: Enter expected actions
             :type enter_action_map: dict
             :param enter_error_map: Enter error map
@@ -51,7 +51,7 @@ class CommandMode(Node):
         self._exit_action_map = exit_action_map
         self._enter_error_map = enter_error_map
         self._exit_error_map = exit_error_map
-        self._default_actions = default_actions
+        self._enter_actions = enter_actions
 
         if parent_mode:
             self.add_parent_mode(parent_mode)
@@ -75,7 +75,7 @@ class CommandMode(Node):
         cli_operations.send_command(self._enter_command, expected_string=self.prompt,
                                     action_map=self._enter_action_map, error_map=self._enter_error_map)
         cli_operations.command_mode = self
-        self.default_actions(cli_operations)
+        self.enter_actions(cli_operations)
 
     def step_down(self, cli_operations):
         """
@@ -88,11 +88,11 @@ class CommandMode(Node):
                                     action_map=self._exit_action_map, error_map=self._exit_error_map)
         cli_operations.command_mode = self.parent_node
 
-    def default_actions(self, cli_operations):
+    def enter_actions(self, cli_operations):
         """
         Default actions
         :param cli_operations:
         :return:
         """
-        if self._default_actions:
-            self._default_actions(cli_operations)
+        if self._enter_actions:
+            self._enter_actions(cli_operations)

@@ -1,3 +1,5 @@
+from copy import copy
+
 from cloudshell.cli.cli_exception import CliException
 from cloudshell.cli.session_manager import SessionManager
 
@@ -10,10 +12,15 @@ class SessionParams(object):
     """
     Holder for session parameters, compare parameters as objects
     """
+    EXCLUDE_ATTRIBUTES = ['default_actions']
 
     def __init__(self, session_type, connection_attrs):
         self.session_type = session_type
-        self.connection_attrs = connection_attrs
+        attrs_copy = copy(connection_attrs)
+        for attr in self.EXCLUDE_ATTRIBUTES:
+            if attr in attrs_copy:
+                del attrs_copy[attr]
+        self.connection_attrs = attrs_copy
 
     def __eq__(self, other):
         return self.session_type == other.session_type and self.connection_attrs == other.connection_attrs

@@ -48,8 +48,7 @@ class CliOperationsImpl(CliOperations):
         self.session = session
         self._logger = logger
         self.command_mode = CommandModeHelper.determine_current_mode(self.session, command_mode, self._logger)
-        if self.session.new_session:
-            self.command_mode.default_actions(self)
+        self.command_mode.enter_actions(self)
         self._change_mode(command_mode)
 
     def enter_mode(self, command_mode):
