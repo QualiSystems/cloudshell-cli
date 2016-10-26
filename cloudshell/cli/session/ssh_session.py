@@ -1,7 +1,27 @@
 import traceback
 
 import paramiko
+from cloudshell.cli.cli import BaseCLIConnectionParams
 from cloudshell.cli.session.expect_session import ExpectSession
+from cloudshell.cli.session.session import Session
+
+
+class SSHConnectionParams(BaseCLIConnectionParams):
+    def __init__(self, username, password, port=22, on_session_start=None):
+        """
+        :param str username: SSH username
+        :param str password: SSH password
+        :param int port: SSH port to use (default 22)
+        :param (Session) ->  on_session_start: Callback function to be triggered after the CLI session starts allows
+         running common initialization commands
+        """
+        super(SSHConnectionParams, self).__init__(port, on_session_start)
+        self.username = username
+        self.password = password
+
+    def __eq__(self, other):
+        return (super(SSHConnectionParams, self).__eq__(other)) & (other.username == self.username) & (other.password == self.password)
+
 
 
 class SSHSession(ExpectSession):

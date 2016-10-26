@@ -3,7 +3,7 @@ import unittest
 from mock import MagicMock
 from cloudshell.cli.command_mode import CommandMode
 from cloudshell.cli.session.ssh_session import SSHSession
-from cloudshell.cli.cli import Cli
+from cloudshell.cli.cli import CLI
 from cloudshell.cli.cli_operations_impl import CliOperationsImpl as CliOperations
 from cloudshell.cli.session_pool_manager import SessionPoolManager
 
@@ -644,7 +644,7 @@ class CLITest(unittest.TestCase):
                         Broadcast: 192.168.41.255
 
                 root>'''
-        cli = Cli(logger=self.logger)
+        cli = CLI(logger=self.logger)
 
         prompts_re = CommandMode.modes_pattern()
 

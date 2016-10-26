@@ -1,6 +1,6 @@
 from threading import Thread
 
-from cloudshell.cli.cli import Cli
+from cloudshell.cli.cli import CLI
 from cloudshell.cli.command_mode import CommandMode
 from cloudshell.cli.command_mode_helper import CommandModeHelper
 from cloudshell.cli.session.ssh_session import SSHSession
@@ -108,7 +108,7 @@ class DefaultActions():
 
 if __name__ == '__main__':
     pool = SessionPoolManager(max_pool_size=1)
-    cli = Cli(session_pool=pool)
+    cli = CLI(session_pool=pool)
 
     context = type('context', (object,), {'resource': type('resource', (object,), {'name': 'test name'})})
 
