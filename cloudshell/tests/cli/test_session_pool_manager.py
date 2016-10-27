@@ -27,7 +27,7 @@ class TestSessionPoolManager(TestCase):
         self._prompt = Mock()
 
 
-    def test_changing_a_session_param_will_create_a_new_session(self)
+    def test_changing_a_session_param_will_create_a_new_session(self):
         cli = CLI()
 
         con_params = SSHConnectionParams("root","blah", 22, init_action )

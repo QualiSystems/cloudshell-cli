@@ -31,7 +31,7 @@ class ExpectSession(Session):
     '''
 
     def __init__(self, handler=None, host=None, port=None, username=None, password=None, timeout=READ_TIMEOUT,
-                 new_line='\r', default_actions=None, max_loop_retries=MAX_LOOP_RETRIES,
+                 new_line='\r', on_session_start=None, max_loop_retries=MAX_LOOP_RETRIES,
                  empty_loop_timeout=EMPTY_LOOP_TIMEOUT,
                  loop_detector_max_action_loops=LOOP_DETECTOR_MAX_ACTION_LOOPS,
                  loop_detector_max_combination_length=LOOP_DETECTOR_MAX_COMBINATION_LENGTH,
@@ -67,7 +67,7 @@ class ExpectSession(Session):
         self._new_line = new_line
         self._timeout = timeout
 
-        self._default_actions_func = default_actions
+        self._default_actions_func = on_session_start
 
         self._max_loop_retries = max_loop_retries
         self._empty_loop_timeout = empty_loop_timeout

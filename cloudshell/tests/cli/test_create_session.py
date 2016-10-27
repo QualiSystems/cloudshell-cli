@@ -1,8 +1,8 @@
 import unittest
 from cloudshell.cli.cli import CLI
-from cloudshell.cli.session.ssh_session import SSHSession
+from cloudshell.cli.session.ssh_session import SSHSession,SSHConnectionParams
 from cloudshell.cli.session_pool_manager import SessionPoolManager
-
+from cloudshell.cli.command_mode import CommandMode
 
 class CreateSessionTestCases(unittest.TestCase):
 
@@ -10,16 +10,10 @@ class CreateSessionTestCases(unittest.TestCase):
 
         pool = SessionPoolManager(max_pool_size=1)
         cli = CLI(session_pool=pool)
-
-        connection_attrs = {
-            'host': '192.168.28.150',
-            'username': 'root',
-            'password': 'Juniper'
-        }
-
-        with cli.get_session(SSHSession, attrs, mode, LOGGER, ) as default_session:
-            # out = default_session.send_command('show version', error_map={'srx220h-poe': 'big error'})
-            out = default_session.send_command('show version')
+        mode = CommandMode(r'%\s*$')
+        connection_params = SSHConnectionParams(host='192.168.28.150',username='root',password='Juniper')
+        with cli.get_session(SSHSession, connection_params, mode) as default_session:
+            out = default_session.send_command('show version', error_map={'srx220h-poe': 'big error'})
             print(out)
             # config_command_mode = ConfigCommandMode(context)
             # config_command_mode.add_parent_mode(mode)
