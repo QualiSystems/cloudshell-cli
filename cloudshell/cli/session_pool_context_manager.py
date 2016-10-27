@@ -11,7 +11,7 @@ class SessionPoolContextManager(object):
 
     IGNORE_EXCEPTIONS = [CommandExecutionException]
 
-    def __init__(self, session_pool, session_type, connection_attrs, command_mode, logger):
+    def __init__(self, session_pool, connections_params, command_mode, logger):
         """
         :param session_pool:
         :param session_type:
@@ -24,8 +24,8 @@ class SessionPoolContextManager(object):
         self._session_pool = session_pool
         self._command_mode = command_mode
         self._logger = logger
-        self._session_type = session_type
-        self._connection_attrs = connection_attrs
+
+        self._connection_attrs = connections_params
 
         self._session = None
 
@@ -36,7 +36,6 @@ class SessionPoolContextManager(object):
         """
         prompts_re = r'|'.join(CommandModeHelper.defined_modes_by_prompt(self._command_mode).keys())
         self._session = self._session_pool.get_session(logger=self._logger, prompt=prompts_re,
-                                                       session_type=self._session_type,
                                                        connection_attrs=self._connection_attrs)
         return CliOperations(self._session, self._command_mode, self._logger)
 

@@ -30,7 +30,7 @@ class SessionManagerImpl(SessionManager):
     def __init__(self):
         self._existing_sessions_params = {}
 
-    def new_session(self, session_type, connection_attrs, prompt, logger):
+    def new_session(self, connection_attrs, prompt, logger):
         """
         Create new session
         :param session_type:
@@ -40,19 +40,13 @@ class SessionManagerImpl(SessionManager):
         :return:
         """
 
-        if isinstance(session_type, list):
-            session_type_list = session_type
-            logger.debug(
-                'Session list {} was called'.format(','.join([x.SESSION_TYPE for x in session_type_list])))
-        else:
-            session_type_list = [session_type]
 
-        return self._suitable_session(session_type_list, connection_attrs, prompt, logger)
+        return self._suitable_session(connection_attrs, prompt, logger)
 
     @staticmethod
-    def _create_session(session_type, connection_attrs, prompt, logger):
+    def _create_session(connection_attrs, prompt, logger):
         try:
-            session = session_type(logger=logger, **connection_attrs)
+            session = connection_attrs.TYPE(logger=logger, **connection_attrs.__dict__)
             session.connect(prompt, logger)
             logger.debug('Created new {} session'.format(session.session_type))
         except Exception as e:
@@ -60,16 +54,15 @@ class SessionManagerImpl(SessionManager):
             session = None
         return session
 
-    def _suitable_session(self, session_type_list, connection_attrs, prompt, logger):
-        for session_type in session_type_list:
-            session = self._create_session(session_type, connection_attrs, prompt, logger)
-            if session:
-                self._existing_sessions_params[session] = SessionParams(session_type, connection_attrs)
-                return session
+    def _suitable_session(self, connection_attrs, prompt, logger):
+
+        session = self._create_session(connection_attrs, prompt, logger)
+        if session:
+            self._existing_sessions_params[session] = SessionParams(connection_attrs.TYPE, connection_attrs.__dict__)
+            return session
 
         raise SessionManagerException(self.__class__.__name__,
-                                      'Failed to create new session for type {}, see logs for details'.format(
-                                          ','.join([x.SESSION_TYPE for x in session_type_list])))
+                                      'Failed to create new session for type {}, see logs for details'.format(connection_attrs.TYPE))
 
     def existing_sessions_count(self):
         """
@@ -89,7 +82,7 @@ class SessionManagerImpl(SessionManager):
             del (self._existing_sessions_params[session])
             logger.debug('{} session was removed'.format(session.session_type))
 
-    def is_compatible(self, session, session_type_list, connection_attrs, logger):
+    def is_compatible(self, session, connection_attrs, logger):
         """
         Compare session with new session parameters
         :param session:
@@ -98,16 +91,13 @@ class SessionManagerImpl(SessionManager):
         :param logger:
         :return:
         """
-        if not isinstance(session_type_list, list):
-            session_type_list = [session_type_list]
 
         if session in self._existing_sessions_params:
             compatible = False
-            for session_type in session_type_list:
-                session_params = SessionParams(session_type, connection_attrs)
-                if session_params == self._existing_sessions_params[session]:
-                    compatible = True
-                    break
+
+            if connection_attrs == self._existing_sessions_params[session]:
+                compatible = True
+
             return compatible
         else:
             raise SessionManagerException(self.__class__.__name__, 'Unknown session')

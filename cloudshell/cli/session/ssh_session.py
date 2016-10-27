@@ -7,6 +7,7 @@ from cloudshell.cli.session.session import Session
 
 
 class SSHConnectionParams(BaseCLIConnectionParams):
+
     def __init__(self, host,username, password, port=22, on_session_start=None):
         """
         :param str username: SSH username
@@ -15,6 +16,7 @@ class SSHConnectionParams(BaseCLIConnectionParams):
         :param (Session) ->  on_session_start: Callback function to be triggered after the CLI session starts allows
          running common initialization commands
         """
+        self.TYPE = SSHSession
         super(SSHConnectionParams, self).__init__(host,port, on_session_start)
         self.username = username
         self.password = password

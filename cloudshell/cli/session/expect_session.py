@@ -35,7 +35,7 @@ class ExpectSession(Session):
                  empty_loop_timeout=EMPTY_LOOP_TIMEOUT,
                  loop_detector_max_action_loops=LOOP_DETECTOR_MAX_ACTION_LOOPS,
                  loop_detector_max_combination_length=LOOP_DETECTOR_MAX_COMBINATION_LENGTH,
-                 clear_buffer_timeout=CLEAR_BUFFER_TIMEOUT, logger=None):
+                 clear_buffer_timeout=CLEAR_BUFFER_TIMEOUT, logger=None,**default_attrs):
         """
 
         :param handler:

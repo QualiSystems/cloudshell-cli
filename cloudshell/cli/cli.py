@@ -26,7 +26,7 @@ class CLI(object):
     def __init__(self, session_pool=SessionPoolManager()):
         self._session_pool = session_pool
 
-    def get_session(self, session_type, connection_attrs, command_mode, logger=None):
+    def get_session(self, connections_params, command_mode, logger=None):
         """
         Get session from the pool or create new
         :param session_type:
@@ -40,7 +40,9 @@ class CLI(object):
         :return:
         :rtype: SessionPoolContextManager
         """
+        if not isinstance(connections_params, list):
+            connections_params = [connections_params]
 
         if not logger:
             logger = logging.getLogger("cloudshell_cli")
-        return SessionPoolContextManager(self._session_pool, session_type, connection_attrs.__dict__, command_mode, logger)
+        return SessionPoolContextManager(self._session_pool, connections_params, command_mode, logger)

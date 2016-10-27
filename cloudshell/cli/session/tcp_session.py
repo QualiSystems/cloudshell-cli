@@ -1,7 +1,23 @@
 import socket
 
 from cloudshell.cli.session.expect_session import ExpectSession
+from cloudshell.cli.cli import BaseCLIConnectionParams
 
+class TCPConnectionParams(BaseCLIConnectionParams):
+
+    def __init__(self, host,port, on_session_start=None):
+        """
+        :param str host: the host ip address
+        :param int port: TCP port to use
+        :param (Session) ->  on_session_start: Callback function to be triggered after the CLI session starts allows
+         running common initialization commands
+        """
+        self.TYPE = TCPSession
+        super(TCPConnectionParams, self).__init__(host,port, on_session_start)
+
+
+    def __eq__(self, other):
+        return (super(TCPConnectionParams, self).__eq__(other))
 
 class TCPSession(ExpectSession):
     SESSION_TYPE = 'TCP'
