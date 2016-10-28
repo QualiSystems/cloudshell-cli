@@ -6,6 +6,7 @@ class CommandModeException(CliException):
     pass
 
 
+
 class CommandMode(Node):
     """
     Class describes our prompt and implement enter and exit command functions
@@ -13,7 +14,7 @@ class CommandMode(Node):
 
     RELATIONS_DICT = {}
 
-    def __init__(self, prompt, enter_command, exit_command, enter_action_map=None, exit_action_map=None,
+    def __init__(self, prompt, enter_command=None, exit_command=None, enter_action_map=None, exit_action_map=None,
                  enter_error_map=None, exit_error_map=None, parent_mode=None, enter_actions=None):
         """
             :param prompt: Prompt of this mode

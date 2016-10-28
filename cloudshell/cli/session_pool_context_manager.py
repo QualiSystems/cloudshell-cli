@@ -11,11 +11,10 @@ class SessionPoolContextManager(object):
 
     IGNORE_EXCEPTIONS = [CommandExecutionException]
 
-    def __init__(self, session_pool, session_type, connection_attrs, command_mode, logger):
+    def __init__(self, session_pool, new_sessions, command_mode, logger):
         """
         :param session_pool:
-        :param session_type:
-        :param connection_attrs:
+        :param sessions
         :param command_mode:
         :type command_mode: CommandMode
         :param logger:
@@ -24,20 +23,19 @@ class SessionPoolContextManager(object):
         self._session_pool = session_pool
         self._command_mode = command_mode
         self._logger = logger
-        self._session_type = session_type
-        self._connection_attrs = connection_attrs
+
+        self._new_sessions = new_sessions
 
         self._session = None
 
     def __enter__(self):
         """
         :return:
-        :rtype: CliOperationsImpl
+        :rtype: CliOperations
         """
         prompts_re = r'|'.join(CommandModeHelper.defined_modes_by_prompt(self._command_mode).keys())
-        self._session = self._session_pool.get_session(logger=self._logger, prompt=prompts_re,
-                                                       session_type=self._session_type,
-                                                       connection_attrs=self._connection_attrs)
+        self._session = self._session_pool.get_session(new_sessions=self._new_sessions, prompt=prompts_re,
+                                                       logger=self._logger)
         return CliOperations(self._session, self._command_mode, self._logger)
 
     def __exit__(self, exc_type, exc_val, exc_tb):

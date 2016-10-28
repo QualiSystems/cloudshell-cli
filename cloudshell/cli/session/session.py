@@ -35,7 +35,3 @@ class Session(object):
     @abstractmethod
     def reconnect(self, prompt, logger):
         pass
-
-    @abstractmethod
-    def _default_actions(self, logger):
-        pass

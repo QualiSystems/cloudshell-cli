@@ -25,50 +25,26 @@ class ExpectSession(Session):
     CLEAR_BUFFER_TIMEOUT = 0.1
     LOOP_DETECTOR_MAX_ACTION_LOOPS = 3
     LOOP_DETECTOR_MAX_COMBINATION_LENGTH = 4
-    '''
-    def __init__(self, handler=None, username=None, password=None, host=None, port=None,
-                 timeout=None, new_line='\r', logger=None, config=None, default_actions=None, **kwargs):
-    '''
 
-    def __init__(self, handler=None, host=None, port=None, username=None, password=None, timeout=READ_TIMEOUT,
-                 new_line='\r', default_actions=None, max_loop_retries=MAX_LOOP_RETRIES,
-                 empty_loop_timeout=EMPTY_LOOP_TIMEOUT,
-                 loop_detector_max_action_loops=LOOP_DETECTOR_MAX_ACTION_LOOPS,
+    def __init__(self, timeout=READ_TIMEOUT, new_line='\r', max_loop_retries=MAX_LOOP_RETRIES,
+                 empty_loop_timeout=EMPTY_LOOP_TIMEOUT, loop_detector_max_action_loops=LOOP_DETECTOR_MAX_ACTION_LOOPS,
                  loop_detector_max_combination_length=LOOP_DETECTOR_MAX_COMBINATION_LENGTH,
-                 clear_buffer_timeout=CLEAR_BUFFER_TIMEOUT, logger=None):
+                 clear_buffer_timeout=CLEAR_BUFFER_TIMEOUT):
+
         """
 
-        :param handler:
-        :param username:
-        :param password:
-        :param host:
-        :param port:
         :param timeout:
         :param new_line:
-        :param kwargs:
+        :param max_loop_retries:
+        :param empty_loop_timeout:
+        :param loop_detector_max_action_loops:
+        :param loop_detector_max_combination_length:
+        :param clear_buffer_timeout:
         :return:
         """
 
-        self._handler = handler
-        self._port = None
-        if port and int(port) > 0:
-            self._port = int(port)
-        if host:
-            temp_host = host.split(':')
-            self._host = temp_host[0]
-            if not self._port and len(temp_host) > 1:
-                self._port = int(temp_host[1])
-        else:
-            self._host = host
-
-        self._username = username
-        self._password = password
-
         self._new_line = new_line
         self._timeout = timeout
-
-        self._default_actions_func = default_actions
-
         self._max_loop_retries = max_loop_retries
         self._empty_loop_timeout = empty_loop_timeout
 
@@ -246,15 +222,6 @@ class ExpectSession(Session):
         """
         self.disconnect()
         self.connect(prompt)
-
-    def _default_actions(self, logger):
-        """
-        Call default action
-        :return:
-        """
-        if self._default_actions_func:
-            logger.debug('Calling default actions')
-            self._default_actions_func(session=self, logger=logger)
 
 
 class ActionLoopDetector(object):

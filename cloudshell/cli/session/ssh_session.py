@@ -1,40 +1,53 @@
 import traceback
 
 import paramiko
+from cloudshell.cli.session.connection_params import ConnectionParams
 from cloudshell.cli.session.expect_session import ExpectSession
 
 
-class SSHSession(ExpectSession):
+class SSHSession(ExpectSession, ConnectionParams):
     SESSION_TYPE = 'SSH'
+    BUFFER_SIZE = 512
 
-    def __init__(self, *args, **kwargs):
-        ExpectSession.__init__(self, paramiko.SSHClient(), *args, **kwargs)
+    def __init__(self, host, username, password, port=None, on_session_start=None):
+        ConnectionParams.__init__(self, host, port=port, on_session_start=on_session_start)
 
-        self._handler.load_system_host_keys()
-        self._handler.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        if self.port is None:
+            self.port = 22
 
-        if self._port is None:
-            self._port = 22
+        self.username = username
+        self.password = password
 
+        self._handler = None
         self._current_channel = None
+        self._buffer_size = self.BUFFER_SIZE
 
-        self._buffer_size = 512
-        if 'buffer_size' in kwargs:
-            self._buffer_size = kwargs['buffer_size']
+    def __eq__(self, other):
+        """
+        :param other:
+        :type other: SSHSession
+        :return:
+        """
+        return ConnectionParams.__eq__(self,
+                                       other) and self.username == other.username and self.password == other.password
 
     def __del__(self):
         self.disconnect()
 
     def connect(self, prompt, logger):
         """Connect to device through ssh
-
-        :param re_string: expected string in output
-        :return: output
+        :param prompt: expected string in output
+        :param logger: logger
         """
+
+        ExpectSession.__init__(self)
+
+        self._handler = paramiko.SSHClient()
+        self._handler.load_system_host_keys()
 
         try:
             self._handler.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            self._handler.connect(self._host, self._port, self._username, self._password, timeout=self._timeout,
+            self._handler.connect(self.host, self.port, self.username, self.password, timeout=self._timeout,
                                   banner_timeout=30, allow_agent=False, look_for_keys=False)
         except Exception as e:
             logger.error(traceback.format_exc())
@@ -44,7 +57,8 @@ class SSHSession(ExpectSession):
         self._current_channel.settimeout(self._timeout)
 
         self.hardware_expect(None, expected_string=prompt, timeout=self._timeout, logger=logger)
-        self._default_actions(logger)
+        if self.on_session_start and callable(self.on_session_start):
+            self.on_session_start(self, logger)
 
     def disconnect(self):
         """Disconnect from device
@@ -52,7 +66,8 @@ class SSHSession(ExpectSession):
         """
 
         self._current_channel = None
-        self._handler.close()
+        if self._handler:
+            self._handler.close()
 
     def _send(self, command, logger):
         """Send message to device

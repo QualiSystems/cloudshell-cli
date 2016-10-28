@@ -6,7 +6,7 @@ class SessionPool(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def get_session(self, session_type, connection_attrs, prompt, logger):
+    def get_session(self, new_sessions, prompt, logger):
         """
         Get session from pool
         :rtype Session

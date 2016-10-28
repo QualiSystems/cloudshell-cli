@@ -2,12 +2,12 @@ from unittest import TestCase
 
 # from mock import MagicMock as Mock
 import mock
-from cloudshell.cli.cli import Cli
+from cloudshell.cli.cli import CLI
 
 
 class TestCli(TestCase):
     def setUp(self):
-        self._cli = Cli(mock.MagicMock())
+        self._cli = CLI(mock.MagicMock())
 
     @mock.patch('cloudshell.cli.cli.SessionPoolContextManager')
     def test_create_instance(self, context_manager):
