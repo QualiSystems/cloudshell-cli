@@ -5,11 +5,10 @@ class SessionManager(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def new_session(self, session_type, connection_attrs, prompt, logger):
+    def new_session(self, new_sessions, prompt, logger):
         """
-        Create new session with specific session type
-        :param session_type:
-        :param connection_attrs:
+        Create new session with specific session type defined in sessions_params
+        :param new_sessions
         :param prompt:
         :param logger:
         :return:
@@ -36,12 +35,11 @@ class SessionManager(object):
         pass
 
     @abstractmethod
-    def is_compatible(self, session, session_type, connection_attrs, logger):
+    def is_compatible(self, session, new_sessions, logger):
         """
         Compare session type and connection attributes
         :param session:
-        :param session_type:
-        :param connection_attrs:
+        :param new_sessions
         :param logger:
         :return:
         """

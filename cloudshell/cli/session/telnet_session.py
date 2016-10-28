@@ -1,19 +1,35 @@
 import telnetlib
 from collections import OrderedDict
 
+from cloudshell.cli.session.connection_params import ConnectionParams
+
 from cloudshell.cli.session.expect_session import ExpectSession
 
 
-class TelnetSession(ExpectSession):
+class TelnetSession(ExpectSession, ConnectionParams):
     SESSION_TYPE = 'TELNET'
 
     AUTHENTICATION_ERROR_PATTERN = '%.*($|\n)'
 
-    def __init__(self, *args, **kwargs):
-        ExpectSession.__init__(self, telnetlib.Telnet(), *args, **kwargs)
+    def __init__(self, host, username, password, port=None, on_session_start=None):
+        ConnectionParams.__init__(self, host, port=port, on_session_start=on_session_start)
 
-        if self._port is None:
-            self._port = 23
+        if self.port is None:
+            self.port = 23
+
+        self.username = username
+        self.password = password
+
+        self._handler = None
+
+    def __eq__(self, other):
+        """
+        :param other:
+        :type other: TelnetSession
+        :return:
+        """
+        return ConnectionParams.__eq__(self,
+                                       other) and self.username == other.username and self.password == other.password
 
     def __del__(self):
         self.disconnect()
@@ -24,27 +40,31 @@ class TelnetSession(ExpectSession):
         :param prompt:
         :param logger:
         """
+        ExpectSession.__init__(self)
+        self._handler = telnetlib.Telnet()
 
-        self._handler.open(self._host, int(self._port), self._timeout)
+        self._handler.open(self.host, int(self.port), self._timeout)
         if self._handler.get_socket() is None:
             raise Exception('TelnetSession', "Failed to open telnet connection.")
 
         self._handler.get_socket().send(telnetlib.IAC + telnetlib.WILL + telnetlib.ECHO)
 
         action_map = OrderedDict()
-        action_map['[Ll]ogin:|[Uu]ser:|[Uu]sername:'] = lambda session: session.send_line(session._username, logger)
-        action_map['[Pp]assword:'] = lambda session: session.send_line(session._password, logger)
+        action_map['[Ll]ogin:|[Uu]ser:|[Uu]sername:'] = lambda session, logger: session.send_line(session.username,
+                                                                                                  logger)
+        action_map['[Pp]assword:'] = lambda session, logger: session.send_line(session.password, logger)
         out = self.hardware_expect(None, expected_string=prompt, timeout=self._timeout, logger=logger,
                                    action_map=action_map)
-        self._default_actions(logger)
+        if self.on_session_start and callable(self.on_session_start):
+            self.on_session_start(self, logger)
 
     def disconnect(self):
         """Disconnect / close the session
 
         :return:
         """
-
-        self._handler.close()
+        if self._handler:
+            self._handler.close()
 
     def _send(self, command, logger):
         """send message / command to device

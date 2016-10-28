@@ -1,36 +1,18 @@
 import socket
 
+from cloudshell.cli.session.connection_params import ConnectionParams
 from cloudshell.cli.session.expect_session import ExpectSession
-from cloudshell.cli.cli import BaseCLIConnectionParams
-
-class TCPConnectionParams(BaseCLIConnectionParams):
-
-    def __init__(self, host,port, on_session_start=None):
-        """
-        :param str host: the host ip address
-        :param int port: TCP port to use
-        :param (Session) ->  on_session_start: Callback function to be triggered after the CLI session starts allows
-         running common initialization commands
-        """
-        self.TYPE = TCPSession
-        super(TCPConnectionParams, self).__init__(host,port, on_session_start)
 
 
-    def __eq__(self, other):
-        return (super(TCPConnectionParams, self).__eq__(other))
-
-class TCPSession(ExpectSession):
+class TCPSession(ExpectSession, ConnectionParams):
     SESSION_TYPE = 'TCP'
+    BUFFER_SIZE = 1024
 
-    def __init__(self, *args, **kwargs):
-        ExpectSession.__init__(self, socket.socket(socket.AF_INET, socket.SOCK_STREAM), *args, **kwargs)
+    def __init__(self, host, port, on_session_start=None):
+        ConnectionParams.__init__(self, host=host, port=port, on_session_start=on_session_start)
 
-        self._buffer_size = 1024
-        if 'buffer_size' in kwargs:
-            self._buffer_size = kwargs['buffer_size']
-
-        if self._port is not None:
-            self._port = int(self._port)
+        self._buffer_size = self.BUFFER_SIZE
+        self._handler = None
 
     def connect(self, prompt, logger):
         """
@@ -40,12 +22,15 @@ class TCPSession(ExpectSession):
         :return:
         """
 
-        server_address = (self._host, self._port)
+        self._handler = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        server_address = (self.host, self.port)
         self._handler.connect(server_address)
 
         self._handler.settimeout(self._timeout)
         output = self.hardware_expect(command=None, expected_string=prompt, logger=logger)
-        self._default_actions(logger)
+        if self.on_session_start and callable(self.on_session_start):
+            self.on_session_start(self, logger)
 
     def disconnect(self):
         """Disconnect from device/close the session

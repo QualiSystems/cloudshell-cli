@@ -1,5 +1,3 @@
-from copy import copy
-
 from cloudshell.cli.cli_exception import CliException
 from cloudshell.cli.session_manager import SessionManager
 
@@ -8,44 +6,33 @@ class SessionManagerException(CliException):
     pass
 
 
-
 class SessionManagerImpl(SessionManager):
     def __init__(self):
-        self._existing_sessions_params = {}
+        self._existing_sessions = []
 
-    def new_session(self, connection_attrs, prompt, logger):
+    def new_session(self, new_sessions, prompt, logger):
         """
         Create new session
-        :param session_type:
-        :param connection_attrs:
+        :param new_sessions
+        :type new_sessions: list
         :param prompt:
         :param logger:
         :return:
         """
+        if not isinstance(new_sessions, list):
+            new_sessions = [new_sessions]
 
-
-        return self._suitable_session(connection_attrs, prompt, logger)
-
-    @staticmethod
-    def _create_session(connection_attrs, prompt, logger):
-        try:
-            session = connection_attrs.TYPE(logger=logger, **connection_attrs.__dict__)
-            session.connect(prompt, logger)
-            logger.debug('Created new {} session'.format(session.session_type))
-        except Exception as e:
-            logger.debug(e)
-            session = None
-        return session
-
-    def _suitable_session(self, connection_attrs, prompt, logger):
-
-        session = self._create_session(connection_attrs, prompt, logger)
-        if session:
-            self._existing_sessions_params[session] = SessionParams(connection_attrs.TYPE, connection_attrs.__dict__)
-            return session
-
+        for session in new_sessions:
+            try:
+                session.connect(prompt, logger)
+                logger.debug('Created new {} session'.format(session.session_type))
+                self._existing_sessions.append(session)
+                return session
+            except Exception as e:
+                logger.debug(e)
         raise SessionManagerException(self.__class__.__name__,
-                                      'Failed to create new session for type {}, see logs for details'.format(connection_attrs.TYPE))
+                                      'Failed to create new session for type {}, see logs for details'.format(', '.join(
+                                          [session.session_type for session in new_sessions])))
 
     def existing_sessions_count(self):
         """
@@ -53,7 +40,7 @@ class SessionManagerImpl(SessionManager):
         :return:
         :rtype: int
         """
-        return len(self._existing_sessions_params)
+        return len(self._existing_sessions)
 
     def remove_session(self, session, logger):
         """
@@ -61,26 +48,29 @@ class SessionManagerImpl(SessionManager):
         :param session:
         :param logger:
         """
-        if session in self._existing_sessions_params:
-            del (self._existing_sessions_params[session])
+        if session in self._existing_sessions:
+            self._existing_sessions.remove(session)
             logger.debug('{} session was removed'.format(session.session_type))
 
-    def is_compatible(self, session, connection_attrs, logger):
+    def is_compatible(self, session, new_sessions, logger):
         """
         Compare session with new session parameters
         :param session:
-        :param session_type_list:
-        :param connection_attrs:
+        :type session: Session
+        :param new_sessions
         :param logger:
         :return:
         """
 
-        if session in self._existing_sessions_params:
+        if not isinstance(new_sessions, list):
+            new_sessions = [new_sessions]
+
+        if session in self._existing_sessions:
             compatible = False
-
-            if connection_attrs == self._existing_sessions_params[session]:
-                compatible = True
-
+            for new_session in new_sessions:
+                if new_session == session:
+                    compatible = True
+                    break
             return compatible
         else:
             raise SessionManagerException(self.__class__.__name__, 'Unknown session')

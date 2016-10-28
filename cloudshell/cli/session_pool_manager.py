@@ -41,11 +41,10 @@ class SessionPoolManager(SessionPool):
 
         self._pool = pool or Queue(self._max_pool_size)
 
-    def get_session(self, connection_attrs, prompt, logger):
+    def get_session(self, new_sessions, prompt, logger):
         """
         Return session object, takes it from pool or create new session
-        :param session_type:
-        :param connection_attrs:
+        :param new_sessions
         :param prompt:
         :param logger:
         :return:
@@ -55,18 +54,16 @@ class SessionPoolManager(SessionPool):
         with self._session_condition:
             session_obj = None
             while session_obj is None:
-                for session_param in connection_attrs:
-                    if not self._pool.empty():
-                        session_obj = self._get_from_pool(session_param, prompt, logger)
-                    elif self._session_manager.existing_sessions_count() < self._pool.maxsize:
-                        session_obj = self._new_session(session_param, prompt, logger)
-                    else:
-                        self._session_condition.wait(self._pool_timeout)
-                        if (time.time() - call_time) >= self._pool_timeout:
-                            raise SessionPoolException(self.__class__.__name__,
-                                                       'Cannot get session instance during {} sec.'.format(
-                                                           self._pool_timeout))
-                    if(session_obj):break
+                if not self._pool.empty():
+                    session_obj = self._get_from_pool(new_sessions, prompt, logger)
+                elif self._session_manager.existing_sessions_count() < self._pool.maxsize:
+                    session_obj = self._new_session(new_sessions, prompt, logger)
+                else:
+                    self._session_condition.wait(self._pool_timeout)
+                    if (time.time() - call_time) >= self._pool_timeout:
+                        raise SessionPoolException(self.__class__.__name__,
+                                                   'Cannot get session instance during {} sec.'.format(
+                                                       self._pool_timeout))
             return session_obj
 
     def remove_session(self, session, logger):
@@ -96,25 +93,23 @@ class SessionPoolManager(SessionPool):
             self._pool.put(session)
             self._session_condition.notify()
 
-    def _new_session(self, connection_attrs, prompt, logger):
+    def _new_session(self, new_sessions, prompt, logger):
         """
         Create new session using session manager
-        :param session_type:
-        :param connection_attrs:
+        :param new_sessions
         :param prompt:
         :param logger:
         :return:
         """
         logger.debug('Creating new session')
-        session = self._session_manager.new_session(connection_attrs, prompt, logger)
+        session = self._session_manager.new_session(new_sessions, prompt, logger)
         session.new_session = True
         return session
 
-    def _get_from_pool(self, connection_attrs, prompt, logger):
+    def _get_from_pool(self, new_sessions, prompt, logger):
         """
         Get session from the pool
-        :param session_type:
-        :param connection_attrs:
+        :param new_sessions
         :param prompt:
         :param logger:
         :return:
@@ -122,8 +117,8 @@ class SessionPoolManager(SessionPool):
         logger.debug('getting session from the pool')
         session = self._pool.get(False)
 
-        if not self._session_manager.is_compatible(session, connection_attrs, logger):
+        if not self._session_manager.is_compatible(session, new_sessions, logger):
             logger.debug('Session args was changed, creating session with new args')
             self.remove_session(session, logger)
-            session = self._new_session(connection_attrs, prompt, logger)
+            session = self._new_session(new_sessions, prompt, logger)
         return session

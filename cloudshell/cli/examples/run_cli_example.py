@@ -4,6 +4,7 @@ from cloudshell.cli.cli import CLI
 from cloudshell.cli.command_mode import CommandMode
 from cloudshell.cli.command_mode_helper import CommandModeHelper
 from cloudshell.cli.session.ssh_session import SSHSession
+from cloudshell.cli.session.telnet_session import TelnetSession
 from cloudshell.cli.session_pool_manager import SessionPoolManager
 from cloudshell.core.logger.qs_logger import get_qs_logger
 
@@ -78,20 +79,13 @@ CommandMode.RELATIONS_DICT = {
 LOGGER = get_qs_logger()
 
 
-def do_action(cli, session_type, mode, attrs):
+def do_action(cli, sessions, mode):
     # session_type = SSHSession
 
-    with cli.get_session(session_type, attrs, mode, LOGGER, ) as default_session:
+    with cli.get_session(sessions, mode, LOGGER, ) as default_session:
         # out = default_session.send_command('show version', error_map={'srx220h-poe': 'big error'})
         out = default_session.send_command('show version')
         print(out)
-        # config_command_mode = ConfigCommandMode(context)
-        # config_command_mode.add_parent_mode(mode)
-        # with default_session.enter_mode(config_command_mode) as config_session:
-        #     out = config_session.send_command('show interfaces')
-        #     print(out)
-        #     out = config_session.send_command('show interfaces', logger=cli.logger)
-        #     print(out)
 
 
 class DefaultActions():
@@ -112,63 +106,18 @@ if __name__ == '__main__':
 
     context = type('context', (object,), {'resource': type('resource', (object,), {'name': 'test name'})})
 
+    host = '192.168.28.150'
+    username = 'root'
+    password = 'Juniper'
+    default_actions = DefaultActions(context).actions
 
-    # def default_actions(session, logger):
-    #     out = ''
-    #     cli_prompt = r'%\s*$'
-    #     out = session.hardware_expect('echo ' + context.resource.name, cli_prompt + '|' + DefaultCommandMode.PROMPT,
-    #                                   logger,
-    #                                   action_map={r'%\s*$': lambda session: session.send_line('cli', logger)})
-    #     # session.hardware_expect(DefaultCommandMode.ENTER_COMMAND, DefaultCommandMode.PROMPT, logger)
-    #     # session.hardware_expect(ConfigCommandMode.ENTER_COMMAND, ConfigCommandMode.PROMPT, logger, action_list={})
-    #     return out
+    session_types = [SSHSession(host, username, password)]
 
-
-    connection_attrs = {
-        'host': '192.168.28.150',
-        'username': 'root',
-        'password': 'Juniper',
-        'default_actions': DefaultActions(context).actions
-    }
-
-    connection_attrs1 = {
-        'host': '192.168.28.150',
-        'username': 'root',
-        'password': 'Juniper',
-        'default_actions': DefaultActions(context).actions
-    }
-
-    # session_types = [TelnetSession, SSHSession]
-    session_types = SSHSession
-
-    '''
-    if context.session_type in session_types:
-        session_type = session_types.get(context_session_type)
-    else:
-        session_type = session_types.values()
-    '''
-    # auto_session = [SSHSession, TelnetSession]
-    # do_action(cli, session_types, DEFAULT_MODE, connection_attrs)
-
-    # mode_template = CommandModeTemplate(context)
-
-    # Thread(target=do_action, args=(cli, SSHSession, mode_template.config_mode(), connection_attrs)).start()
-    # CommandModeFactory.connect_command_mode_types()
-    # dd = DefaultActions(context)
-    # connection_attrs['default_actions'] = dd.actions
     mode = CommandModeHelper.create_command_mode(DefaultCommandMode, context)
-    Thread(target=do_action, args=(cli, session_types, mode, connection_attrs)).start()
+    Thread(target=do_action, args=(cli, session_types, mode)).start()
 
-    # del connection_attrs['default_actions']
-    # gg = DefaultActions(context)
-    # connection_attrs['default_actions'] = gg.actions
+    session_types = [TelnetSession(host, username, password),
+                     SSHSession(host, username, password, on_session_start=DefaultActions(context).actions)]
+
     mode = CommandModeHelper.create_command_mode(DefaultCommandMode, context)
-    Thread(target=do_action, args=(cli, session_types, mode, connection_attrs1)).start()
-    # Thread(target=do_action, args=(cli, DEFAULT_MODE)).start()
-
-    # config_vlan_mode = CommandMode(r'vlan#/s*$', 'config vlan', 'exit')
-    #
-    # with config_session.enter_mode(config_vlan_mode) as config_vlan_session:
-    #     config_vlan_session.send_command('command')
-    #
-    # config_session.send_command('do th..')
+    Thread(target=do_action, args=(cli, session_types, mode)).start()
