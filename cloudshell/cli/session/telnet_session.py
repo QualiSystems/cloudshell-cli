@@ -1,7 +1,6 @@
 import telnetlib
 from collections import OrderedDict
 
-import re
 from cloudshell.cli.session.expect_session import ExpectSession
 
 
@@ -19,11 +18,11 @@ class TelnetSession(ExpectSession):
     def __del__(self):
         self.disconnect()
 
-    def connect(self, prompt, logger,re_string=''):
+    def connect(self, prompt, logger):
         """Open connection to device / create session
 
-        :param re_string:
-        :return:
+        :param prompt:
+        :param logger:
         """
 
         self._handler.open(self._host, int(self._port), self._timeout)
@@ -32,24 +31,12 @@ class TelnetSession(ExpectSession):
 
         self._handler.get_socket().send(telnetlib.IAC + telnetlib.WILL + telnetlib.ECHO)
 
-        expect_map = OrderedDict()
-        expect_map['[Ll]ogin:|[Uu]ser:|[Uu]sername:'] = lambda session: session.send_line(session._username,self.logger)
-        expect_map['[Pp]assword:'] = lambda session: session.send_line(session._password,self.logger)
-        re_string += '|' + self.AUTHENTICATION_ERROR_PATTERN
-
-        out = self.hardware_expect(None, expected_string=prompt, timeout=self._timeout, logger=logger,action_map=expect_map)
-
-        match_error = re.search(self.AUTHENTICATION_ERROR_PATTERN, out)
-        if match_error:
-            error_message = re.sub('%', '', match_error.group()).strip(' \r\t\n')
-            self.logger.error('Failed to open telnet connection to the device, {0}'.format(error_message))
-            raise Exception('TelnetSession', 'Failed to open telnet connection to the device, {0}'.format(
-                error_message))
-
-        self._default_actions()
-        self.logger.info(out)
-
-        return out
+        action_map = OrderedDict()
+        action_map['[Ll]ogin:|[Uu]ser:|[Uu]sername:'] = lambda session: session.send_line(session._username, logger)
+        action_map['[Pp]assword:'] = lambda session: session.send_line(session._password, logger)
+        out = self.hardware_expect(None, expected_string=prompt, timeout=self._timeout, logger=logger,
+                                   action_map=action_map)
+        self._default_actions(logger)
 
     def disconnect(self):
         """Disconnect / close the session

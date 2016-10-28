@@ -43,14 +43,8 @@ class SSHSession(ExpectSession):
         self._current_channel = self._handler.invoke_shell()
         self._current_channel.settimeout(self._timeout)
 
-        output = self.hardware_expect(None, expected_string=prompt, timeout=self._timeout, logger=logger)
-        self.logger.info(output)
-
-        default_actions_output = self._default_actions()
-        if default_actions_output:
-            output += default_actions_output
-
-        return output
+        self.hardware_expect(None, expected_string=prompt, timeout=self._timeout, logger=logger)
+        self._default_actions(logger)
 
     def disconnect(self):
         """Disconnect from device

@@ -19,6 +19,10 @@ class Session(object):
         pass
 
     @abstractmethod
+    def send_line(self, command, logger):
+        pass
+
+    @abstractmethod
     def _receive(self, timeout, logger):
         pass
 
@@ -33,5 +37,5 @@ class Session(object):
         pass
 
     @abstractmethod
-    def _default_actions(self):
+    def _default_actions(self, logger):
         pass

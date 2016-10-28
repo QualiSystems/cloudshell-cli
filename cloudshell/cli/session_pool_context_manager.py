@@ -1,5 +1,6 @@
 from cloudshell.cli.command_mode import CommandMode
 from cloudshell.cli.cli_operations_impl import CliOperationsImpl as CliOperations
+from cloudshell.cli.command_mode_helper import CommandModeHelper
 from cloudshell.cli.service.cli_exceptions import CommandExecutionException
 
 
@@ -16,6 +17,7 @@ class SessionPoolContextManager(object):
         :param session_type:
         :param connection_attrs:
         :param command_mode:
+        :type command_mode: CommandMode
         :param logger:
         """
 
@@ -32,7 +34,7 @@ class SessionPoolContextManager(object):
         :return:
         :rtype: CliOperationsImpl
         """
-        prompts_re = CommandMode.modes_pattern()
+        prompts_re = r'|'.join(CommandModeHelper.defined_modes_by_prompt(self._command_mode).keys())
         self._session = self._session_pool.get_session(logger=self._logger, prompt=prompts_re,
                                                        session_type=self._session_type,
                                                        connection_attrs=self._connection_attrs)

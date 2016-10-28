@@ -157,8 +157,6 @@ class ExpectSession(Session):
         :param retries: maximal retries count
         :return:
         """
-        if logger:
-            self.logger = logger
         if not command:
             command = ''
 
@@ -168,7 +166,7 @@ class ExpectSession(Session):
         if command is not None:
             self._clear_buffer(self._clear_buffer_timeout, logger)
 
-            self.logger.debug('Command: {}'.format(command))
+            logger.debug('Command: {}'.format(command))
             self.send_line(command, logger)
 
         if expected_string is None or len(expected_string) == 0:
@@ -209,10 +207,10 @@ class ExpectSession(Session):
 
                     if check_action_loop_detector:
                         if action_loop_detector.loops_detected(expect_string):
-                            self.logger.error('Loops detected, output_list: {}'.format(output_list))
+                            logger.error('Loops detected, output_list: {}'.format(''.join(output_list)))
                             raise SessionLoopDetectorException(self.__class__.__name__,
                                                                'Expected actions loops detected')
-                    action_map[expect_string](self)
+                    action_map[expect_string](self, logger)
                     output_str = ''
                     break
 
@@ -228,15 +226,15 @@ class ExpectSession(Session):
         for error_string in error_map:
             result_match = re.search(error_string, result_output, re.DOTALL)
             if result_match:
-                self.logger.error(result_output)
-                raise CommandExecutionException('ExpectSession',
+                logger.error(result_output)
+                raise CommandExecutionException(self.__class__.__name__,
                                                 'Session returned \'{}\''.format(error_map[error_string]))
 
         # Read buffer to the end. Useful when expected_string isn't last in buffer
         result_output += self._clear_buffer(self._clear_buffer_timeout, logger)
 
         result_output = normalize_buffer(result_output)
-        self.logger.debug(result_output)
+        logger.debug(result_output)
         return result_output
 
     def reconnect(self, prompt, logger):
@@ -249,13 +247,14 @@ class ExpectSession(Session):
         self.disconnect()
         self.connect(prompt)
 
-    def _default_actions(self):
+    def _default_actions(self, logger):
         """
         Call default action
         :return:
         """
         if self._default_actions_func:
-            self._default_actions_func(session=self)
+            logger.debug('Calling default actions')
+            self._default_actions_func(session=self, logger=logger)
 
 
 class ActionLoopDetector(object):

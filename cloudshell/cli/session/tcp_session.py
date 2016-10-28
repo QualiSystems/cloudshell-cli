@@ -29,9 +29,7 @@ class TCPSession(ExpectSession):
 
         self._handler.settimeout(self._timeout)
         output = self.hardware_expect(command=None, expected_string=prompt, logger=logger)
-        self.logger.info(output)
-
-        return output
+        self._default_actions(logger)
 
     def disconnect(self):
         """Disconnect from device/close the session
