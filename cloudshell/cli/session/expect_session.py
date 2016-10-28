@@ -7,7 +7,10 @@ from cloudshell.cli.session.session_exceptions import SessionLoopDetectorExcepti
 import re
 from cloudshell.cli.session.session import Session
 from cloudshell.cli.helper.normalize_buffer import normalize_buffer
-from cloudshell.cli.service.cli_exceptions import CommandExecutionException
+
+
+class CommandExecutionException(Exception):
+    pass
 
 
 class ExpectSession(Session):
@@ -53,9 +56,15 @@ class ExpectSession(Session):
         self._clear_buffer_timeout = clear_buffer_timeout
         self._timeout = timeout
 
+        self._active = False
+
     @property
     def session_type(self):
         return self.SESSION_TYPE
+
+    @property
+    def active(self):
+        return self._active
 
     def _receive_with_retries(self, timeout, retries_count):
         """Read session buffer with several retries

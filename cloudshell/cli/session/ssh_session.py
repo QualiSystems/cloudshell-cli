@@ -21,6 +21,7 @@ class SSHSession(ExpectSession, ConnectionParams):
         self._handler = None
         self._current_channel = None
         self._buffer_size = self.BUFFER_SIZE
+        self._active = False
 
     def __eq__(self, other):
         """
@@ -59,6 +60,7 @@ class SSHSession(ExpectSession, ConnectionParams):
         self.hardware_expect(None, expected_string=prompt, timeout=self._timeout, logger=logger)
         if self.on_session_start and callable(self.on_session_start):
             self.on_session_start(self, logger)
+        self._active = True
 
     def disconnect(self):
         """Disconnect from device

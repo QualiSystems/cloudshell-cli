@@ -13,6 +13,7 @@ class TCPSession(ExpectSession, ConnectionParams):
 
         self._buffer_size = self.BUFFER_SIZE
         self._handler = None
+        self._active = False
 
     def connect(self, prompt, logger):
         """
@@ -31,6 +32,7 @@ class TCPSession(ExpectSession, ConnectionParams):
         output = self.hardware_expect(command=None, expected_string=prompt, logger=logger)
         if self.on_session_start and callable(self.on_session_start):
             self.on_session_start(self, logger)
+        self._active = True
 
     def disconnect(self):
         """Disconnect from device/close the session

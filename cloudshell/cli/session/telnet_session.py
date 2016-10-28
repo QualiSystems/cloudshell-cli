@@ -21,6 +21,7 @@ class TelnetSession(ExpectSession, ConnectionParams):
         self.password = password
 
         self._handler = None
+        self._active = False
 
     def __eq__(self, other):
         """
@@ -57,6 +58,7 @@ class TelnetSession(ExpectSession, ConnectionParams):
                                    action_map=action_map)
         if self.on_session_start and callable(self.on_session_start):
             self.on_session_start(self, logger)
+        self._active = True
 
     def disconnect(self):
         """Disconnect / close the session
