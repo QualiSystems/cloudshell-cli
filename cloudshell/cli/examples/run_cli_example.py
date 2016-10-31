@@ -38,7 +38,8 @@ class CliCommandMode(CommandMode):
 
 
 class DefaultCommandMode(CommandMode):
-    PROMPT = r'%\s*$|>\s*$'
+    # PROMPT = r'%\s*$'
+    PROMPT = r'>\s*$'
     ENTER_COMMAND = 'cli'
     EXIT_COMMAND = 'exit'
 
@@ -71,8 +72,10 @@ class ConfigCommandMode(CommandMode):
 
 
 CommandMode.RELATIONS_DICT = {
-    DefaultCommandMode: {
-        ConfigCommandMode: {}
+    CliCommandMode: {
+        DefaultCommandMode: {
+            ConfigCommandMode: {}
+        }
     }
 }
 

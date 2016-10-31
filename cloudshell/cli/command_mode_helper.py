@@ -50,7 +50,10 @@ class CommandModeHelper(NodeOperations):
 
         node_list = [root_node] + _get_child_nodes(root_node)
 
-        return OrderedDict(map(lambda x: (x.prompt, x), node_list))
+        modes_dict = OrderedDict()
+        for mode in node_list:
+            modes_dict[mode.prompt] = mode
+        return modes_dict
 
     @staticmethod
     def create_command_mode(command_mode_type, *args, **kwargs):

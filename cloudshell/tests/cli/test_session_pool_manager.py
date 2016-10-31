@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from cloudshell.cli.command_mode import CommandMode
-from cloudshell.cli.session.ssh_session import SSHSession, SSHConnectionParams
+from cloudshell.cli.session.ssh_session import SSHSession
 from cloudshell.cli.session_pool_manager import SessionPoolManager
 from cloudshell.cli.cli import CLI
 from mock import Mock
