@@ -3,14 +3,11 @@ import time
 from collections import OrderedDict
 
 from abc import ABCMeta
-from cloudshell.cli.session.session_exceptions import SessionLoopDetectorException, SessionLoopLimitException
+from cloudshell.cli.session.session_exceptions import SessionLoopDetectorException, SessionLoopLimitException, \
+    ExpectedSessionException, CommandExecutionException
 import re
 from cloudshell.cli.session.session import Session
 from cloudshell.cli.helper.normalize_buffer import normalize_buffer
-
-
-class CommandExecutionException(Exception):
-    pass
 
 
 class ExpectSession(Session):
@@ -24,7 +21,7 @@ class ExpectSession(Session):
 
     MAX_LOOP_RETRIES = 20
     READ_TIMEOUT = 30
-    EMPTY_LOOP_TIMEOUT = 0.2
+    EMPTY_LOOP_TIMEOUT = 0.5
     CLEAR_BUFFER_TIMEOUT = 0.1
     LOOP_DETECTOR_MAX_ACTION_LOOPS = 3
     LOOP_DETECTOR_MAX_COMBINATION_LENGTH = 4
@@ -95,7 +92,7 @@ class ExpectSession(Session):
             break
 
         if current_output is None:
-            raise Exception('ExpectSession', 'Failed to get response from device')
+            raise ExpectedSessionException(self.__class__.__name__, 'Failed to get response from device')
         return current_output
 
     def _clear_buffer(self, timeout, logger):
@@ -126,6 +123,20 @@ class ExpectSession(Session):
         """
         self._send(command + self._new_line, logger)
 
+    def _receive_all(self, timeout, logger):
+        if not timeout:
+            timeout = self._timeout
+        start_time = time.time()
+        read_buffer = ''
+        while True:
+            try:
+                read_buffer += self._receive(0.1, logger)
+            except socket.timeout:
+                if read_buffer:
+                    return read_buffer
+                elif time.time() - start_time > timeout:
+                    raise
+
     def hardware_expect(self, command, expected_string, logger, action_map=OrderedDict(), error_map=OrderedDict(),
                         timeout=None, retries=None, check_action_loop_detector=True, empty_loop_timeout=None,
                         **optional_args):
@@ -154,8 +165,8 @@ class ExpectSession(Session):
             logger.debug('Command: {}'.format(command))
             self.send_line(command, logger)
 
-        if expected_string is None or len(expected_string) == 0:
-            raise Exception('ExpectSession', 'List of expected messages can\'t be empty!')
+        if not expected_string:
+            raise ExpectedSessionException(self.__class__.__name__, 'List of expected messages can\'t be empty!')
 
         # Loop until one of the expressions is matched or MAX_RETRIES
         # nothing is expected (usually used for exit)
@@ -163,18 +174,27 @@ class ExpectSession(Session):
         output_str = ''
         retries_count = 0
         is_correct_exit = False
+        command_removed = False
         action_loop_detector = ActionLoopDetector(self._loop_detector_max_action_loops,
                                                   self._loop_detector_max_combination_length)
 
         while retries == 0 or retries_count < retries:
 
             try:
-                read_buffer = self._receive(timeout, logger)
+                # read_buffer = self._receive(timeout, logger)
+                read_buffer = self._receive_all(timeout, logger)
             except socket.timeout:
                 read_buffer = None
 
             if read_buffer:
+                read_buffer = normalize_buffer(read_buffer)
+                logger.info(read_buffer)
                 output_str += read_buffer
+                if command and not command_removed:
+                    command_pattern = '^.*' + command + '.*\\n'
+                    if re.search(command_pattern, output_str):
+                        output_str = re.sub(command_pattern, '', output_str)
+                        command_removed = True
                 retries_count = 0
             else:
                 retries_count += 1
@@ -182,20 +202,22 @@ class ExpectSession(Session):
                 continue
 
             if re.search(expected_string, output_str, re.DOTALL):
+                # logger.debug('Expected str: {}'.format(expected_string))
                 output_list.append(output_str)
                 is_correct_exit = True
 
-            for expect_string in action_map:
-                result_match = re.search(expect_string, output_str, re.DOTALL)
+            for action_key in action_map:
+                result_match = re.search(action_key, output_str, re.DOTALL)
                 if result_match:
                     output_list.append(output_str)
 
                     if check_action_loop_detector:
-                        if action_loop_detector.loops_detected(expect_string):
-                            logger.error('Loops detected, output_list: {}'.format(''.join(output_list)))
+                        if action_loop_detector.loops_detected(action_key):
+                            logger.error('Loops detected')
                             raise SessionLoopDetectorException(self.__class__.__name__,
                                                                'Expected actions loops detected')
-                    action_map[expect_string](self, logger)
+                    logger.debug('Action key: {}'.format(action_key))
+                    action_map[action_key](self, logger)
                     output_str = ''
                     break
 
@@ -211,15 +233,11 @@ class ExpectSession(Session):
         for error_string in error_map:
             result_match = re.search(error_string, result_output, re.DOTALL)
             if result_match:
-                logger.error(result_output)
                 raise CommandExecutionException(self.__class__.__name__,
                                                 'Session returned \'{}\''.format(error_map[error_string]))
 
         # Read buffer to the end. Useful when expected_string isn't last in buffer
         result_output += self._clear_buffer(self._clear_buffer_timeout, logger)
-
-        result_output = normalize_buffer(result_output)
-        logger.debug(result_output)
         return result_output
 
     def reconnect(self, prompt, logger):

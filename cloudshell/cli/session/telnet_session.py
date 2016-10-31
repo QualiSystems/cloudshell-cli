@@ -2,8 +2,12 @@ import telnetlib
 from collections import OrderedDict
 
 from cloudshell.cli.session.connection_params import ConnectionParams
-
 from cloudshell.cli.session.expect_session import ExpectSession
+from cloudshell.cli.session.session_exceptions import SessionException
+
+
+class TelnetSessionException(SessionException):
+    pass
 
 
 class TelnetSession(ExpectSession, ConnectionParams):
@@ -46,7 +50,7 @@ class TelnetSession(ExpectSession, ConnectionParams):
 
         self._handler.open(self.host, int(self.port), self._timeout)
         if self._handler.get_socket() is None:
-            raise Exception('TelnetSession', "Failed to open telnet connection.")
+            raise TelnetSessionException(self.__class__.__name__, "Failed to open telnet connection.")
 
         self._handler.get_socket().send(telnetlib.IAC + telnetlib.WILL + telnetlib.ECHO)
 

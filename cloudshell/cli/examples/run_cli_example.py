@@ -91,7 +91,7 @@ def do_action(cli, sessions, mode):
         print(out)
 
 
-class DefaultActions():
+class DefaultActions(object):
     def __init__(self, context):
         self._context = context
 
@@ -114,7 +114,7 @@ if __name__ == '__main__':
     password = 'Juniper'
     default_actions = DefaultActions(context).actions
 
-    session_types = [SSHSession(host, username, password)]
+    session_types = [SSHSession(host, username, password, on_session_start=DefaultActions(context).actions)]
 
     mode = CommandModeHelper.create_command_mode(DefaultCommandMode, context)
     Thread(target=do_action, args=(cli, session_types, mode)).start()
