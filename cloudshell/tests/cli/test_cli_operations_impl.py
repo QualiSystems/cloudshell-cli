@@ -7,10 +7,10 @@ from cloudshell.cli.cli import CLI
 from cloudshell.cli.cli_operations_impl import CliOperationsImpl as CliOperations
 from cloudshell.cli.session_pool_manager import SessionPoolManager
 
-CLI_MODE = CommandMode(r'%\s*$', '', 'exit', default_actions=lambda s: s.send_command('echo 123'))
-DEFAULT_MODE = CommandMode(r'>\s*$', 'cli', 'exit', parent_mode=CLI_MODE,
-                           default_actions=lambda s: s.send_command('set cli screen-length 0'))
-CONFIG_MODE = CommandMode(r'#\s*$', 'configure', 'exit', parent_mode=DEFAULT_MODE)
+# CLI_MODE = CommandMode(r'%\s*$', '', 'exit', default_actions=lambda s: s.send_command('echo 123'))
+# DEFAULT_MODE = CommandMode(r'>\s*$', 'cli', 'exit', parent_mode=CLI_MODE,
+#                            default_actions=lambda s: s.send_command('set cli screen-length 0'))
+# CONFIG_MODE = CommandMode(r'#\s*$', 'configure', 'exit', parent_mode=DEFAULT_MODE)
 
 
 @unittest.skip

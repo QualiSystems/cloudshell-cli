@@ -11,7 +11,7 @@ class TestCli(TestCase):
 
     @mock.patch('cloudshell.cli.cli.SessionPoolContextManager')
     def test_create_instance(self, context_manager):
-        with self._cli.get_session(mock.Mock(), mock.Mock(), mock.Mock(), mock.Mock()) as session:
+        with self._cli.get_session(mock.Mock(), mock.Mock(), mock.Mock()) as session:
             pass
 
         context_manager.assert_called_once()
