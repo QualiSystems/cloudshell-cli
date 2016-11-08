@@ -80,30 +80,15 @@ from cloudshell.cli.cli import CLI
 from cloudshell.cli.session.ssh_session import SSHSession
 from cloudshell.cli.command_mode import CommandMode
 
-class ConfigCommandMode(CommandMode):
-    PROMPT = r'#\s*$'
-    ENTER_COMMAND = 'configure'
-    EXIT_COMMAND = 'exit'
-
-    def __init__(self):
-        CommandMode.__init__(self, ConfigCommandMode.PROMPT,
-                             ConfigCommandMode.ENTER_COMMAND,
-                             ConfigCommandMode.EXIT_COMMAND)
-    def default_actions(self, cli_operations):
-        pass
-    def enter_actions(self, cli_operations):
-        pass
-
 class CreateSessionAdvancedCase():
     def create_my_session(self):
         cli = CLI()
-        mode = CommandMode(r'%\s*$')
+        mode = CommandMode(r'my_prompt_regex')
         session_types = [SSHSession(host='ip_address',username='user_name',password='password')]
         with cli.get_session(session_types, mode) as default_session:
             out = default_session.send_command('my command')
             print(out)
-            config_command_mode = ConfigCommandMode()
-            config_command_mode.add_parent_mode(mode)
+            config_command_mode = CommandMode(r'my_config_prompt_regex')
             with default_session.enter_mode(config_command_mode) as config_session:
                 out = config_session.send_command('my config mode command')
                 print(out)
