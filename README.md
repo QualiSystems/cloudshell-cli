@@ -52,7 +52,7 @@ from cloudshell.cli.cli import CLI
 from cloudshell.cli.session.ssh_session import SSHSession
 from cloudshell.cli.command_mode import CommandMode
 
-class CreateSessionTestCases(unittest.TestCase):
+class CreateSessionSimpleCase(unittest.TestCase):
 
     def create_my_session(self):
 
@@ -67,3 +67,6 @@ class CreateSessionTestCases(unittest.TestCase):
             print(out)
 
 ```
+###Description:
+
+The above code
