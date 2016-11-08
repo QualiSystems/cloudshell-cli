@@ -69,4 +69,6 @@ class CreateSessionSimpleCase():
 ```
 ###Description:
 
-The above code
+In the above code we create a simple SSH connection to our device. We first import the required packages (lines 51-53), where:
+- CLI is an API providing access for creating the new session into the device. 
+- SSHSession is the class  
