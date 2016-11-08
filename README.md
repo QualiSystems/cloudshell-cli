@@ -89,24 +89,16 @@ class ConfigCommandMode(CommandMode):
         CommandMode.__init__(self, ConfigCommandMode.PROMPT,
                              ConfigCommandMode.ENTER_COMMAND,
                              ConfigCommandMode.EXIT_COMMAND)
-
     def default_actions(self, cli_operations):
         pass
-
     def enter_actions(self, cli_operations):
         pass
 
-class CreateSessionTestCases():
-
-    def test_create_session(self):
-
-
+class CreateSessionAdvancedCase():
+    def create_my_session(self):
         cli = CLI()
         mode = CommandMode(r'%\s*$')
-
         session_types = [SSHSession(host='ip_address',username='user_name',password='password')]
-
-
         with cli.get_session(session_types, mode) as default_session:
             out = default_session.send_command('my command')
             print(out)
