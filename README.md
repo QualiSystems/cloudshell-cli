@@ -52,7 +52,7 @@ from cloudshell.cli.cli import CLI
 from cloudshell.cli.session.ssh_session import SSHSession
 from cloudshell.cli.command_mode import CommandMode
 
-class CreateSessionSimpleCase(unittest.TestCase):
+class CreateSessionSimpleCase():
 
     def create_my_session(self):
 
