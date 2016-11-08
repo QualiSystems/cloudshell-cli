@@ -40,3 +40,10 @@ This repository uses nose to run tests. To run all tests run the following from 
 ```Bash
 nosetests
 ```
+
+# Examples
+-------------------------------------------------------------------------------------------------------------------
+
+Cloudshell CLI is highly modular and implements many programming interfaces. There is an usage of simple CLI commnads as well as an advanced usage for more complicated behaviours. 
+
+## Simple CLI usage:
