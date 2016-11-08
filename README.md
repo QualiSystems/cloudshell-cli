@@ -57,7 +57,7 @@ class CreateSessionSimpleCase():
     def create_my_session(self):
 
         cli = CLI()
-        mode = CommandMode(r'%\s*$')
+        mode = CommandMode(r'my_prompt_regex') # for example r'%\s*$'
 
         session_types = [SSHSession(host='ip_address',username='user_name',password='password')]
 
@@ -71,4 +71,5 @@ class CreateSessionSimpleCase():
 
 In the above code we create a simple SSH connection to our device. We first import the required packages (lines 51-53), where:
 - CLI is an API providing access for creating the new session into the device. 
-- SSHSession is the class  
+- SSHSession is an API providing functions to declare the session parametrs, as well as functions to connect and dis-connect from the session. Note that you can create you're own session class similar to SSHSession structure.
+- CommandMode is an API providing you the ability to define each mode on your device. For example on switches there may be several modes as configuration mode, admin mode. So using the CommandMode interface you able to define how to enter each mode, how to leave mode, what is the expected prompt.
