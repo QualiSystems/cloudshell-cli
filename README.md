@@ -73,3 +73,46 @@ In the above code we create a simple SSH connection to our device. We first impo
 - CLI is an API providing access for creating the new session into the device. 
 - SSHSession is an API providing functions to declare the session parametrs, as well as functions to connect and dis-connect from the session. Note that you can create you're own session class similar to SSHSession structure.
 - CommandMode is an API providing you the ability to define each mode on your device. For example on switches there may be several modes as configuration mode, admin mode. So using the CommandMode interface you able to define how to enter each mode, how to leave mode, what is the expected prompt.
+
+## Advanced CLI usage (level I):
+```python
+from cloudshell.cli.cli import CLI
+from cloudshell.cli.session.ssh_session import SSHSession
+from cloudshell.cli.command_mode import CommandMode
+
+class ConfigCommandMode(CommandMode):
+    PROMPT = r'#\s*$'
+    ENTER_COMMAND = 'configure'
+    EXIT_COMMAND = 'exit'
+
+    def __init__(self):
+        CommandMode.__init__(self, ConfigCommandMode.PROMPT,
+                             ConfigCommandMode.ENTER_COMMAND,
+                             ConfigCommandMode.EXIT_COMMAND)
+
+    def default_actions(self, cli_operations):
+        pass
+
+    def enter_actions(self, cli_operations):
+        pass
+
+class CreateSessionTestCases():
+
+    def test_create_session(self):
+
+
+        cli = CLI()
+        mode = CommandMode(r'%\s*$')
+
+        session_types = [SSHSession(host='ip_address',username='user_name',password='password')]
+
+
+        with cli.get_session(session_types, mode) as default_session:
+            out = default_session.send_command('my command')
+            print(out)
+            config_command_mode = ConfigCommandMode()
+            config_command_mode.add_parent_mode(mode)
+            with default_session.enter_mode(config_command_mode) as config_session:
+                out = config_session.send_command('my config mode command')
+                print(out)
+```
