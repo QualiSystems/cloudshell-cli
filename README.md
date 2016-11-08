@@ -11,8 +11,13 @@
 
 # CloudShell CLI
 
-A Python package providing an easy abstraction interface for CLI access and communication (Telnet, TCP, SSH etc.)
+A Python package providing an easy abstraction interface for CLI access and communication (Telnet, TCP, SSH etc.) for network devices.
 
+# Download and Install Cloudshell CLI?
+
+You can download a free version of CLI here. 
+In addition,CLI is available on PyPy, so you can install it by invoking pip
+_pip install cloudshell-cli
 
 ## Contributing 
 
