@@ -47,3 +47,7 @@ nosetests
 Cloudshell CLI is highly modular and implements many programming interfaces. There is an usage of simple CLI commnads as well as an advanced usage for more complicated behaviours. 
 
 ## Simple CLI usage:
+```python
+from cloudshell.cli.cli import CLI
+from cloudshell.cli.session.ssh_session import SSHSession
+```
