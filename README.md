@@ -15,9 +15,9 @@ A Python package providing an easy abstraction interface for CLI access and comm
 
 # Download and Install Cloudshell CLI?
 
-You can download a free version of CLI here. 
+You can download a free version of CLI here. \n
 In addition,CLI is available on PyPy, so you can install it by invoking pip
-_pip install cloudshell-cli
+**pip install cloudshell-cli
 
 ## Contributing 
 
