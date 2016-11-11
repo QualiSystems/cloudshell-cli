@@ -36,8 +36,8 @@ class ConsoleSession(ExpectSession):
         """
 
         expect_map = OrderedDict()
-        expect_map['[Pp]assword:'] = lambda: self.send_line(self._password)
-        expect_map['\[confirm\]'] = lambda: self.send_line('')
+        expect_map['[Pp]assword:'] = lambda: self.send_line(self._password,self.logger)
+        expect_map['\[confirm\]'] = lambda: self.send_line('',self.logger)
 
         self.hardware_expect('enable', re_string=re_string, expect_map=expect_map)
 
@@ -63,10 +63,10 @@ class ConsoleSession(ExpectSession):
         """
 
         expect_map = OrderedDict()
-        expect_map['[Ll]ogin:|[Uu]sername:'] = lambda: self.send_line(self._username)
-        expect_map['[Pp]assword:'] = lambda: self.send_line(self._password)
+        expect_map['[Ll]ogin:|[Uu]sername:'] = lambda: self.send_line(self._username,self.logger)
+        expect_map['[Pp]assword:'] = lambda: self.send_line(self._password,self.logger)
         expect_map['[Cc]onnection refused'] = lambda: (self._clear_console(re_string),
-                                                       self.send_line(self.console_port))
+                                                       self.send_line(self.console_port,self.logger))
 
         self.hardware_expect(self._console_port, re_string=re_string)
 
@@ -109,7 +109,7 @@ class ConsoleSession(ExpectSession):
 
         self._session_handler._send(command_string)
 
-    def _receive(self, timeout=None):
+    def _receive(self, timeout, logger):
         """Read data from device
 
         :param timeout: time for waiting buffer

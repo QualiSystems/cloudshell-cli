@@ -1,35 +1,39 @@
 import socket
 
+from cloudshell.cli.session.connection_params import ConnectionParams
 from cloudshell.cli.session.expect_session import ExpectSession
+from cloudshell.cli.session.session_exceptions import SessionReadTimeout, SessionReadEmptyData
 
 
-class TCPSession(ExpectSession):
-    def __init__(self, *args, **kwargs):
-        ExpectSession.__init__(self, socket.socket(socket.AF_INET, socket.SOCK_STREAM), *args, **kwargs)
+class TCPSession(ExpectSession, ConnectionParams):
+    SESSION_TYPE = 'TCP'
+    BUFFER_SIZE = 1024
 
-        self.session_type = 'TCP'
-        self._buffer_size = 1024
-        if 'buffer_size' in kwargs:
-            self._buffer_size = kwargs['buffer_size']
+    def __init__(self, host, port, on_session_start=None):
+        ConnectionParams.__init__(self, host=host, port=port, on_session_start=on_session_start)
 
-        if self._port is not None:
-            self._port = int(self._port)
+        self._buffer_size = self.BUFFER_SIZE
+        self._handler = None
+        self._active = False
 
-    def connect(self, re_string=''):
-        """Open connection to device / create session
-
-        :param re_string: expected message from device
+    def connect(self, prompt, logger):
+        """
+        Open connection to device / create session
+        :param prompt:
+        :param logger:
         :return:
         """
 
-        server_address = (self._host, self._port)
+        self._handler = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        server_address = (self.host, self.port)
         self._handler.connect(server_address)
 
         self._handler.settimeout(self._timeout)
-        output = self.hardware_expect(re_string=re_string)
-        self.logger.info(output)
-
-        return output
+        output = self.hardware_expect(command=None, expected_string=prompt, logger=logger)
+        if self.on_session_start and callable(self.on_session_start):
+            self.on_session_start(self, logger)
+        self._active = True
 
     def disconnect(self):
         """Disconnect from device/close the session
@@ -39,16 +43,16 @@ class TCPSession(ExpectSession):
 
         self._handler.close()
 
-    def _send(self, data_str):
+    def _send(self, command, logger):
         """Send message to the session
 
-        :param data_str: message/command to send
+        :param command: message/command to send
         :return:
         """
 
-        self._handler.sendall(data_str)
+        self._handler.sendall(command)
 
-    def _receive(self, timeout=None):
+    def _receive(self, timeout, logger):
         """Read session buffer
 
         :param timeout:
@@ -58,5 +62,12 @@ class TCPSession(ExpectSession):
         timeout = timeout if timeout else self._timeout
         self._handler.settimeout(timeout)
 
-        data = self._handler.recv(self._buffer_size)
+        try:
+            data = self._handler.recv(self._buffer_size)
+        except socket.timeout:
+            raise SessionReadTimeout()
+
+        if not data:
+            raise SessionReadEmptyData()
+
         return data

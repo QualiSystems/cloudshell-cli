@@ -1,73 +1,88 @@
+import socket
 import telnetlib
 from collections import OrderedDict
 
-import re
+from cloudshell.cli.session.connection_params import ConnectionParams
 from cloudshell.cli.session.expect_session import ExpectSession
+from cloudshell.cli.session.session_exceptions import SessionException, SessionReadTimeout, SessionReadEmptyData
 
 
-class TelnetSession(ExpectSession):
+class TelnetSessionException(SessionException):
+    pass
+
+
+class TelnetSession(ExpectSession, ConnectionParams):
+    SESSION_TYPE = 'TELNET'
+
     AUTHENTICATION_ERROR_PATTERN = '%.*($|\n)'
 
-    def __init__(self, *args, **kwargs):
-        ExpectSession.__init__(self, telnetlib.Telnet(), *args, **kwargs)
+    def __init__(self, host, username, password, port=None, on_session_start=None):
+        ConnectionParams.__init__(self, host, port=port, on_session_start=on_session_start)
 
-        self.session_type = 'TELNET'
-        if self._port is None:
-            self._port = 23
+        if self.port is None:
+            self.port = 23
+
+        self.username = username
+        self.password = password
+
+        self._handler = None
+        self._active = False
+
+    def __eq__(self, other):
+        """
+        :param other:
+        :type other: TelnetSession
+        :return:
+        """
+        return ConnectionParams.__eq__(self,
+                                       other) and self.username == other.username and self.password == other.password
 
     def __del__(self):
         self.disconnect()
 
-    def connect(self, re_string=''):
+    def connect(self, prompt, logger):
         """Open connection to device / create session
 
-        :param re_string:
-        :return:
+        :param prompt:
+        :param logger:
         """
+        ExpectSession.__init__(self)
+        self._handler = telnetlib.Telnet()
 
-        self._handler.open(self._host, int(self._port), self._timeout)
+        self._handler.open(self.host, int(self.port), self._timeout)
         if self._handler.get_socket() is None:
-            raise Exception('TelnetSession', "Failed to open telnet connection.")
+            raise TelnetSessionException(self.__class__.__name__, "Failed to open telnet connection.")
 
         self._handler.get_socket().send(telnetlib.IAC + telnetlib.WILL + telnetlib.ECHO)
 
-        expect_map = OrderedDict()
-        expect_map['[Ll]ogin:|[Uu]ser:|[Uu]sername:'] = lambda session: session.send_line(session._username)
-        expect_map['[Pp]assword:'] = lambda session: session.send_line(session._password)
-        re_string += '|' + self.AUTHENTICATION_ERROR_PATTERN
-
-        out = self.hardware_expect(re_string=re_string, expect_map=expect_map)
-
-        match_error = re.search(self.AUTHENTICATION_ERROR_PATTERN, out)
-        if match_error:
-            error_message = re.sub('%', '', match_error.group()).strip(' \r\t\n')
-            self.logger.error('Failed to open telnet connection to the device, {0}'.format(error_message))
-            raise Exception('TelnetSession', 'Failed to open telnet connection to the device, {0}'.format(
-                error_message))
-
-        self._default_actions()
-        self.logger.info(out)
-
-        return out
+        action_map = OrderedDict()
+        action_map['[Ll]ogin:|[Uu]ser:|[Uu]sername:'] = lambda session, logger: session.send_line(session.username,
+                                                                                                  logger)
+        action_map['[Pp]assword:'] = lambda session, logger: session.send_line(session.password, logger)
+        out = self.hardware_expect(None, expected_string=prompt, timeout=self._timeout, logger=logger,
+                                   action_map=action_map)
+        if self.on_session_start and callable(self.on_session_start):
+            self.on_session_start(self, logger)
+        self._active = True
 
     def disconnect(self):
         """Disconnect / close the session
 
         :return:
         """
+        if self._handler:
+            self._handler.close()
 
-        self._handler.close()
-
-    def _send(self, data_str):
+    def _send(self, command, logger):
         """send message / command to device
 
         :param data_str: message / command to send
         :return:
         """
 
-        self._handler.write(data_str)
+        self._handler.write(command)
 
-    def _receive(self, timeout=None):
+    def _receive(self, timeout, logger):
         """read session buffer
 
         :param timeout:
@@ -77,5 +92,12 @@ class TelnetSession(ExpectSession):
         timeout = timeout if timeout else self._timeout
         self._handler.get_socket().settimeout(timeout)
 
-        data = self._handler.read_some()
+        try:
+            data = self._handler.read_some()
+        except socket.timeout:
+            raise SessionReadTimeout()
+
+        if not data:
+            raise SessionReadEmptyData()
+
         return data

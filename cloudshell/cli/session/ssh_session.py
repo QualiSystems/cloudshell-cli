@@ -1,54 +1,73 @@
+import socket
 import traceback
 
+from cloudshell.cli.session.session_exceptions import SessionException, SessionReadTimeout, SessionReadEmptyData
 import paramiko
+from cloudshell.cli.session.connection_params import ConnectionParams
 from cloudshell.cli.session.expect_session import ExpectSession
 
 
-class SSHSession(ExpectSession):
-    def __init__(self, *args, **kwargs):
-        ExpectSession.__init__(self, paramiko.SSHClient(), *args, **kwargs)
-        self.session_type = 'SSH'
+class SSHSessionException(SessionException):
+    pass
 
-        self._handler.load_system_host_keys()
-        self._handler.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        if self._port is None:
-            self._port = 22
+class SSHSession(ExpectSession, ConnectionParams):
+    SESSION_TYPE = 'SSH'
+    BUFFER_SIZE = 512
 
+    def __init__(self, host, username, password, port=None, on_session_start=None):
+        ConnectionParams.__init__(self, host, port=port, on_session_start=on_session_start)
+
+        if self.port is None:
+            self.port = 22
+
+        self.username = username
+        self.password = password
+
+        self._handler = None
         self._current_channel = None
+        self._buffer_size = self.BUFFER_SIZE
+        self._active = False
 
-        self._buffer_size = 512
-        if 'buffer_size' in kwargs:
-            self._buffer_size = kwargs['buffer_size']
+    def __eq__(self, other):
+        """
+        :param other:
+        :type other: SSHSession
+        :return:
+        """
+        return ConnectionParams.__eq__(self,
+                                       other) and self.username == other.username and self.password == other.password
 
     def __del__(self):
         self.disconnect()
 
-    def connect(self, re_string=''):
+    def connect(self, prompt, logger):
         """Connect to device through ssh
-
-        :param re_string: expected string in output
-        :return: output
+        :param prompt: expected string in output
+        :param logger: logger
         """
 
+        ExpectSession.__init__(self)
+
+        self._handler = paramiko.SSHClient()
+        self._handler.load_system_host_keys()
+
         try:
-            self._handler.connect(self._host, self._port, self._username, self._password, timeout=self._timeout,
+            self._handler.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            self._handler.connect(self.host, self.port, self.username, self.password, timeout=self._timeout,
                                   banner_timeout=30, allow_agent=False, look_for_keys=False)
         except Exception as e:
-            self.logger.error(traceback.format_exc())
-            raise Exception('SSHSession', 'Failed to open connection to device: {0}'.format(e.message))
+            logger.error(traceback.format_exc())
+            raise SSHSessionException(self.__class__.__name__,
+                                      'Failed to open connection to device: {0}'.format(e.message))
 
         self._current_channel = self._handler.invoke_shell()
         self._current_channel.settimeout(self._timeout)
 
-        output = self.hardware_expect(re_string=re_string, timeout=self._timeout)
-        self.logger.info(output)
-
-        default_actions_output = self._default_actions()
-        if default_actions_output:
-            output += default_actions_output
-
-        return output
+        self.hardware_expect(None, expected_string=prompt, timeout=self._timeout, logger=logger)
+        if self.on_session_start and callable(self.on_session_start):
+            self.on_session_start(self, logger)
+        self._active = True
 
     def disconnect(self):
         """Disconnect from device
@@ -56,18 +75,19 @@ class SSHSession(ExpectSession):
         """
 
         self._current_channel = None
-        self._handler.close()
+        if self._handler:
+            self._handler.close()
 
-    def _send(self, data_str):
+    def _send(self, command, logger):
         """Send message to device
 
         :param data_str:  message/command
         :return:
         """
 
-        self._current_channel.send(data_str)
+        self._current_channel.send(command)
 
-    def _receive(self, timeout=None):
+    def _receive(self, timeout, logger):
         """Read session buffer
 
         :param timeout: time between retries
@@ -76,6 +96,14 @@ class SSHSession(ExpectSession):
 
         # Set the channel timeout
         timeout = timeout if timeout else self._timeout
-
         self._current_channel.settimeout(timeout)
-        return self._current_channel.recv(self._buffer_size)
+
+        try:
+            data = self._current_channel.recv(self._buffer_size)
+        except socket.timeout:
+            raise SessionReadTimeout()
+
+        if not data:
+            raise SessionReadEmptyData()
+
+        return data
