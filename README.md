@@ -93,3 +93,47 @@ class CreateSessionAdvancedCase():
                 out = config_session.send_command('my config mode command')
                 print(out)
 ```
+## CLI Usage for Cloudshell users
+In this case we must to get all the data about our device and session from the resource configured on cloudshell. For this porpuse we will use the context object receiving from cloudshell. 
+For the sake of our example, we will define the context object here and just use it with our example.
+```python
+def create_context():
+    from cloudshell.shell.core.context import ResourceCommandContext, ResourceContextDetails, ReservationContextDetails
+    context = ResourceCommandContext()
+    context.resource = ResourceContextDetails()
+    context.resource.name = 'CiscoIOS'
+    context.reservation = ReservationContextDetails()
+    context.reservation.reservation_id = '5695cf87-a4f3-4447-a08a-1a99a936010e'
+    context.reservation.owner_user = 'admin'
+    context.reservation.owner_email = 'fake@qualisystems.com'
+    context.reservation.environment_path ='Environment-Exmaple'
+    context.reservation.environment_name = 'Environment-Exmaple'
+    context.reservation.domain = 'Global'
+    context.resource.attributes = {}
+    context.resource.attributes['CLI Connection Type'] = 'SSH'
+    context.resource.attributes['User'] = 'cisco_user'
+    context.resource.attributes['AdminUser'] = 'cisco_admin_user'
+    context.resource.attributes['Console Password'] = '3M3u7nkDzxWb0aJ/IZYeWw=='
+    context.resource.attributes['Password'] = 'PgkOScppedeEbHGHdzpnrw=='
+    context.resource.attributes['Enable Password'] = 'PgkOScppedeEbHGHdzpnrw=='
+    context.resource.address = '192.168.1.2'
+    context.resource.attributes['SNMP Version'] = '2'
+    context.resource.attributes['SNMP Read Community'] = 'Test1234'
+    context.resource.attributes['Model'] = 'Enterprises.2011.2.23.339'
+    context.resource.attributes['AdminPassword'] ='DxTbqlSgAVPmrDLlHvJrsA=='
+    context.resource.attributes['Vendor'] = 'Cisco'
+    return context
+```
+
+Next we will explain how to define modes for the session. For example in routers there may be a default mode, a configuration mode an admin mode etc.
+In the mode object we can define expected_map, which is used in cases when we expect to questions from the cli we specify the required response. We can also define error_map to catch run time errors in the switch.
+
+First we wiil define a default actions class 
+```python
+class DefaultActions(object):
+    def __init__(self):
+        pass
+    def actions(self, session, logger):
+        out = session.hardware_expect('echo default' , DefaultCommandMode.PROMPT,
+                                      logger,action_map={r'%\s*$': lambda session, logger: session.send_line('cli', logger)})
+```
