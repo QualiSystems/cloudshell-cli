@@ -92,6 +92,13 @@ class ExpectSession(Session):
         self._send(command + self._new_line, logger)
 
     def _receive_all(self, timeout, logger):
+        """
+        Read as much as possible before catch SessionTimeoutException
+        :param timeout:
+        :param logger:
+        :return:
+        :rtype: str
+        """
         if not timeout:
             timeout = self._timeout
         start_time = time.time()
