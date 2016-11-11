@@ -9,8 +9,10 @@ class ConnectionParams(object):
 
     def __init__(self, host, port=None, on_session_start=None):
         self.host = host
+        self.port = None
 
-        self.port = int(port) if port else port
+        if port and int(port) != 0:
+            self.port = int(port)
 
         if host:
             temp_host = host.split(':')
