@@ -114,10 +114,10 @@ if __name__ == '__main__':
     password = 'Juniper'
     default_actions = DefaultActions(context).actions
 
-    session_types = [SSHSession(host, username, password, on_session_start=DefaultActions(context).actions)]
-
-    mode = CommandModeHelper.create_command_mode(DefaultCommandMode, context)
-    Thread(target=do_action, args=(cli, session_types, mode)).start()
+    # session_types = [SSHSession(host, username, password, on_session_start=DefaultActions(context).actions)]
+    #
+    # mode = CommandModeHelper.create_command_mode(DefaultCommandMode, context)
+    # Thread(target=do_action, args=(cli, session_types, mode)).start()
 
     session_types = [TelnetSession(host, username, password),
                      SSHSession(host, username, password, on_session_start=DefaultActions(context).actions)]

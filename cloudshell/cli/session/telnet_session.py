@@ -1,9 +1,10 @@
+import socket
 import telnetlib
 from collections import OrderedDict
 
 from cloudshell.cli.session.connection_params import ConnectionParams
 from cloudshell.cli.session.expect_session import ExpectSession
-from cloudshell.cli.session.session_exceptions import SessionException
+from cloudshell.cli.session.session_exceptions import SessionException, SessionReadTimeout, SessionReadEmptyData
 
 
 class TelnetSessionException(SessionException):
@@ -91,5 +92,12 @@ class TelnetSession(ExpectSession, ConnectionParams):
         timeout = timeout if timeout else self._timeout
         self._handler.get_socket().settimeout(timeout)
 
-        data = self._handler.read_some()
+        try:
+            data = self._handler.read_some()
+        except socket.timeout:
+            raise SessionReadTimeout()
+
+        if not data:
+            raise SessionReadEmptyData()
+
         return data

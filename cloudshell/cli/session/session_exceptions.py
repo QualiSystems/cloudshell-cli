@@ -16,3 +16,11 @@ class SessionLoopDetectorException(ExpectedSessionException):
 
 class CommandExecutionException(ExpectedSessionException):
     pass
+
+
+class SessionReadTimeout(SessionException):
+    pass
+
+
+class SessionReadEmptyData(SessionException):
+    pass

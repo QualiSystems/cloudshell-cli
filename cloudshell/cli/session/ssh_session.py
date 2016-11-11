@@ -1,6 +1,7 @@
+import socket
 import traceback
 
-from cloudshell.cli.session.session_exceptions import SessionException
+from cloudshell.cli.session.session_exceptions import SessionException, SessionReadTimeout, SessionReadEmptyData
 import paramiko
 from cloudshell.cli.session.connection_params import ConnectionParams
 from cloudshell.cli.session.expect_session import ExpectSession
@@ -95,6 +96,14 @@ class SSHSession(ExpectSession, ConnectionParams):
 
         # Set the channel timeout
         timeout = timeout if timeout else self._timeout
-
         self._current_channel.settimeout(timeout)
-        return self._current_channel.recv(self._buffer_size)
+
+        try:
+            data = self._current_channel.recv(self._buffer_size)
+        except socket.timeout:
+            raise SessionReadTimeout()
+
+        if not data:
+            raise SessionReadEmptyData()
+
+        return data

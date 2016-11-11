@@ -4,7 +4,7 @@ from collections import OrderedDict
 
 from abc import ABCMeta
 from cloudshell.cli.session.session_exceptions import SessionLoopDetectorException, SessionLoopLimitException, \
-    ExpectedSessionException, CommandExecutionException
+    ExpectedSessionException, CommandExecutionException, SessionReadTimeout, SessionReadEmptyData
 import re
 from cloudshell.cli.session.session import Session
 from cloudshell.cli.helper.normalize_buffer import normalize_buffer
@@ -63,38 +63,6 @@ class ExpectSession(Session):
     def active(self):
         return self._active
 
-    def _receive_with_retries(self, timeout, retries_count):
-        """Read session buffer with several retries
-
-        :param timeout:
-        :param retries_count:
-        :return:
-        """
-
-        current_retries = 0
-        current_output = None
-
-        while current_retries < retries_count:
-            current_retries += 1
-
-            try:
-                current_output = self._receive(timeout)
-                if current_output == '':
-                    time.sleep(0.5)
-                    continue
-            except socket.timeout:
-                time.sleep(0.5)
-                continue
-            except timeout:
-                break
-            except Exception as err:
-                raise err
-            break
-
-        if current_output is None:
-            raise ExpectedSessionException(self.__class__.__name__, 'Failed to get response from device')
-        return current_output
-
     def _clear_buffer(self, timeout, logger):
         """
         Clear buffer
@@ -106,7 +74,7 @@ class ExpectSession(Session):
         while True:
             try:
                 read_buffer = self._receive(timeout, logger)
-            except socket.timeout:
+            except (SessionReadTimeout, SessionReadEmptyData):
                 read_buffer = None
             if read_buffer:
                 out += read_buffer
@@ -131,19 +99,19 @@ class ExpectSession(Session):
         while True:
             try:
                 read_buffer += self._receive(0.1, logger)
-            except socket.timeout:
+            except (SessionReadTimeout, SessionReadEmptyData):
                 if read_buffer:
                     return read_buffer
                 elif time.time() - start_time > timeout:
-                    raise
+                    raise ExpectedSessionException(self.__class__.__name__, 'Socket closed by timeout')
 
     def hardware_expect(self, command, expected_string, logger, action_map=OrderedDict(), error_map=OrderedDict(),
                         timeout=None, retries=None, check_action_loop_detector=True, empty_loop_timeout=None,
-                        **optional_args):
+                        remove_command_from_output=True, **optional_args):
 
         """Get response form the device and compare it to action_map, error_map and expected_string patterns,
         perform actions specified in action_map if any, and return output.
-        Raise Exception if receive empty responce from device within a minute
+        Raise Exception if receive empty response from device within a minute
 
         :param command: command to send
         :param expected_string: expected string
@@ -151,10 +119,10 @@ class ExpectSession(Session):
         :param error_map: expected error list
         :param timeout: session timeout
         :param retries: maximal retries count
+        :param remove_command_from_output: In some switches the output string includes the command which was called.
+            The flag used to verify whether the the command string removed from the output string.
         :return:
         """
-        if not command:
-            command = ''
 
         retries = retries or self._max_loop_retries
         empty_loop_timeout = empty_loop_timeout or self._empty_loop_timeout
@@ -174,27 +142,30 @@ class ExpectSession(Session):
         output_str = ''
         retries_count = 0
         is_correct_exit = False
-        command_removed = False
+
         action_loop_detector = ActionLoopDetector(self._loop_detector_max_action_loops,
                                                   self._loop_detector_max_combination_length)
 
         while retries == 0 or retries_count < retries:
 
-            try:
-                # read_buffer = self._receive(timeout, logger)
-                read_buffer = self._receive_all(timeout, logger)
-            except socket.timeout:
-                read_buffer = None
+            # try:
+            # read_buffer = self._receive(timeout, logger)
+            # read all data from buffer
+            read_buffer = self._receive_all(timeout, logger)
+            # except socket.timeout:
+            #     read_buffer = None
 
             if read_buffer:
                 read_buffer = normalize_buffer(read_buffer)
                 logger.info(read_buffer)
                 output_str += read_buffer
-                if command and not command_removed:
+                # if option remove_command_from_output is set to True, look for command in output buffer,
+                #  remove it in case of found
+                if command and remove_command_from_output:
                     command_pattern = '^.*' + command + '.*\\n'
                     if re.search(command_pattern, output_str):
                         output_str = re.sub(command_pattern, '', output_str)
-                        command_removed = True
+                        remove_command_from_output = False
                 retries_count = 0
             else:
                 retries_count += 1

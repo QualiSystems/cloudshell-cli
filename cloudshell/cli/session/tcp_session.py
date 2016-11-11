@@ -2,6 +2,7 @@ import socket
 
 from cloudshell.cli.session.connection_params import ConnectionParams
 from cloudshell.cli.session.expect_session import ExpectSession
+from cloudshell.cli.session.session_exceptions import SessionReadTimeout, SessionReadEmptyData
 
 
 class TCPSession(ExpectSession, ConnectionParams):
@@ -61,5 +62,12 @@ class TCPSession(ExpectSession, ConnectionParams):
         timeout = timeout if timeout else self._timeout
         self._handler.settimeout(timeout)
 
-        data = self._handler.recv(self._buffer_size)
+        try:
+            data = self._handler.recv(self._buffer_size)
+        except socket.timeout:
+            raise SessionReadTimeout()
+
+        if not data:
+            raise SessionReadEmptyData()
+
         return data
