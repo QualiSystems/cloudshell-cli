@@ -126,7 +126,7 @@ def create_context():
 ```
 
 Next we will explain how to define modes for the session. For example in routers there may be a default mode, a configuration mode an admin mode etc.
-In the mode object we can define expected_map, which is used in cases when we expect to questions from the cli we specify the required response. We can also define error_map to catch run time errors in the switch.
+In the mode object we can define expected_map, which is used in cases when we expect to questions from the cli we specify the required response. We can also define error_map to catch run time errors on the switch.
 
 First we wiil define a default actions class 
 ```python
@@ -137,3 +137,6 @@ class DefaultActions(object):
         out = session.hardware_expect('echo default' , DefaultCommandMode.PROMPT,
                                       logger,action_map={r'%\s*$': lambda session, logger: session.send_line('cli', logger)})
 ```
+
+With the DefaultActions class we define all the commands we need to initiate the console on the session. For example on a switch a default action can be "set cli screen-length 0" to print all in once to the screen.
+actions function is the functon that invokes TODO
