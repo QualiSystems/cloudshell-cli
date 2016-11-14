@@ -6,7 +6,6 @@ class CommandModeException(CliException):
     pass
 
 
-
 class CommandMode(Node):
     """
     Class describes our prompt and implement enter and exit command functions
