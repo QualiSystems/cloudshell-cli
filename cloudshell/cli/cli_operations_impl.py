@@ -83,12 +83,27 @@ class CliOperationsImpl(CliOperations):
         return self.session.hardware_expect(command, expected_string=expected_string, logger=logger, *args,
                                             **kwargs)
 
-    def _change_mode(self, new_command_mode):
+    def _change_mode(self, requested_command_mode):
         """
         Change command mode
-        :param new_command_mode:
-        :type new_command_mode: CommandMode
+        :param requested_command_mode:
+        :type requested_command_mode: CommandMode
         """
-        if new_command_mode:
-            steps = CommandModeHelper.calculate_route_steps(self.command_mode, new_command_mode)
+        if requested_command_mode:
+            steps = CommandModeHelper.calculate_route_steps(self.command_mode, requested_command_mode)
             map(lambda x: x(self), steps)
+
+    def reconnect(self, timeout=None):
+        """
+        Reconnect session, keep current command mode
+        :param timeout: Timeout for operation
+        :return:
+        """
+        prompts_re = r'|'.join(CommandModeHelper.defined_modes_by_prompt(self.command_mode).keys())
+        self.session.reconnect(prompts_re, self._logger, timeout)
+        requested_command_mode = self.command_mode
+        self.command_mode = CommandModeHelper.determine_current_mode(self.session, self.command_mode, self._logger)
+        self.command_mode.enter_actions(self)
+        self._change_mode(requested_command_mode)
+
+

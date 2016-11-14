@@ -89,6 +89,8 @@ def do_action(cli, sessions, mode):
         # out = default_session.send_command('show version', error_map={'srx220h-poe': 'big error'})
         out = default_session.send_command('show version')
         print(out)
+        default_session.reconnect()
+        default_session.send_command('show version')
 
 
 class DefaultActions(object):
@@ -114,13 +116,13 @@ if __name__ == '__main__':
     password = 'Juniper'
     default_actions = DefaultActions(context).actions
 
-    # session_types = [SSHSession(host, username, password, on_session_start=DefaultActions(context).actions)]
-    #
-    # mode = CommandModeHelper.create_command_mode(DefaultCommandMode, context)
-    # Thread(target=do_action, args=(cli, session_types, mode)).start()
-
-    session_types = [TelnetSession(host, username, password),
-                     SSHSession(host, username, password, on_session_start=DefaultActions(context).actions)]
+    session_types = [SSHSession(host, username, password, on_session_start=DefaultActions(context).actions)]
 
     mode = CommandModeHelper.create_command_mode(DefaultCommandMode, context)
     Thread(target=do_action, args=(cli, session_types, mode)).start()
+
+    # session_types = [TelnetSession(host, username, password),
+    #                  SSHSession(host, username, password, on_session_start=DefaultActions(context).actions)]
+    #
+    # mode = CommandModeHelper.create_command_mode(DefaultCommandMode, context)
+    # Thread(target=do_action, args=(cli, session_types, mode)).start()

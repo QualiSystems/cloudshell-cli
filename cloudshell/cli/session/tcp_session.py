@@ -9,12 +9,12 @@ class TCPSession(ExpectSession, ConnectionParams):
     SESSION_TYPE = 'TCP'
     BUFFER_SIZE = 1024
 
-    def __init__(self, host, port, on_session_start=None):
+    def __init__(self, host, port, on_session_start=None, *args, **kwargs):
         ConnectionParams.__init__(self, host=host, port=port, on_session_start=on_session_start)
+        ExpectSession.__init__(self, *args, **kwargs)
 
         self._buffer_size = self.BUFFER_SIZE
         self._handler = None
-        self._active = False
 
     def connect(self, prompt, logger):
         """
@@ -24,7 +24,8 @@ class TCPSession(ExpectSession, ConnectionParams):
         :return:
         """
 
-        self._handler = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        if not self._handler:
+            self._handler = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         server_address = (self.host, self.port)
         self._handler.connect(server_address)
@@ -42,6 +43,7 @@ class TCPSession(ExpectSession, ConnectionParams):
         """
 
         self._handler.close()
+        self._active = False
 
     def _send(self, command, logger):
         """Send message to the session
