@@ -88,6 +88,10 @@ def do_action(cli, sessions, mode):
     with cli.get_session(sessions, mode, LOGGER, ) as default_session:
         # out = default_session.send_command('show version', error_map={'srx220h-poe': 'big error'})
         out = default_session.send_command('show version')
+        specific_mode = CommandMode()
+        with default_session.enter_mode(specific_mode) as specific_session:
+            pass
+
         print(out)
         default_session.reconnect()
         default_session.send_command('show version')
