@@ -15,3 +15,7 @@ class CliOperations(object):
     @abstractmethod
     def enter_mode(self, command_mode):
         pass
+
+    @abstractmethod
+    def reconnect(self, timeout=None):
+        pass

@@ -33,5 +33,9 @@ class Session(object):
         pass
 
     @abstractmethod
-    def reconnect(self, prompt, logger):
+    def reconnect(self, prompt, logger, timeout=None):
+        pass
+
+    @abstractmethod
+    def active(self):
         pass

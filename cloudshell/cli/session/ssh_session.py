@@ -15,8 +15,9 @@ class SSHSession(ExpectSession, ConnectionParams):
     SESSION_TYPE = 'SSH'
     BUFFER_SIZE = 512
 
-    def __init__(self, host, username, password, port=None, on_session_start=None):
+    def __init__(self, host, username, password, port=None, on_session_start=None, *args, **kwargs):
         ConnectionParams.__init__(self, host, port=port, on_session_start=on_session_start)
+        ExpectSession.__init__(self, *args, **kwargs)
 
         if self.port is None:
             self.port = 22
@@ -27,7 +28,6 @@ class SSHSession(ExpectSession, ConnectionParams):
         self._handler = None
         self._current_channel = None
         self._buffer_size = self.BUFFER_SIZE
-        self._active = False
 
     def __eq__(self, other):
         """
@@ -47,13 +47,12 @@ class SSHSession(ExpectSession, ConnectionParams):
         :param logger: logger
         """
 
-        ExpectSession.__init__(self)
-
-        self._handler = paramiko.SSHClient()
-        self._handler.load_system_host_keys()
+        if not self._handler:
+            self._handler = paramiko.SSHClient()
+            self._handler.load_system_host_keys()
+            self._handler.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
         try:
-            self._handler.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             self._handler.connect(self.host, self.port, self.username, self.password, timeout=self._timeout,
                                   banner_timeout=30, allow_agent=False, look_for_keys=False)
         except Exception as e:
@@ -74,9 +73,10 @@ class SSHSession(ExpectSession, ConnectionParams):
         :return:
         """
 
-        self._current_channel = None
+        # self._current_channel = None
         if self._handler:
             self._handler.close()
+        self._active = False
 
     def _send(self, command, logger):
         """Send message to device

@@ -16,8 +16,9 @@ class TelnetSession(ExpectSession, ConnectionParams):
 
     AUTHENTICATION_ERROR_PATTERN = '%.*($|\n)'
 
-    def __init__(self, host, username, password, port=None, on_session_start=None):
+    def __init__(self, host, username, password, port=None, on_session_start=None, *args, **kwargs):
         ConnectionParams.__init__(self, host, port=port, on_session_start=on_session_start)
+        ExpectSession.__init__(self, *args, **kwargs)
 
         if self.port is None:
             self.port = 23
@@ -26,7 +27,6 @@ class TelnetSession(ExpectSession, ConnectionParams):
         self.password = password
 
         self._handler = None
-        self._active = False
 
     def __eq__(self, other):
         """
@@ -46,8 +46,8 @@ class TelnetSession(ExpectSession, ConnectionParams):
         :param prompt:
         :param logger:
         """
-        ExpectSession.__init__(self)
-        self._handler = telnetlib.Telnet()
+        if not self._handler:
+            self._handler = telnetlib.Telnet()
 
         self._handler.open(self.host, int(self.port), self._timeout)
         if self._handler.get_socket() is None:
@@ -72,6 +72,7 @@ class TelnetSession(ExpectSession, ConnectionParams):
         """
         if self._handler:
             self._handler.close()
+        self._active = False
 
     def _send(self, command, logger):
         """send message / command to device

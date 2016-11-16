@@ -25,11 +25,12 @@ class ExpectSession(Session):
     CLEAR_BUFFER_TIMEOUT = 0.1
     LOOP_DETECTOR_MAX_ACTION_LOOPS = 3
     LOOP_DETECTOR_MAX_COMBINATION_LENGTH = 4
+    RECONNECT_TIMEOUT = 30
 
     def __init__(self, timeout=READ_TIMEOUT, new_line='\r', max_loop_retries=MAX_LOOP_RETRIES,
                  empty_loop_timeout=EMPTY_LOOP_TIMEOUT, loop_detector_max_action_loops=LOOP_DETECTOR_MAX_ACTION_LOOPS,
                  loop_detector_max_combination_length=LOOP_DETECTOR_MAX_COMBINATION_LENGTH,
-                 clear_buffer_timeout=CLEAR_BUFFER_TIMEOUT):
+                 clear_buffer_timeout=CLEAR_BUFFER_TIMEOUT, reconnect_timeout=RECONNECT_TIMEOUT):
 
         """
 
@@ -52,6 +53,7 @@ class ExpectSession(Session):
         self._loop_detector_max_combination_length = loop_detector_max_combination_length
         self._clear_buffer_timeout = clear_buffer_timeout
         self._timeout = timeout
+        self._reconnect_timeout = reconnect_timeout
 
         self._active = False
 
@@ -59,7 +61,6 @@ class ExpectSession(Session):
     def session_type(self):
         return self.SESSION_TYPE
 
-    @property
     def active(self):
         return self._active
 
@@ -92,6 +93,13 @@ class ExpectSession(Session):
         self._send(command + self._new_line, logger)
 
     def _receive_all(self, timeout, logger):
+        """
+        Read as much as possible before catch SessionTimeoutException
+        :param timeout:
+        :param logger:
+        :return:
+        :rtype: str
+        """
         if not timeout:
             timeout = self._timeout
         start_time = time.time()
@@ -211,15 +219,27 @@ class ExpectSession(Session):
         result_output += self._clear_buffer(self._clear_buffer_timeout, logger)
         return result_output
 
-    def reconnect(self, prompt, logger):
+    def reconnect(self, prompt, logger, timeout=None):
         """
         Recconnect implementation
 
         :param prompt:
+        :param logger:
+        :param timeout:
         :return:
         """
-        self.disconnect()
-        self.connect(prompt)
+        logger.debug('Reconnect')
+        timeout = timeout or self._reconnect_timeout
+
+        call_time = time.time()
+        while time.time() - call_time < timeout:
+            try:
+                self.disconnect()
+                return self.connect(prompt, logger)
+            except Exception as e:
+                logger.debug(e)
+        raise ExpectedSessionException(self.__class__.__name__,
+                                       'Reconnect unsuccessful, timeout exceeded, see logs for more details')
 
 
 class ActionLoopDetector(object):

@@ -9,7 +9,7 @@ class SessionPoolContextManager(object):
     Get and return session from pool and change mode if specified
     """
 
-    IGNORE_EXCEPTIONS = [CommandExecutionException]
+    IGNORED_EXCEPTIONS = [CommandExecutionException]
 
     def __init__(self, session_pool, new_sessions, command_mode, logger):
         """
@@ -39,7 +39,7 @@ class SessionPoolContextManager(object):
         return CliOperations(self._session, self._command_mode, self._logger)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if exc_type and exc_type not in self.IGNORE_EXCEPTIONS:
+        if not self._session.active() or exc_type and exc_type not in self.IGNORED_EXCEPTIONS:
             self._session_pool.remove_session(self._session, self._logger)
         else:
             self._session_pool.return_session(self._session, self._logger)
