@@ -1,5 +1,5 @@
 from unittest import TestCase
-from cloudshell.cli.cli_operations_impl import CommandModeContextManager
+from cloudshell.cli.cli_service_impl import CommandModeContextManager
 from mock import Mock
 
 

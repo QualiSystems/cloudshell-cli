@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 
-class CliOperations(object):
+class CliService(object):
     __metaclass__ = ABCMeta
 
     def __init__(self):

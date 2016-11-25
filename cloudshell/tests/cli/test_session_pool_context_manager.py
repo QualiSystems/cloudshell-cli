@@ -15,7 +15,7 @@ class TestSessionPoolContextManager(TestCase):
         self._command_mode = Mock()
 
     @patch('cloudshell.cli.session_pool_context_manager.CommandModeHelper')
-    @patch('cloudshell.cli.session_pool_context_manager.CliOperations')
+    @patch('cloudshell.cli.session_pool_context_manager.CliService')
     def test_enter_get_prompts(self, cli_operations, command_mode_helper):
         with SessionPoolContextManager(self._session_pool_manager, self._new_sessions, self._command_mode,
                                        self._logger) as session:
@@ -23,7 +23,7 @@ class TestSessionPoolContextManager(TestCase):
         command_mode_helper.defined_modes_by_prompt.assert_called_once_with(self._command_mode)
 
     @patch('cloudshell.cli.session_pool_context_manager.CommandModeHelper')
-    @patch('cloudshell.cli.session_pool_context_manager.CliOperations')
+    @patch('cloudshell.cli.session_pool_context_manager.CliService')
     def test_enter_get_session(self, cli_operations, command_mode_helper):
         prompt = '1'
         command_mode_helper.defined_modes_by_prompt.return_value = Mock()
@@ -36,7 +36,7 @@ class TestSessionPoolContextManager(TestCase):
                                                                        new_sessions=self._new_sessions)
 
     @patch('cloudshell.cli.session_pool_context_manager.CommandModeHelper')
-    @patch('cloudshell.cli.session_pool_context_manager.CliOperations')
+    @patch('cloudshell.cli.session_pool_context_manager.CliService')
     def test_enter_create_cli_operations(self, cli_operations, command_mode_helper):
         session_value = Mock()
         self._session_pool_manager.get_session.return_value = session_value
@@ -46,7 +46,7 @@ class TestSessionPoolContextManager(TestCase):
         cli_operations.assert_called_once_with(session_value, self._command_mode, self._logger)
 
     @patch('cloudshell.cli.session_pool_context_manager.CommandModeHelper')
-    @patch('cloudshell.cli.session_pool_context_manager.CliOperations')
+    @patch('cloudshell.cli.session_pool_context_manager.CliService')
     def test_exit_return_session(self, cli_operations, command_mode_helper):
         session_value = Mock()
         self._session_pool_manager.get_session.return_value = session_value
@@ -57,7 +57,7 @@ class TestSessionPoolContextManager(TestCase):
         self._session_pool_manager.return_session.assert_called_once_with(session_value, self._logger)
 
     @patch('cloudshell.cli.session_pool_context_manager.CommandModeHelper')
-    @patch('cloudshell.cli.session_pool_context_manager.CliOperations')
+    @patch('cloudshell.cli.session_pool_context_manager.CliService')
     def test_exit_remove_session_on_exception(self, cli_operations, command_mode_helper):
         session_value = Mock()
         self._session_pool_manager.get_session.return_value = session_value
@@ -69,7 +69,7 @@ class TestSessionPoolContextManager(TestCase):
         self._session_pool_manager.remove_session.assert_called_once_with(session_value, self._logger)
 
     @patch('cloudshell.cli.session_pool_context_manager.CommandModeHelper')
-    @patch('cloudshell.cli.session_pool_context_manager.CliOperations')
+    @patch('cloudshell.cli.session_pool_context_manager.CliService')
     def test_exit_return_session_on_ignored_exception(self, cli_operations, command_mode_helper):
         session_value = Mock()
         self._session_pool_manager.get_session.return_value = session_value
