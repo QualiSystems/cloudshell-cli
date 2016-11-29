@@ -98,8 +98,8 @@ class CommandTemplate(object):
         :return:
         :rtype: dict
         """
-        action_map.update(self.action_map)
-        error_map.update(self.error_map)
+        action_map = action_map.copy().update(self.action_map)
+        error_map = error_map.copy().update(self.error_map)
         return {
             'command': self._prepare_command(**command_kwargs),
             'action_map': action_map,
