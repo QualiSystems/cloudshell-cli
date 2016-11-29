@@ -1,27 +1,27 @@
 from unittest import TestCase
-from cloudshell.cli.cli_operations_impl import CommandModeContextManager, CliOperationsImpl
+from cloudshell.cli.cli_service_impl import CommandModeContextManager, CliServiceImpl
 from mock import Mock, patch
 
 
 class TestCommandModeContextManager(TestCase):
     def setUp(self):
-        self._cli_operations = Mock()
+        self._cli_service = Mock()
         self._command_mode = Mock()
         self._logger = Mock()
-        self._instance = CommandModeContextManager(self._cli_operations, self._command_mode, self._logger)
+        self._instance = CommandModeContextManager(self._cli_service, self._command_mode, self._logger)
 
     def test_init(self):
-        mandatory_attributes = ['_logger', '_previous_mode', '_cli_operations', '_command_mode']
+        mandatory_attributes = ['_logger', '_previous_mode', '_cli_service', '_command_mode']
         self.assertEqual(len(set(mandatory_attributes).difference(set(self._instance.__dict__.keys()))), 0)
 
     def test_enter_call_step_up(self):
         operations = self._instance.__enter__()
-        self._command_mode.step_up.assert_called_once_with(self._cli_operations)
-        self.assertEqual(operations, self._cli_operations)
+        self._command_mode.step_up.assert_called_once_with(self._cli_service)
+        self.assertEqual(operations, self._cli_service)
 
     def test_enter_call_step_down(self):
         self._instance.__exit__(Mock(), Mock(), Mock())
-        self._command_mode.step_down.assert_called_once_with(self._cli_operations)
+        self._command_mode.step_down.assert_called_once_with(self._cli_service)
 
 
 class TestCliOperationsImpl(TestCase):
@@ -35,12 +35,12 @@ class TestCliOperationsImpl(TestCase):
         self._instance = self._create_instance()
 
     @patch('cloudshell.cli.command_mode_helper.CommandModeHelper.determine_current_mode')
-    @patch('cloudshell.cli.cli_operations_impl.CliOperationsImpl._change_mode')
+    @patch('cloudshell.cli.cli_service_impl.CliServiceImpl._change_mode')
     def _create_instance(self, change_mode, determine_current_mode):
         self._determine_current_mode_func = determine_current_mode
         self._determine_current_mode_func.return_value = self._determined_command_mode
         self._change_mode_func = change_mode
-        return CliOperationsImpl(self._session, self._command_mode, self._logger)
+        return CliServiceImpl(self._session, self._command_mode, self._logger)
 
     def test_init_attributes(self):
         mandatory_attributes = ['_logger', 'session', 'command_mode']
@@ -55,7 +55,7 @@ class TestCliOperationsImpl(TestCase):
     def test_init_change_mod_call(self):
         self._change_mode_func.assert_called_once_with(self._command_mode)
 
-    @patch("cloudshell.cli.cli_operations_impl.CommandModeContextManager")
+    @patch("cloudshell.cli.cli_service_impl.CommandModeContextManager")
     def test_enter_mode(self, command_mode_context_manager):
         command_mode_context_manager_instance = Mock()
         command_mode_context_manager.return_value = command_mode_context_manager_instance
@@ -67,9 +67,9 @@ class TestCliOperationsImpl(TestCase):
     def test_send_command_hardware_expect_call(self):
         command = Mock()
         expected_string = Mock()
-        self._instance.send_command(command, expected_string, self._logger)
-        self._session.hardware_expect.assert_called_once_with(command, expected_string=expected_string,
-                                                              logger=self._logger)
+        self._instance.send_command(command, expected_string=expected_string, logger=self._logger)
+        self._session.hardware_expect.assert_called_once_with(command, action_map=None, error_map=None,
+                                                              expected_string=expected_string, logger=self._logger)
 
     @patch('cloudshell.cli.command_mode_helper.CommandModeHelper.calculate_route_steps')
     def test_change_mode_calculate_steps(self, calculate_route_steps):
@@ -79,7 +79,7 @@ class TestCliOperationsImpl(TestCase):
 
     @patch('cloudshell.cli.command_mode_helper.CommandModeHelper.defined_modes_by_prompt')
     @patch('cloudshell.cli.command_mode_helper.CommandModeHelper.determine_current_mode')
-    @patch('cloudshell.cli.cli_operations_impl.CliOperationsImpl._change_mode')
+    @patch('cloudshell.cli.cli_service_impl.CliServiceImpl._change_mode')
     def test_reconnect_get_prompts(self, change_mode, determine_current_mode, defined_modes_by_prompt):
         prompt = 'test'
         command_mode = Mock()
@@ -89,7 +89,7 @@ class TestCliOperationsImpl(TestCase):
 
     @patch('cloudshell.cli.command_mode_helper.CommandModeHelper.defined_modes_by_prompt')
     @patch('cloudshell.cli.command_mode_helper.CommandModeHelper.determine_current_mode')
-    @patch('cloudshell.cli.cli_operations_impl.CliOperationsImpl._change_mode')
+    @patch('cloudshell.cli.cli_service_impl.CliServiceImpl._change_mode')
     def test_reconnect_session_call(self, change_mode, determine_current_mode, defined_modes_by_prompt):
         prompt = 'test'
         command_mode = Mock()
@@ -100,7 +100,7 @@ class TestCliOperationsImpl(TestCase):
 
     @patch('cloudshell.cli.command_mode_helper.CommandModeHelper.defined_modes_by_prompt')
     @patch('cloudshell.cli.command_mode_helper.CommandModeHelper.determine_current_mode')
-    @patch('cloudshell.cli.cli_operations_impl.CliOperationsImpl._change_mode')
+    @patch('cloudshell.cli.cli_service_impl.CliServiceImpl._change_mode')
     def test_reconnect_determine_current_mode_call(self, change_mode, determine_current_mode, defined_modes_by_prompt):
         prompt = 'test'
         command_mode = Mock()
@@ -112,7 +112,7 @@ class TestCliOperationsImpl(TestCase):
 
     @patch('cloudshell.cli.command_mode_helper.CommandModeHelper.defined_modes_by_prompt')
     @patch('cloudshell.cli.command_mode_helper.CommandModeHelper.determine_current_mode')
-    @patch('cloudshell.cli.cli_operations_impl.CliOperationsImpl._change_mode')
+    @patch('cloudshell.cli.cli_service_impl.CliServiceImpl._change_mode')
     def test_reconnect_command_mode_enter_action_call(self, change_mode, determine_current_mode,
                                                       defined_modes_by_prompt):
         prompt = 'test'
@@ -125,7 +125,7 @@ class TestCliOperationsImpl(TestCase):
 
     @patch('cloudshell.cli.command_mode_helper.CommandModeHelper.defined_modes_by_prompt')
     @patch('cloudshell.cli.command_mode_helper.CommandModeHelper.determine_current_mode')
-    @patch('cloudshell.cli.cli_operations_impl.CliOperationsImpl._change_mode')
+    @patch('cloudshell.cli.cli_service_impl.CliServiceImpl._change_mode')
     def test_reconnect_change_mode(self, change_mode, determine_current_mode,
                                    defined_modes_by_prompt):
         prompt = 'test'
