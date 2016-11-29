@@ -61,7 +61,8 @@ class CliServiceImpl(CliService):
         """
         return CommandModeContextManager(self, command_mode, self._logger)
 
-    def send_command(self, command, expected_string=None, logger=None, *args, **kwargs):
+    def send_command(self, command, expected_string=None, action_map=None, error_map=None, logger=None, *args,
+                     **kwargs):
         """
         Send command
         :param command:
@@ -80,8 +81,8 @@ class CliServiceImpl(CliService):
         if not logger:
             logger = self._logger
         self.session.logger = logger
-        return self.session.hardware_expect(command, expected_string=expected_string, logger=logger, *args,
-                                            **kwargs)
+        return self.session.hardware_expect(command, expected_string=expected_string, action_map=action_map,
+                                            error_map=error_map, logger=logger, *args, **kwargs)
 
     def _change_mode(self, requested_command_mode):
         """
@@ -105,5 +106,3 @@ class CliServiceImpl(CliService):
         self.command_mode = CommandModeHelper.determine_current_mode(self.session, self.command_mode, self._logger)
         self.command_mode.enter_actions(self)
         self._change_mode(requested_command_mode)
-
-

@@ -44,7 +44,7 @@ class CommandTemplateExecutor(object):
         self._error_map.update(error_map)
 
 
-class CommandTemplate:
+class CommandTemplate(object):
     """
     Command template class
     """
@@ -88,7 +88,7 @@ class CommandTemplate:
 
     def get_command(self, action_map=OrderedDict(), error_map=OrderedDict(), **command_kwargs):
         """
-        Generate dict for cli_service signature with action map and error map
+        Generate dict for cli_service signature(command, action_map, error_map)
         :param action_map:
         :type action_map: dict
         :param error_map:
