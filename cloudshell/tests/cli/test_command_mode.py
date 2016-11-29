@@ -32,40 +32,40 @@ class TestCommandMode(TestCase):
         mode.add_child_node.assert_called_once_with(self._command_mode)
 
     def test_step_up_send_command(self):
-        cli_operations = Mock()
-        self._command_mode.step_up(cli_operations)
-        cli_operations.send_command.assert_called_once_with(self._enter_command, expected_string=self._prompt,
+        cli_service = Mock()
+        self._command_mode.step_up(cli_service)
+        cli_service.send_command.assert_called_once_with(self._enter_command, expected_string=self._prompt,
                                                             action_map=self._enter_action_map,
                                                             error_map=self._enter_error_map)
 
     def test_step_up_set_command_mode(self):
-        cli_operations = Mock()
-        self._command_mode.step_up(cli_operations)
-        self.assertTrue(cli_operations.command_mode == self._command_mode)
+        cli_service = Mock()
+        self._command_mode.step_up(cli_service)
+        self.assertTrue(cli_service.command_mode == self._command_mode)
 
     def test_step_up_call_enter_actions(self):
-        cli_operations = Mock()
+        cli_service = Mock()
         enter_actions = Mock()
         self._command_mode.enter_actions = enter_actions
-        self._command_mode.step_up(cli_operations)
-        enter_actions.assert_called_once_with(cli_operations)
+        self._command_mode.step_up(cli_service)
+        enter_actions.assert_called_once_with(cli_service)
 
     def test_step_down_sent_command(self):
-        cli_operations = Mock()
+        cli_service = Mock()
         parent_prompt = Mock()
         parent_node = Mock()
         parent_node.prompt = parent_prompt
         self._command_mode.parent_node = parent_node
-        self._command_mode.step_down(cli_operations)
-        cli_operations.send_command.assert_called_once_with(self._exit_command, expected_string=parent_prompt,
+        self._command_mode.step_down(cli_service)
+        cli_service.send_command.assert_called_once_with(self._exit_command, expected_string=parent_prompt,
                                                             action_map=self._exit_action_map,
                                                             error_map=self._exit_error_map)
 
     def test_step_down_set_mode(self):
-        cli_operations = Mock()
+        cli_service = Mock()
         parent_prompt = Mock()
         parent_node = Mock()
         parent_node.prompt = parent_prompt
         self._command_mode.parent_node = parent_node
-        self._command_mode.step_down(cli_operations)
-        self.assertTrue(cli_operations.command_mode == parent_node)
+        self._command_mode.step_down(cli_service)
+        self.assertTrue(cli_service.command_mode == parent_node)

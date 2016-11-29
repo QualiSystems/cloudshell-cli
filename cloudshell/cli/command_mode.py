@@ -66,33 +66,34 @@ class CommandMode(Node):
         if mode:
             mode.add_child_node(self)
 
-    def step_up(self, cli_operations):
+    def step_up(self, cli_service):
         """
         Enter command mode
-        :param cli_operations:
-        :type cli_operations: CliOperations
+        :param cli_service:
+        :type cli_service: CliService
         """
-        cli_operations.send_command(self._enter_command, expected_string=self.prompt,
-                                    action_map=self._enter_action_map, error_map=self._enter_error_map)
-        cli_operations.command_mode = self
-        self.enter_actions(cli_operations)
+        cli_service.send_command(self._enter_command, expected_string=self.prompt,
+                                 action_map=self._enter_action_map, error_map=self._enter_error_map)
+        cli_service.command_mode = self
+        self.enter_actions(cli_service)
 
-    def step_down(self, cli_operations):
+    def step_down(self, cli_service):
         """
         Exit from command mode
-        :param cli_operations:
-        :type cli_operations: CliOperations
+        :param cli_service:
+        :type cli_service: CliService
         :return:
         """
-        cli_operations.send_command(self._exit_command, expected_string=self.parent_node.prompt,
-                                    action_map=self._exit_action_map, error_map=self._exit_error_map)
-        cli_operations.command_mode = self.parent_node
+        cli_service.send_command(self._exit_command, expected_string=self.parent_node.prompt,
+                                 action_map=self._exit_action_map, error_map=self._exit_error_map)
+        cli_service.command_mode = self.parent_node
 
-    def enter_actions(self, cli_operations):
+    def enter_actions(self, cli_service):
         """
         Default actions
-        :param cli_operations:
+        :param cli_service:
+        :type cli_service: CliService
         :return:
         """
         if self._enter_actions:
-            self._enter_actions(cli_operations)
+            self._enter_actions(cli_service)
