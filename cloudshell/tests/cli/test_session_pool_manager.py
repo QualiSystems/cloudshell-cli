@@ -17,13 +17,19 @@ class TestSessionPoolManager(TestCase):
         self._prompt = Mock()
 
     def test_get_session_with_condition_enter(self):
-        prompt = Mock()
-        self._session_pool_manager.get_session(self._new_sessions, prompt, self._logger)
+        self._pool.empty.return_value = True
+        self._pool.maxsize = 4
+        self._session_manager.existing_sessions_count.return_value = 0
+        self._session_pool_manager._new_session = Mock()
+        self._session_pool_manager.get_session(self._new_sessions, self._prompt, self._logger)
         self._condition.__enter__.assert_called_once()
 
     def test_get_session_get_from_pool(self):
         self._pool.empty.return_value = False
         self._session_pool_manager._get_from_pool = Mock()
+        self._pool.maxsize = 4
+        self._session_manager.existing_sessions_count.return_value = 0
+        self._session_pool_manager._new_session = Mock()
         session = self._session_pool_manager.get_session(self._new_sessions, self._prompt,
                                                          self._logger)
         self._session_pool_manager._get_from_pool.assert_called_once_with(self._new_sessions, self._prompt,
@@ -52,6 +58,9 @@ class TestSessionPoolManager(TestCase):
 
     def test_get_session_with_condition_exit(self):
         prompt = Mock()
+        self._pool.maxsize = 4
+        self._session_manager.existing_sessions_count.return_value = 0
+        self._session_pool_manager._new_session = Mock()
         self._session_pool_manager.get_session(self._new_sessions, prompt, self._logger)
         self._condition.__exit__.assert_called_once()
 
