@@ -52,7 +52,6 @@ class ExpectSession(Session):
         self._loop_detector_max_action_loops = loop_detector_max_action_loops
         self._loop_detector_max_combination_length = loop_detector_max_combination_length
         self._clear_buffer_timeout = clear_buffer_timeout
-        self._timeout = timeout
         self._reconnect_timeout = reconnect_timeout
 
         self._active = False
