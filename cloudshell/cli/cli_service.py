@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 
-class CliOperations(object):
+class CliService(object):
     __metaclass__ = ABCMeta
 
     def __init__(self):
@@ -9,7 +9,8 @@ class CliOperations(object):
         self.command_mode = None
 
     @abstractmethod
-    def send_command(self, command, expected_string=None, *args, **kwargs):
+    def send_command(self, command, expected_string=None, action_map=None, error_map=None, logger=None, *args,
+                     **kwargs):
         pass
 
     @abstractmethod
