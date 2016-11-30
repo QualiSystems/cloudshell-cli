@@ -113,7 +113,7 @@ class ExpectSession(Session):
                 elif time.time() - start_time > timeout:
                     raise ExpectedSessionException(self.__class__.__name__, 'Socket closed by timeout')
 
-    def hardware_expect(self, command, expected_string, logger, action_map=OrderedDict(), error_map=OrderedDict(),
+    def hardware_expect(self, command, expected_string, logger, action_map=None, error_map=None,
                         timeout=None, retries=None, check_action_loop_detector=True, empty_loop_timeout=None,
                         remove_command_from_output=True, **optional_args):
 
@@ -131,6 +131,12 @@ class ExpectSession(Session):
             The flag used to verify whether the the command string removed from the output string.
         :return:
         """
+
+        if not action_map:
+            action_map = OrderedDict()
+
+        if not error_map:
+            error_map = OrderedDict()
 
         retries = retries or self._max_loop_retries
         empty_loop_timeout = empty_loop_timeout or self._empty_loop_timeout
