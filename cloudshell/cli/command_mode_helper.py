@@ -56,14 +56,14 @@ class CommandModeHelper(NodeOperations):
         return modes_dict
 
     @staticmethod
-    def create_command_mode(command_mode_type, *args, **kwargs):
+    def create_command_mode(*args, **kwargs):
         """
         Create specific command mode with relations
         :param command_mode_type:
         :param args:
         :param kwargs:
         :return:
-        :rtype: CommandMode
+        :rtype: dict
         """
 
         def _create_child_modes(instance, child_dict):
@@ -76,5 +76,4 @@ class CommandModeHelper(NodeOperations):
                 instance_dict.update(_create_child_modes(mode_instance, child_dict[mode_type]))
             return instance_dict
 
-        dd = _create_child_modes(None, CommandMode.RELATIONS_DICT)[command_mode_type]
-        return dd
+        return _create_child_modes(None, CommandMode.RELATIONS_DICT)
