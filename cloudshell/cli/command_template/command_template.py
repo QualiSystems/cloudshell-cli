@@ -15,12 +15,12 @@ class CommandTemplate:
         error_map = OrderedDict(self._error_map)
         error_map.update(kwargs.get('error_map', None) or OrderedDict())
         return {
-            'command': self._prepare_command(**kwargs),
+            'command': self.prepare_command(**kwargs),
             'action_map': action_map,
             'error_map': error_map
         }
 
-    def _prepare_command(self, **kwargs):
+    def prepare_command(self, **kwargs):
         cmd = self._command
         keys = re.findall(r"{(\w+)}", self._command)
         for key in keys:
