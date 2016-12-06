@@ -8,6 +8,14 @@ class CommandTemplate:
         self._action_map = action_map or OrderedDict()
         self._error_map = error_map or OrderedDict()
 
+    @property
+    def action_map(self):
+        return self._action_map
+
+    @property
+    def error_map(self):
+        return self._error_map
+
     # ToDo: Needs to be reviewed
     def get_command(self, **kwargs):
         action_map = (OrderedDict(kwargs.get('action_map', None) or OrderedDict()))
