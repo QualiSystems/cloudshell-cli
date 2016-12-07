@@ -8,6 +8,14 @@ class CommandTemplate:
         self._action_map = action_map or OrderedDict()
         self._error_map = error_map or OrderedDict()
 
+    @property
+    def action_map(self):
+        return self._action_map
+
+    @property
+    def error_map(self):
+        return self._error_map
+
     # ToDo: Needs to be reviewed
     def get_command(self, **kwargs):
         action_map = (OrderedDict(kwargs.get('action_map', None) or OrderedDict()))
@@ -15,12 +23,12 @@ class CommandTemplate:
         error_map = OrderedDict(self._error_map)
         error_map.update(kwargs.get('error_map', None) or OrderedDict())
         return {
-            'command': self._prepare_command(**kwargs),
+            'command': self.prepare_command(**kwargs),
             'action_map': action_map,
             'error_map': error_map
         }
 
-    def _prepare_command(self, **kwargs):
+    def prepare_command(self, **kwargs):
         cmd = self._command
         keys = re.findall(r"{(\w+)}", self._command)
         for key in keys:

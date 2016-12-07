@@ -19,7 +19,7 @@ class SSHSession(ExpectSession, ConnectionParams):
         ConnectionParams.__init__(self, host, port=port, on_session_start=on_session_start)
         ExpectSession.__init__(self, *args, **kwargs)
 
-        if self.port is None:
+        if hasattr(self, 'port') and self.port is None:
             self.port = 22
 
         self.username = username
