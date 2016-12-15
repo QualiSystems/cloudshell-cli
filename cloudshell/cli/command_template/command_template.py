@@ -10,10 +10,20 @@ class CommandTemplate:
 
     @property
     def action_map(self):
+        """
+        Property for action map
+        :return:
+        :rtype: OrderedDict()
+        """
         return self._action_map
 
     @property
     def error_map(self):
+        """
+        Property for error map
+        :return:
+        :rtype: OrderedDict
+        """
         return self._error_map
 
     # ToDo: Needs to be reviewed

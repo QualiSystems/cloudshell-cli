@@ -25,15 +25,15 @@ class CommandTemplateExecutor(object):
         """
         Return updated action
         """
-        return self._action_map.copy().update(self._command_template.action_map)
+        return OrderedDict(self._action_map.items() + self._command_template.action_map.items())
 
     @property
     def error_map(self):
-        return self._command_template.error_map.copy().update(self._error_map)
+        return OrderedDict(self._command_template.error_map.items() + self._error_map.items())
 
     def execute_command(self, **command_kwargs):
         command = self._command_template.prepare_command(**command_kwargs)
-        self._cli_service.send_command(command, action_map=self.action_map, error_map=self.error_map)
+        return self._cli_service.send_command(command, action_map=self.action_map, error_map=self.error_map)
 
     def update_action_map(self, action_map):
         self._action_map.update(action_map)
