@@ -1,31 +1,53 @@
-__author__ = 'g8y3e'
+from collections import OrderedDict
+import re
 
 
 class CommandTemplate:
-    def __init__(self, command, re_string_list=[], error_message_list=[]):
+    def __init__(self, command, action_map=None, error_map=None):
         self._command = command
+        self._action_map = action_map or OrderedDict()
+        self._error_map = error_map or OrderedDict()
 
-        self._re_string_list = []
-        if isinstance(re_string_list, list):
-            self._re_string_list += re_string_list
-        else:
-            self._re_string_list = [re_string_list]
+    @property
+    def action_map(self):
+        """
+        Property for action map
+        :return:
+        :rtype: OrderedDict()
+        """
+        return self._action_map
 
-        self._error_message_list = []
-        if isinstance(error_message_list, list):
-            self._error_message_list += error_message_list
-        else:
-            self._error_message_list = [error_message_list]
+    @property
+    def error_map(self):
+        """
+        Property for error map
+        :return:
+        :rtype: OrderedDict
+        """
+        return self._error_map
 
-    def get_error_by_index(self, index):
-        if (len(self._error_message_list) - 1) < index:
-            raise Exception('Command Template: '
-                            'Failed to get index from error_message_list, error index higher than error_message_list size!')
+    # ToDo: Needs to be reviewed
+    def get_command(self, **kwargs):
+        action_map = (OrderedDict(kwargs.get('action_map', None) or OrderedDict()))
+        action_map.update(self._action_map)
+        error_map = OrderedDict(self._error_map)
+        error_map.update(kwargs.get('error_map', None) or OrderedDict())
+        return {
+            'command': self.prepare_command(**kwargs),
+            'action_map': action_map,
+            'error_map': error_map
+        }
 
-        return self._error_message_list[index]
+    def prepare_command(self, **kwargs):
+        cmd = self._command
+        keys = re.findall(r"{(\w+)}", self._command)
+        for key in keys:
+            if key not in kwargs or kwargs[key] is None:
+                cmd = re.sub(r"(^.* )(\[.*{{{key}}}\])(.*)".format(key=key), r"\1\3", cmd)
 
-    def get_re_string_list(self):
-        return self._re_string_list
+        if not cmd:
+            raise Exception(self.__class__.__name__, 'Unable to prepare command')
 
-    def get_command(self, *args):
-        return self._command.format(*args)
+        cmd = re.sub(r"\s+", " ", cmd).strip(' \t\n\r')
+        result = re.sub(r"\[|\]", "", cmd).format(**kwargs)
+        return result

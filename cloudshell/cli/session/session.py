@@ -1,14 +1,13 @@
-__author__ = 'g8y3e'
-
-from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 
+from abc import ABCMeta, abstractmethod
 
-class Session:
+
+class Session(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def connect(self, re_string=''):
+    def connect(self, prompt, logger):
         pass
 
     @abstractmethod
@@ -16,22 +15,27 @@ class Session:
         pass
 
     @abstractmethod
-    def _send(self, data_str):
+    def _send(self, command, logger):
         pass
 
     @abstractmethod
-    def _receive(self, timeout=None):
+    def send_line(self, command, logger):
         pass
 
     @abstractmethod
-    def hardware_expect(self, data_str=None, re_string='', expect_map=OrderedDict(),
-                        error_map=OrderedDict(), timeout=None, retries_count=3):
+    def _receive(self, timeout, logger):
         pass
 
     @abstractmethod
-    def reconnect(self, prompt):
+    def hardware_expect(self, command, expected_string, logger, action_map=OrderedDict(), error_map=OrderedDict(),
+                        timeout=None, retries=None, check_action_loop_detector=True, empty_loop_timeout=None,
+                        **optional_args):
         pass
 
     @abstractmethod
-    def _default_actions(self):
+    def reconnect(self, prompt, logger, timeout=None):
+        pass
+
+    @abstractmethod
+    def active(self):
         pass
