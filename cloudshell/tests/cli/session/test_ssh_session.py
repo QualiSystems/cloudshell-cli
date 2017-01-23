@@ -128,55 +128,6 @@ class DefaultFakeDevice(FakeDevice):
         return '%s\noutput of "%s"\n%s' % (command, output, self.prompt), '', 0
 
 
-class SFTPReceiver(paramiko.SFTPHandle):
-    def __init__(self, buf, flags=0):
-        super(SFTPReceiver, self).__init__(flags)
-        self.buf = buf
-
-    def write(self, offset, data):
-        self.buf.write(data)
-        return paramiko.SFTP_OK
-
-    def close(self):
-        super(SFTPReceiver, self).close()
-
-
-class SFTPServerInterface(paramiko.SFTPServerInterface):
-    def __init__(self, server, *largs, **kwargs):
-        self.server = server
-        self.channel = None
-
-    def stat(self, path):
-        rv = paramiko.SFTPAttributes()
-        rv.st_size = len(self.server.sftpfilename2stringio[path].getvalue())
-        return rv
-
-    def chattr(self, path, attr):
-        return paramiko.SFTP_OK
-
-    def open(self, path, flags, attr):
-        # print 'OPEN'
-        buf = StringIO()
-        self.server.sftpfilename2stringio[path] = buf
-        return SFTPReceiver(buf)
-
-    def session_started(self):
-        # print 'session_started'
-        super(SFTPServerInterface, self).session_started()
-
-    def session_ended(self):
-        # print 'session_ended'
-        super(SFTPServerInterface, self).session_ended()
-        # self.server.channels.remove(self.channel)
-        # self.channel = None
-
-
-class SFTPHandler(paramiko.SFTPServer):
-    def __init__(self, channel, name, server, sftp_si=SFTPServerInterface, *largs, **kwargs):
-        super(SFTPHandler, self).__init__(channel, name, server, SFTPServerInterface, *largs, **kwargs)
-        self.server.channel = channel
-
-
 class SSHServer(paramiko.ServerInterface):
     def __init__(self,
                  listen_addr='127.0.0.1',
