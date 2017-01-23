@@ -208,38 +208,6 @@ class SSHServer(paramiko.ServerInterface):
 
             self.channels.add(ch)
 
-    def scp_session_thread(self, channel):
-        # print 'starting session thread %d' % channel.get_id()
-        self.reads[channel.get_id()] = []
-        buf = ''
-        while True:
-            b = channel.recv(1024)
-            self.reads[channel.get_id()].append(b)
-            if len(b) > 0:
-                buf += b
-            if buf.endswith('\n') or buf.endswith('\r') or buf.endswith('\x00'):
-                if '\x00' not in buf:
-                    buf = buf.strip()
-
-                # print 'got:'
-                # print buf
-                if channel.get_id() not in self.channelid2scpfilename and buf.startswith('C'):
-                    filename = buf.strip().split(' ')[2]
-                    self.channelid2scpfilename[channel.get_id()] = filename
-                    self.sftpfilename2stringio[filename] = StringIO()
-                    channel.sendall('\x00')
-                else:
-                    filename = self.channelid2scpfilename[channel.get_id()]
-                    self.sftpfilename2stringio[filename].write(buf.replace('\x00', ''))
-                    if '\x00' in buf:
-                        channel.sendall('\x00')
-                buf = ''
-            if len(b) == 0:
-                # print 'closing channel %d on empty recv' % channel.get_id()
-                # print self.sftpfilename2stringio
-                channel.close()
-                return
-
     def session_thread(self, channel):
         # print 'starting session thread %d' % channel.get_id()
         self.reads[channel.get_id()] = []
