@@ -90,17 +90,17 @@ class SFTPServerInterface(paramiko.SFTPServerInterface):
         return paramiko.SFTP_OK
 
     def open(self, path, flags, attr):
-        print 'OPEN'
+        # print 'OPEN'
         buf = StringIO()
         self.server.sftpfilename2stringio[path] = buf
         return SFTPReceiver(buf)
 
     def session_started(self):
-        print 'session_started'
+        # print 'session_started'
         super(SFTPServerInterface, self).session_started()
 
     def session_ended(self):
-        print 'session_ended'
+        # print 'session_ended'
         super(SFTPServerInterface, self).session_ended()
         # self.server.channels.remove(self.channel)
         # self.channel = None
@@ -182,18 +182,18 @@ class SSHServer(paramiko.ServerInterface):
             t2.start()
 
     def transportthread(self):
-        print 'starting transport thread'
+        # print 'starting transport thread'
         while True:
             ch = self.transport.accept()
             if ch is None:
-                print 'transport accept None channel'
+                # print 'transport accept None channel'
                 return
-            print 'transport accept channel %d' % ch.get_id()
+            # print 'transport accept channel %d' % ch.get_id()
 
             self.channels.add(ch)
 
     def scp_session_thread(self, channel):
-        print 'starting session thread %d' % channel.get_id()
+        # print 'starting session thread %d' % channel.get_id()
         self.reads[channel.get_id()] = []
         buf = ''
         while True:
@@ -205,8 +205,8 @@ class SSHServer(paramiko.ServerInterface):
                 if '\x00' not in buf:
                     buf = buf.strip()
 
-                print 'got:'
-                print buf
+                # print 'got:'
+                # print buf
                 if channel.get_id() not in self.channelid2scpfilename and buf.startswith('C'):
                     filename = buf.strip().split(' ')[2]
                     self.channelid2scpfilename[channel.get_id()] = filename
@@ -219,13 +219,13 @@ class SSHServer(paramiko.ServerInterface):
                         channel.sendall('\x00')
                 buf = ''
             if len(b) == 0:
-                print 'closing channel %d on empty recv' % channel.get_id()
-                print self.sftpfilename2stringio
+                # print 'closing channel %d on empty recv' % channel.get_id()
+                # print self.sftpfilename2stringio
                 channel.close()
                 return
 
     def session_thread(self, channel):
-        print 'starting session thread %d' % channel.get_id()
+        # print 'starting session thread %d' % channel.get_id()
         self.reads[channel.get_id()] = []
         channel.sendall(self.fake_device.get_banner())
         buf = ''
@@ -243,7 +243,7 @@ class SSHServer(paramiko.ServerInterface):
                     channel.sendall(e)
                 buf = ''
             if len(b) == 0:
-                print 'closing channel %d on empty recv' % channel.get_id()
+                # print 'closing channel %d on empty recv' % channel.get_id()
                 channel.close()
                 return
 
@@ -268,7 +268,7 @@ class SSHServer(paramiko.ServerInterface):
             return paramiko.AUTH_FAILED
 
     def check_channel_exec_request(self, channel, command):
-        print 'channel %d exec command %s' % (channel.get_id(), command)
+        # print 'channel %d exec command %s' % (channel.get_id(), command)
         if command.startswith('scp'):
             if not self.enable_scp:
                 return False
@@ -287,29 +287,29 @@ class SSHServer(paramiko.ServerInterface):
         return True
 
     def check_channel_pty_request(self, channel, term, width, height, pixelwidth, pixelheight, modes):
-        print 'pty request channel %d' % channel.get_id()
+        # print 'pty request channel %d' % channel.get_id()
         return True
 
     def check_channel_env_request(self, channel, name, value):
-        print 'env request channel %d' % channel.get_id()
+        # print 'env request channel %d' % channel.get_id()
         return True
 
     def check_channel_shell_request(self, channel):
-        print 'shell request %d' % channel.get_id()
+        # print 'shell request %d' % channel.get_id()
         t3 = threading.Thread(target=self.session_thread, args=(channel,))
         t3.setDaemon(True)
         t3.start()
         return True
 
     def check_auth_password(self, username, password):
-        print 'check auth'
+        # print 'check auth'
         if self.user2password.get(username) == password:
             return paramiko.AUTH_SUCCESSFUL
         else:
             return paramiko.AUTH_FAILED
 
     def check_channel_subsystem_request(self, channel, name):
-        print 'subsystem request channel %d %s' % (channel.get_id(), name)
+        # print 'subsystem request channel %d %s' % (channel.get_id(), name)
         return super(SSHServer, self).check_channel_subsystem_request(channel, name)
 
     def get_allowed_auths(self, username):
@@ -325,7 +325,7 @@ class SSHServer(paramiko.ServerInterface):
                 return ""
 
     def check_channel_request(self, kind, chanid):
-        print 'channel request kind="%s" channel %d' % (kind, chanid)
+        # print 'channel request kind="%s" channel %d' % (kind, chanid)
         return paramiko.OPEN_SUCCEEDED
 
 
