@@ -14,35 +14,6 @@ from cloudshell.cli.session.ssh_session import SSHSession, SSHSessionException
 from mock import Mock, patch
 
 
-KEY_WITHOUT_PASSPHRASE = '''-----BEGIN RSA PRIVATE KEY-----
-MIIEogIBAAKCAQEAy3c5WDz+EY0itrUjRXsDL3DK0nVrvfkvArdORajNT/mjThfh
-aUT8sCin0Abg8IiOcBFA35GutAUJGiJ0TEeIJzSHJmZoyRqeXSyP+cnPJ2I6n96J
-Q6+dfeP+yKNhtNrqSZ0Tb7BLjogeVyHNaTiQESRs7tl1q8kzqG5Bz6JfkqxFt1J0
-3WCiPu4e5ZwLJTXoiXfJhc8Ja0WztkT0e/bXgVEdrvB6enxP5uWWOo0U/61SyvWe
-3nVvBwtdZiNY2ltDEM+uhPOSby8+cUOH7T+U3YLuIuMBgGTHHZxwcCzC6EYUFYjd
-7B21x4s0lU7OVEI0OYV2BJfscBtB3+e00ytyGwIDAQABAoIBAB/RqFUlTLJf+QLL
-txVhlHDx2bYqCMxv0KtDEWmRaXJNXv2SfHzi/gVqhjvhJ4JWSLg76oJMHR8n/nFo
-2/kl4qQG8e/OaiqxD/0QP//XUJ8fHH3t5leAeke6xRiJfHk1FximCOkZj+ddYClO
-Lvp6jwUvRh3gQie4UmzPuVkIUpv0L1/RrGoL+JDBWsoHULxUxAUEgFcClnnQMkbZ
-tGRAUfo1I9bLzoIXDGCkIiIDuF4NHwj80HJmbf2bCbrsP9BFfOqOe7vm5fzBP+B9
-ps0+NRp3Np7ZwGY4b7YqChTfISouSWuLl8F8faICE3Fgtl0dtqhdb/Dd+Z5c8U2+
-DLWZD/ECgYEA96RbBvA+S7IRTFUUTZ+Zd7DQTuU5kVtQIakCkNH1611xT5vVJsSK
-Z+DZVehd5Tm1+1lWk1LZCvnahzrlekYt+dmB6Y2XlM9AyxgW5GRifHWlp7xc4xDQ
-hiAX4Mv+clAcz/S/gSFcttk78gMapZhova4vM5bYPtvOG4IZ3Gt6kPkCgYEA0lUu
-oAOnmwwAujOPMI39vxuh4AAaClLiNdToyXnHN6karVR7r0hm/eMdpEEnKLw2aLNx
-MxSLK9M3TCqK9VIgnhC6SrBn6HO24jUXxltNsA48NuM0fAEa9lDgMwzIoNdRw/hL
-/XlLWKO7gO4RsiRuPOsAIKaZ0vzrnnGaVE4RtLMCgYBDgXkS3iCNL+BJR5P+SPhj
-yT4vk4rq1dJ1KoY5hhKcc191DQzAwajdAk0cfvhBiUbTWpogFOB3fn6UiHiPqVvV
-FPa1/NQKS6jk9A8heT/jn4plvBIyD55YQZ1guRsGfFIuWhBuGfMVIQiXQ0NbSr2a
-n0XcsU0HbZG0q/VywZWquQKBgENOlvkFsmDfWmw7i5rSFV1OjmKMJckf9NudIlE2
-8xVQvASzgFD7LloYj6e8YbebYx3mLldWP6LqmEt7YbRXb7ClUbgM83NjdCa3LsB+
-/0FTjNlTo7v67pHcF6K+eIVf4f6AOnEGm6Hl417C0E7dcZl06jmIlrj5zryJRgWs
-ZeYZAoGAeNci+ovfvY9k1vLu/vObSBxeFy0XRW2Sb7WVgX5bVOiB59+SPtrl1+5K
-YQQOac/uJaoBYGWlBS+2TufB6QS0LREi5k/CkvmN+cTg8U5QkyRZpltjJnIxDXLC
-IhTaHWMNXatAhwWfKUJR++xBK5Gb2gpwQax4P5Cz6fukg4prEKg=
------END RSA PRIVATE KEY-----
-'''
-
 KEY_WITH_PASSPHRASE = '''-----BEGIN RSA PRIVATE KEY-----
 Proc-Type: 4,ENCRYPTED
 DEK-Info: AES-128-CBC,E81B330B3A278826D82BEBBC87DE2689
@@ -345,7 +316,7 @@ class TestSshSession(TestCase):
                                              on_session_start=self._on_session_start)))
 
     def test_connect_simple(self):
-        pkey = paramiko.RSAKey.from_private_key(StringIO(KEY_WITHOUT_PASSPHRASE))  # unused
+        pkey = paramiko.RSAKey.from_private_key(StringIO(KEY_WITH_PASSPHRASE), password=KEY_PASSPHRASE)  # unused
         server = SSHServer(user2key={'user-1', pkey}, user2password={'user0': 'password0'})
         self._instance = SSHSession('127.0.0.1',
                                     'user0', 'password0',
@@ -388,19 +359,7 @@ class TestSshSession(TestCase):
         o = self._instance.hardware_expect('ls', '>', Mock())
         self.assertTrue('[prompt]' in o)
 
-    def test_rsa_without_passphrase(self):
-        pkey = paramiko.RSAKey.from_private_key(StringIO(KEY_WITHOUT_PASSPHRASE))
-        server = SSHServer(user2key={'user2': pkey})
-
-        self._instance = SSHSession('127.0.0.1',
-                                    'user2', '',
-                                    port=server.port,
-                                    on_session_start=self._on_session_start,
-                                    rsa_key_string=KEY_WITHOUT_PASSPHRASE)
-        self._instance.connect('>', logger=Mock())
-        self._instance.hardware_expect('ls', '>', Mock())
-
-    def test_rsa_with_good_passphrase(self):
+    def test_rsa(self):
         pkey = paramiko.RSAKey.from_private_key(StringIO(KEY_WITH_PASSPHRASE), password=KEY_PASSPHRASE)
 
         server = SSHServer(user2key={'user4': pkey})
@@ -409,29 +368,7 @@ class TestSshSession(TestCase):
                                     'user4', '',
                                     port=server.port,
                                     on_session_start=self._on_session_start,
-                                    rsa_key_string=KEY_WITH_PASSPHRASE,
-                                    rsa_key_passphrase=KEY_PASSPHRASE)
+                                    pkey=pkey)
         self._instance.connect('>', logger=Mock())
         self._instance.hardware_expect('ls', '>', Mock())
-
-    def test_rsa_with_missing_passphrase(self):
-        with self.assertRaises(PasswordRequiredException):
-            self._instance = SSHSession('127.0.0.1',
-                                        'user4', '',
-                                        port=12345,
-                                        on_session_start=self._on_session_start,
-                                        rsa_key_string=KEY_WITH_PASSPHRASE)
-            self._instance.connect('>', logger=Mock())
-            self._instance.hardware_expect('ls', '>', Mock())
-
-    def test_rsa_with_bad_passphrase(self):
-        with self.assertRaises(SSHException):
-            self._instance = SSHSession('127.0.0.1', 'user5', '',
-                                        port=12345,
-                                        on_session_start=self._on_session_start,
-                                        rsa_key_string=KEY_WITH_PASSPHRASE,
-                                        rsa_key_passphrase='bad passphrase')
-            self._instance.connect('>', logger=Mock())
-            self._instance.hardware_expect('ls', '>', Mock())
-
 

@@ -18,7 +18,7 @@ class SSHSession(ExpectSession, ConnectionParams):
     SESSION_TYPE = 'SSH'
     BUFFER_SIZE = 512
 
-    def __init__(self, host, username, password, port=None, on_session_start=None, rsa_key_string=None, rsa_key_passphrase=None, *args, **kwargs):
+    def __init__(self, host, username, password, port=None, on_session_start=None, pkey=None, *args, **kwargs):
         ConnectionParams.__init__(self, host, port=port, on_session_start=on_session_start)
         ExpectSession.__init__(self, *args, **kwargs)
 
@@ -27,8 +27,7 @@ class SSHSession(ExpectSession, ConnectionParams):
 
         self.username = username
         self.password = password
-        self.rsa_key_string = rsa_key_string
-        self.rsa_key_passphrase = rsa_key_passphrase
+        self.pkey = pkey
 
         self._handler = None
         self._current_channel = None
@@ -57,14 +56,9 @@ class SSHSession(ExpectSession, ConnectionParams):
             self._handler.load_system_host_keys()
             self._handler.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        if self.rsa_key_string:
-            pkey = RSAKey.from_private_key(StringIO(self.rsa_key_string), password=self.rsa_key_passphrase)
-        else:
-            pkey = None
-
         try:
             self._handler.connect(self.host, self.port, self.username, self.password, timeout=self._timeout,
-                                  banner_timeout=30, allow_agent=False, look_for_keys=False, pkey=pkey)
+                                  banner_timeout=30, allow_agent=False, look_for_keys=False, pkey=self.pkey)
         except Exception as e:
             logger.error(traceback.format_exc())
             raise SSHSessionException(self.__class__.__name__,
