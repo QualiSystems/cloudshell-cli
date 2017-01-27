@@ -83,7 +83,7 @@ class SFTPServerInterface(paramiko.SFTPServerInterface):
 
     def stat(self, path):
         rv = paramiko.SFTPAttributes()
-        rv.st_size = len(self.server.sftpfilename2stringio[path].getvalue())
+        rv.st_size = len(self.server.filename2stringio[path].getvalue())
         return rv
 
     def chattr(self, path, attr):
@@ -92,7 +92,7 @@ class SFTPServerInterface(paramiko.SFTPServerInterface):
     def open(self, path, flags, attr):
         # print 'OPEN'
         buf = StringIO()
-        self.server.sftpfilename2stringio[path] = buf
+        self.server.filename2stringio[path] = buf
         return SFTPReceiver(buf)
 
     def session_started(self):
@@ -145,7 +145,7 @@ class SSHServer(paramiko.ServerInterface):
         self.fake_device = fake_device or DefaultFakeDevice()
         self.server_key = RSAKey.from_private_key(StringIO(server_key_string)) if server_key_string else RSAKey.generate(2048)
         self.reads = {}
-        self.sftpfilename2stringio = {}
+        self.filename2stringio = {}
         self.channelid2scpfilename = {}
         self.channelid2subsystem = {}
         self.channels = set()
@@ -210,17 +210,17 @@ class SSHServer(paramiko.ServerInterface):
                 if channel.get_id() not in self.channelid2scpfilename and buf.startswith('C'):
                     filename = buf.strip().split(' ')[2]
                     self.channelid2scpfilename[channel.get_id()] = filename
-                    self.sftpfilename2stringio[filename] = StringIO()
+                    self.filename2stringio[filename] = StringIO()
                     channel.sendall('\x00')
                 else:
                     filename = self.channelid2scpfilename[channel.get_id()]
-                    self.sftpfilename2stringio[filename].write(buf.replace('\x00', ''))
+                    self.filename2stringio[filename].write(buf.replace('\x00', ''))
                     if '\x00' in buf:
                         channel.sendall('\x00')
                 buf = ''
             if len(b) == 0:
                 # print 'closing channel %d on empty recv' % channel.get_id()
-                # print self.sftpfilename2stringio
+                # print self.filename2stringio
                 channel.close()
                 return
 
@@ -359,15 +359,6 @@ class TestSshSession(TestCase):
             self._instance.__eq__(SSHSession(self._hostname, self._username, 'incorrect_password', port=self._port,
                                              on_session_start=self._on_session_start)))
 
-    def test_upload_default(self):
-        server = SSHServer(user2password={'user0': 'password0'}, enable_sftp=True, enable_scp=True)
-        self._instance = SSHSession('127.0.0.1',
-                                    'user0', 'password0',
-                                    port=server.port,
-                                    on_session_start=self._on_session_start)
-        self._instance.connect('>', logger=Mock())
-        self._instance.upload(StringIO('fghij'), 'x.txt', 5, '0601')
-        self.assertTrue(server.sftpfilename2stringio['x.txt'].getvalue() == 'fghij')
 
     def test_upload_sftp(self):
         server = SSHServer(user2password={'user0': 'password0'}, enable_sftp=True, enable_scp=False)
@@ -376,8 +367,8 @@ class TestSshSession(TestCase):
                                     port=server.port,
                                     on_session_start=self._on_session_start)
         self._instance.connect('>', logger=Mock())
-        self._instance.upload(StringIO('klmno'), 'z.txt', 5, '0601')
-        self.assertTrue(server.sftpfilename2stringio['z.txt'].getvalue() == 'klmno')
+        self._instance.upload_sftp(StringIO('klmno'), 'z.txt', 5, '0601')
+        self.assertTrue(server.filename2stringio['z.txt'].getvalue() == 'klmno')
 
     def test_upload_scp(self):
         server = SSHServer(user2password={'user0': 'password0'}, enable_sftp=False, enable_scp=True)
@@ -386,7 +377,7 @@ class TestSshSession(TestCase):
                                     port=server.port,
                                     on_session_start=self._on_session_start)
         self._instance.connect('>', logger=Mock())
-        self._instance.upload(StringIO('abcde'), 'y.txt', 5, '0601')
+        self._instance.upload_scp(StringIO('abcde'), 'y.txt', 5, '0601')
         sleep(3)
-        self.assertTrue(server.sftpfilename2stringio['y.txt'].getvalue() == 'abcde')
+        self.assertTrue(server.filename2stringio['y.txt'].getvalue() == 'abcde')
 

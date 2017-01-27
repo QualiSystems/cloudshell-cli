@@ -111,7 +111,7 @@ class SSHSession(ExpectSession, ConnectionParams):
 
         return data
 
-    def upload(self, file_stream, dest_pathname, file_size, dest_permissions='0601'):
+    def upload_scp(self, file_stream, dest_pathname, file_size, dest_permissions='0601'):
         """
 
         :param file_stream: filelike object : open file, StringIO, or other filelike object to read data from
@@ -120,13 +120,21 @@ class SSHSession(ExpectSession, ConnectionParams):
         :param dest_permissions: str : permission string as octal digits, e.g. 0601
         :return:
         """
-        try:
-            sftp = paramiko.SFTPClient.from_transport(self._handler.get_transport())
-            sftp.putfo(file_stream, dest_pathname)
-            sftp.chmod(dest_pathname, int(dest_permissions, base=8))
-            sftp.close()
-        except:
-            folder = os.path.dirname(dest_pathname)
-            file_name = os.path.basename(dest_pathname)
-            scp = Write(self._handler.get_transport(), folder)
-            scp.send(file_stream, file_name, dest_permissions, file_size)
+        folder = os.path.dirname(dest_pathname)
+        file_name = os.path.basename(dest_pathname)
+        scp = Write(self._handler.get_transport(), folder)
+        scp.send(file_stream, file_name, dest_permissions, file_size)
+
+    def upload_sftp(self, file_stream, dest_pathname, file_size, dest_permissions='0601'):
+        """
+
+        :param file_stream: filelike object : open file, StringIO, or other filelike object to read data from
+        :param dest_pathname: str : name of the file in the destination, with optional folder path prefix
+        :param file_size: int : size of the file, mandatory unless you are sure SFTP is available, in which case pass 0
+        :param dest_permissions: str : permission string as octal digits, e.g. 0601
+        :return:
+        """
+        sftp = paramiko.SFTPClient.from_transport(self._handler.get_transport())
+        sftp.putfo(file_stream, dest_pathname)
+        sftp.chmod(dest_pathname, int(dest_permissions, base=8))
+        sftp.close()
