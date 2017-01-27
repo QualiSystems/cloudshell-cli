@@ -315,6 +315,11 @@ class TestSshSession(TestCase):
             self._instance.__eq__(SSHSession(self._hostname, self._username, 'incorrect_password', port=self._port,
                                              on_session_start=self._on_session_start)))
 
+        pkey = paramiko.RSAKey.from_private_key(StringIO(KEY_WITH_PASSPHRASE), password=KEY_PASSPHRASE)
+        self.assertFalse(
+            self._instance.__eq__(SSHSession(self._hostname, self._username, '', port=self._port,
+                                             on_session_start=self._on_session_start, pkey=pkey)))
+
 
     @patch('cloudshell.cli.session.ssh_session.ExpectSession')
     def test_eq_rsa(self, expect_session):

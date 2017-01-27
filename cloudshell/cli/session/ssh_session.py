@@ -40,7 +40,10 @@ class SSHSession(ExpectSession, ConnectionParams):
         :return:
         """
         return ConnectionParams.__eq__(self,
-                                       other) and self.username == other.username and self.password == other.password
+                                       other) and \
+               self.username == other.username and \
+               self.password == other.password and \
+               self.pkey == other.pkey
 
     def __del__(self):
         self.disconnect()

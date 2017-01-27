@@ -32,4 +32,7 @@ class ConnectionParams(object):
         :return:
         :rtype: bool
         """
-        return self.__class__ == other.__class__ and self.host == other.host and self.port == other.port and self.pkey == other.pkey
+        return self.__class__ == other.__class__ and \
+               self.host == other.host and \
+               self.port == other.port and \
+               self.pkey == other.pkey
