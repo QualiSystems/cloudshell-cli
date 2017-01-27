@@ -315,6 +315,20 @@ class TestSshSession(TestCase):
             self._instance.__eq__(SSHSession(self._hostname, self._username, 'incorrect_password', port=self._port,
                                              on_session_start=self._on_session_start)))
 
+
+    @patch('cloudshell.cli.session.ssh_session.ExpectSession')
+    def test_eq_rsa(self, expect_session):
+        pkey = paramiko.RSAKey.from_private_key(StringIO(KEY_WITH_PASSPHRASE), password=KEY_PASSPHRASE)
+        self._instance = SSHSession(self._hostname, self._username, self._password, port=self._port,
+                                    on_session_start=self._on_session_start, pkey=pkey)
+
+        self.assertTrue(
+            self._instance.__eq__(SSHSession(self._hostname, self._username, self._password, port=self._port,
+                                             on_session_start=self._on_session_start, pkey=pkey)))
+        self.assertFalse(
+            self._instance.__eq__(SSHSession(self._hostname, self._username, self._password, port=self._port,
+                                             on_session_start=self._on_session_start)))
+
     def test_connect_simple(self):
         pkey = paramiko.RSAKey.from_private_key(StringIO(KEY_WITH_PASSPHRASE), password=KEY_PASSPHRASE)  # unused
         server = SSHServer(user2key={'user-1', pkey}, user2password={'user0': 'password0'})
@@ -372,3 +386,16 @@ class TestSshSession(TestCase):
         self._instance.connect('>', logger=Mock())
         self._instance.hardware_expect('ls', '>', Mock())
 
+    def test_rsa_failure(self):
+        pkey = paramiko.RSAKey.from_private_key(StringIO(KEY_WITH_PASSPHRASE), password=KEY_PASSPHRASE)
+
+        server = SSHServer(user2key={})
+
+        with self.assertRaises(SSHSessionException):
+            self._instance = SSHSession('127.0.0.1',
+                                        'user5', '',
+                                        port=server.port,
+                                        on_session_start=self._on_session_start,
+                                        pkey=pkey)
+            self._instance.connect('>', logger=Mock())
+            self._instance.hardware_expect('ls', '>', Mock())

@@ -19,7 +19,7 @@ class SSHSession(ExpectSession, ConnectionParams):
     BUFFER_SIZE = 512
 
     def __init__(self, host, username, password, port=None, on_session_start=None, pkey=None, *args, **kwargs):
-        ConnectionParams.__init__(self, host, port=port, on_session_start=on_session_start)
+        ConnectionParams.__init__(self, host, port=port, on_session_start=on_session_start, pkey=pkey)
         ExpectSession.__init__(self, *args, **kwargs)
 
         if hasattr(self, 'port') and self.port is None:
