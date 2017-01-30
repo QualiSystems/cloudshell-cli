@@ -12,6 +12,48 @@ from cloudshell.cli.session.ssh_session import SSHSession
 from mock import Mock, patch
 
 
+from paramiko import PasswordRequiredException
+from paramiko import RSAKey
+from paramiko import SSHException
+
+from cloudshell.cli.session.ssh_session import SSHSession, SSHSessionException
+from mock import Mock, patch
+
+
+KEY_WITH_PASSPHRASE = '''-----BEGIN RSA PRIVATE KEY-----
+Proc-Type: 4,ENCRYPTED
+DEK-Info: AES-128-CBC,E81B330B3A278826D82BEBBC87DE2689
+
+o5HgSflyaNgr58eQbpzT+Mns1jGe1ni6+BfvOH2L802TISoihKKLzw4RQySJC7AG
+voE+HieCdyAmrQ63xob3vu09GkJO/JOh1qBRPh7uhqX0T0VQM1cMy6j1yQsylpPC
+iQ0+2MqBQlrldJBQ5SdwoV9I3ffo5AzJ76IpnfzIQezcNS0q23MKOVxJR6j7Zffe
+rj4pODyfKVfBIbpFcvQKZhUcoZIqIhm+8Gsu45hRn/hjz0cyV3YmMv50S7onOqSi
+aaYnCWQ79TndNAFW0GE38C3SdZa6S0UXHKVyx52T3uriUGDv/2Vxkbm4Z8bwcTPx
+vYebH4Yme2MX/HZkRD49at0lDtglyPqQNjlDhdV6RYEDKYH8AXWlaR2oafTCY8D3
+bmNhRKP5mfqoPBta6DCSbEvKcYTRkiv4TLrn4W15671izWooZSzQHn3yYJQv/wPX
+g7uzEjM3l0V5qB6eMKeoFZ6ZdPtnynpRBBpmbzVEf6ae6xLopV5kxBs1w6NSDNfY
+s71Dol2VkiDWNCHcVO4bHMgxeKRtMaLFZ/XAUlyRklxwTwRGC0wY2XeHneo/Qr5S
+RmhYFttIAK+/STsoO3Z6DYGnFw+djhz/3Lbrhv8bfyIpubMqS7CfwAXQgrNWjPyX
+weCvgs829JZlnkyd5mUTobRKnnLVmumy3A2THb2iYeNToxmjIeXRaA9qaZKMUGH1
+R56AdbS3heX90N0ZFywMm5/TIUOciUER/P6hwAs6Lywmb3IYMNN8SCnfWxN047B7
+OJQGxCpg0/VxfZV5iOAqqWyqO684cbSF8RjA8LxnrMlWvpkj2+NXQm9GDyLB3FqC
+1KFE0e5a872upFOiQ13dkFRLSzxE/Y6FaphmkC6AKMq5CARUC94j/uItIpCeSmzX
+VQIvRJwsBqy4CJtuD1kJwQQu6cZ7cnJ60OL0et2idPaeNnNl1f5fsZyzGFaJ8IcF
+u+d7P/T+bNpC70EasD2hn/KUX61//3ScGuIkSJeX/u0DGjddkfdgzgRluB1YqpHT
+3ERx3evUoZypYcF+e8BtkrR4ARaNfRj27OPQPf6q1CFFPPvK21dpsgJsDRztsp2n
++A1LLJMYpOhcc/pRc8zWpSuXtJ7y9lMUvWWTVm+saaVA6tZEo0ZqAbUK02Ob0Wdd
+bLIBXUPX8wvgYsGgNuy1jQNMSeygOWQ/VitSCMuMTWMg4tuQ2cIMNE8Y0ngwyamb
+/wAOebZYlD9MegGd3N8Ijc2SSGfz4nkOaTLEjhHDLcYO3TGL35wbJYlsa3QcjVPK
+VrTjSUBlRyEZu1r61Izo4ah1gwJpNjmQu3oe6+MU/GqI3BC3v7HQtj+MGklBwc0I
+r73roiEftLm95vMH8P+ksmis0ha8aFyXpOXdWfxLUz7RUp5PhdPkIgVyV1OvyVPh
+y9/ziFJPPMN703N1dJ0e1oRWpfSFUzlGn1OgF1EY9qQTwQK4PL9bhyJi1/MswZHB
+/XmDlKr7An89Iy+B/Q9ncja2FfK49AP23AMYKhdWBrEq+enXwjkr5Uz8ffD3eagD
+VZxBlCGUp4bmlS5s7sttMZRvJq0CXfxy+q8Qe0sz/CyOAN/J8iZu8AJyp04DQk4d
+-----END RSA PRIVATE KEY-----
+'''
+KEY_PASSPHRASE = 'quali1234'
+
+
 class FakeDevice:
     def __init__(self):
         pass
@@ -330,6 +372,7 @@ class SSHServer(paramiko.ServerInterface):
 
 
 class TestSshSession(TestCase):
+
     def setUp(self):
         self._username = 'user'
         self._password = 'pass'
@@ -359,6 +402,33 @@ class TestSshSession(TestCase):
             self._instance.__eq__(SSHSession(self._hostname, self._username, 'incorrect_password', port=self._port,
                                              on_session_start=self._on_session_start)))
 
+        pkey = paramiko.RSAKey.from_private_key(StringIO(KEY_WITH_PASSPHRASE), password=KEY_PASSPHRASE)
+        self.assertFalse(
+            self._instance.__eq__(SSHSession(self._hostname, self._username, '', port=self._port,
+                                             on_session_start=self._on_session_start, pkey=pkey)))
+
+    @patch('cloudshell.cli.session.ssh_session.ExpectSession')
+    def test_eq_rsa(self, expect_session):
+        pkey = paramiko.RSAKey.from_private_key(StringIO(KEY_WITH_PASSPHRASE), password=KEY_PASSPHRASE)
+        self._instance = SSHSession(self._hostname, self._username, self._password, port=self._port,
+                                    on_session_start=self._on_session_start, pkey=pkey)
+
+        self.assertTrue(
+            self._instance.__eq__(SSHSession(self._hostname, self._username, self._password, port=self._port,
+                                             on_session_start=self._on_session_start, pkey=pkey)))
+        self.assertFalse(
+            self._instance.__eq__(SSHSession(self._hostname, self._username, self._password, port=self._port,
+                                             on_session_start=self._on_session_start)))
+
+    def test_connect_simple(self):
+        pkey = paramiko.RSAKey.from_private_key(StringIO(KEY_WITH_PASSPHRASE), password=KEY_PASSPHRASE)  # unused
+        server = SSHServer(user2key={'user-1', pkey}, user2password={'user0': 'password0'})
+        self._instance = SSHSession('127.0.0.1',
+                                    'user0', 'password0',
+                                    port=server.port,
+                                    on_session_start=self._on_session_start)
+        self._instance.connect('>', logger=Mock())
+        self._instance.hardware_expect('dummy command', '>', Mock())
 
     def test_upload_sftp(self):
         server = SSHServer(user2password={'user0': 'password0'}, enable_sftp=True, enable_scp=False)
@@ -366,7 +436,6 @@ class TestSshSession(TestCase):
                                     'user0', 'password0',
                                     port=server.port,
                                     on_session_start=self._on_session_start)
-        self._instance.connect('>', logger=Mock())
         self._instance.upload_sftp(StringIO('klmno'), 'z.txt', 5, '0601')
         self.assertTrue(server.filename2stringio['z.txt'].getvalue() == 'klmno')
 
@@ -381,3 +450,63 @@ class TestSshSession(TestCase):
         sleep(3)
         self.assertTrue(server.filename2stringio['y.txt'].getvalue() == 'abcde')
 
+    def test_connect_timeout(self):
+        self._instance = SSHSession('bad_host', 'user1', 'password1', on_session_start=self._on_session_start)
+        with self.assertRaises(SSHSessionException):
+            self._instance.connect('>', logger=Mock())
+
+    def test_username_password(self):
+        server = SSHServer(user2password={'user1': 'password1'})
+
+        self._instance = SSHSession('127.0.0.1',
+                                    'user1', 'password1',
+                                    port=server.port,
+                                    on_session_start=self._on_session_start)
+        self._instance.connect('>', logger=Mock())
+        self._instance.hardware_expect('dummy command', '>', Mock())
+
+    def test_enable_exit(self):
+        server = SSHServer(user2password={'user1': 'password1'})
+
+        self._instance = SSHSession('127.0.0.1',
+                                    'user1', 'password1',
+                                    port=server.port,
+                                    on_session_start=self._on_session_start)
+        self._instance.connect('>', logger=Mock())
+        o = self._instance.hardware_expect('dummy command', '>', Mock())
+        self.assertTrue('[prompt]' in o)
+        o = self._instance.hardware_expect('enable', '>', Mock())
+        self.assertTrue('[enable]' in o)
+        o = self._instance.hardware_expect('dummy command', '>', Mock())
+        self.assertTrue('[enable]' in o)
+        o = self._instance.hardware_expect('exit', '>', Mock())
+        self.assertTrue('[prompt]' in o)
+        o = self._instance.hardware_expect('dummy command', '>', Mock())
+        self.assertTrue('[prompt]' in o)
+
+    def test_rsa(self):
+        pkey = paramiko.RSAKey.from_private_key(StringIO(KEY_WITH_PASSPHRASE), password=KEY_PASSPHRASE)
+
+        server = SSHServer(user2key={'user4': pkey})
+
+        self._instance = SSHSession('127.0.0.1',
+                                    'user4', '',
+                                    port=server.port,
+                                    on_session_start=self._on_session_start,
+                                    pkey=pkey)
+        self._instance.connect('>', logger=Mock())
+        self._instance.hardware_expect('dummy command', '>', Mock())
+
+    def test_rsa_failure(self):
+        pkey = paramiko.RSAKey.from_private_key(StringIO(KEY_WITH_PASSPHRASE), password=KEY_PASSPHRASE)
+
+        server = SSHServer(user2key={})
+
+        with self.assertRaises(SSHSessionException):
+            self._instance = SSHSession('127.0.0.1',
+                                        'user5', '',
+                                        port=server.port,
+                                        on_session_start=self._on_session_start,
+                                        pkey=pkey)
+            self._instance.connect('>', logger=Mock())
+            self._instance.hardware_expect('dummy command', '>', Mock())

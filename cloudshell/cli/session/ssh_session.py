@@ -1,6 +1,9 @@
 import os
 import socket
 import traceback
+from StringIO import StringIO
+
+from paramiko import RSAKey
 
 from scpclient import Write
 
@@ -18,8 +21,8 @@ class SSHSession(ExpectSession, ConnectionParams):
     SESSION_TYPE = 'SSH'
     BUFFER_SIZE = 512
 
-    def __init__(self, host, username, password, port=None, on_session_start=None, *args, **kwargs):
-        ConnectionParams.__init__(self, host, port=port, on_session_start=on_session_start)
+    def __init__(self, host, username, password, port=None, on_session_start=None, pkey=None, *args, **kwargs):
+        ConnectionParams.__init__(self, host, port=port, on_session_start=on_session_start, pkey=pkey)
         ExpectSession.__init__(self, *args, **kwargs)
 
         if hasattr(self, 'port') and self.port is None:
@@ -27,6 +30,7 @@ class SSHSession(ExpectSession, ConnectionParams):
 
         self.username = username
         self.password = password
+        self.pkey = pkey
 
         self._handler = None
         self._current_channel = None
@@ -39,7 +43,10 @@ class SSHSession(ExpectSession, ConnectionParams):
         :return:
         """
         return ConnectionParams.__eq__(self,
-                                       other) and self.username == other.username and self.password == other.password
+                                       other) and \
+               self.username == other.username and \
+               self.password == other.password and \
+               self.pkey == other.pkey
 
     def __del__(self):
         self.disconnect()
@@ -57,7 +64,7 @@ class SSHSession(ExpectSession, ConnectionParams):
 
         try:
             self._handler.connect(self.host, self.port, self.username, self.password, timeout=self._timeout,
-                                  banner_timeout=30, allow_agent=False, look_for_keys=False)
+                                  banner_timeout=30, allow_agent=False, look_for_keys=False, pkey=self.pkey)
         except Exception as e:
             logger.error(traceback.format_exc())
             raise SSHSessionException(self.__class__.__name__,
