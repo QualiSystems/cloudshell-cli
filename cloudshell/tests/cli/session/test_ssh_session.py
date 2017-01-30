@@ -436,6 +436,7 @@ class TestSshSession(TestCase):
                                     'user0', 'password0',
                                     port=server.port,
                                     on_session_start=self._on_session_start)
+        self._instance.connect('>', logger=Mock())
         self._instance.upload_sftp(StringIO('klmno'), 'z.txt', 5, '0601')
         self.assertTrue(server.filename2stringio['z.txt'].getvalue() == 'klmno')
 
