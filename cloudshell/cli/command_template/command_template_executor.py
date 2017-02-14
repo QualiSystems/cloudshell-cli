@@ -18,8 +18,8 @@ class CommandTemplateExecutor(object):
         """
         self._cli_service = cli_service
         self._command_template = command_template
-        self._action_map = action_map
-        self._error_map = error_map
+        self._action_map = action_map or OrderedDict()
+        self._error_map = error_map or OrderedDict()
         self._optional_kwargs = optional_kwargs
 
     @property
