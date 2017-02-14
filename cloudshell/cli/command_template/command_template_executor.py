@@ -7,8 +7,7 @@ class CommandTemplateExecutor(object):
     Execute command template using cli service
     """
 
-    def __init__(self, cli_service, command_template, action_map=OrderedDict(), error_map=OrderedDict(),
-                 **optional_kwargs):
+    def __init__(self, cli_service, command_template, action_map=None, error_map=None, **optional_kwargs):
         """
         :param cli_service:
         :type cli_service: CliService
