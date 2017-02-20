@@ -7,8 +7,7 @@ class CommandTemplateExecutor(object):
     Execute command template using cli service
     """
 
-    def __init__(self, cli_service, command_template, action_map=OrderedDict(), error_map=OrderedDict(),
-                 **optional_kwargs):
+    def __init__(self, cli_service, command_template, action_map=None, error_map=None, **optional_kwargs):
         """
         :param cli_service:
         :type cli_service: CliService
@@ -18,8 +17,8 @@ class CommandTemplateExecutor(object):
         """
         self._cli_service = cli_service
         self._command_template = command_template
-        self._action_map = action_map
-        self._error_map = error_map
+        self._action_map = action_map or OrderedDict()
+        self._error_map = error_map or OrderedDict()
         self._optional_kwargs = optional_kwargs
 
     @property
