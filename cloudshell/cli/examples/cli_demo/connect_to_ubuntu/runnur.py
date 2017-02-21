@@ -41,14 +41,3 @@ if __name__ == '__main__':
         print(out)
         fd = open('C:\\Users\\luiza.n\\Downloads\\readfrom.txt')
         default_session.session.upload_scp(fd, './target.txt', 3104, '0666')
-
-
-
-
-'''
-cli = get_cli(session_pool_size)  # in initialize
-handler = MyCliHandler(cli, context, logger, api)  # in the runner
-flow = MyFlow(cli_handler=handler)
-with self._cli_handler.get_cli_service(self._cli_handler.enable_mode) as session:  # in execute_flow()
-    session.session.scp_upload(fd, 'target.bin', size, '0666')
-'''
