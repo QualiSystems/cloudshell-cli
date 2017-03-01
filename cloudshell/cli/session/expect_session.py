@@ -112,6 +112,9 @@ class ExpectSession(Session):
                 elif time.time() - start_time > timeout:
                     raise ExpectedSessionException(self.__class__.__name__, 'Socket closed by timeout')
 
+    def probe_for_prompt(self, expected_string, logger):
+        return self.hardware_expect('', expected_string, logger)
+
     def hardware_expect(self, command, expected_string, logger, action_map=None, error_map=None,
                         timeout=None, retries=None, check_action_loop_detector=True, empty_loop_timeout=None,
                         remove_command_from_output=True, **optional_args):

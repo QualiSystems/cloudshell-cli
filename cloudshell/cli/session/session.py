@@ -33,6 +33,10 @@ class Session(object):
         pass
 
     @abstractmethod
+    def probe_for_prompt(self, expected_string, logger):
+        pass
+
+    @abstractmethod
     def reconnect(self, prompt, logger, timeout=None):
         pass
 

@@ -22,7 +22,7 @@ class CommandModeHelper(NodeOperations):
         defined_modes = CommandModeHelper.defined_modes_by_prompt(command_mode)
         prompts_re = r'|'.join(defined_modes.keys())
         try:
-            result = session.hardware_expect('', expected_string=prompts_re, logger=logger)
+            result = session.probe_for_prompt(expected_string=prompts_re, logger=logger)
         except Exception as e:
             logger.debug(e.message)
             raise CommandModeException(CommandModeHelper.__class__.__name__,
