@@ -7,7 +7,7 @@ class ConnectionParams(object):
     """
     __metaclass__ = ABCMeta
 
-    def __init__(self, host, port=None, on_session_start=None):
+    def __init__(self, host, port=None, on_session_start=None, pkey=None):
         self.host = host
         self.port = None
 
@@ -23,6 +23,7 @@ class ConnectionParams(object):
             self.host = host
 
         self.on_session_start = on_session_start
+        self.pkey = pkey
 
     def __eq__(self, other):
         """
@@ -31,4 +32,7 @@ class ConnectionParams(object):
         :return:
         :rtype: bool
         """
-        return self.__class__ == other.__class__ and self.host == other.host and self.port == other.port
+        return self.__class__ == other.__class__ and \
+               self.host == other.host and \
+               self.port == other.port and \
+               self.pkey == other.pkey
