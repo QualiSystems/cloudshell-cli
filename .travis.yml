@@ -1,19 +1,19 @@
 language: python
 python:
-- '2.7'
-
-before_install:
-    - pip install coveralls
-    - pip install -r test_requirements.txt --extra-index-url https://testpypi.python.org/pypi
+    - "2.7"
 
 install:
-    - pip install -r requirements.txt --extra-index-url https://testpypi.python.org/pypi
+    - 'if [ ${TRAVIS_BRANCH} \!= "master" ] && [ -f dev_requirements.txt ]; then
+        pip install --extra-index-url https://testpypi.python.org/pypi -r dev_requirements.txt;
+      else
+        pip install -r requirements.txt;
+      fi'
     - python setup.py install
+    - pip install -r test_requirements.txt
+    - pip install coveralls
 
 script:
-    - python runtests.py --with-coverage  --cover-package=cloudshell
-    - python setup.py develop
-    - python setup.py sdist --format zip
+    - nosetests --with-coverage --cover-package=cloudshell.cli tests
 
 after_success:
     - coveralls
