@@ -62,10 +62,20 @@ class ExpectSession(Session):
 
     @abstractmethod
     def _connect_actions(self, prompt, logger):
+        """Read out buffer and run on_session_start actions
+        :param prompt: expected string in output
+        :param logger: logger
+        """
+        
         pass
 
     @abstractmethod
     def _initialize_session(self, prompt, logger):
+        """Create handler and initialize session
+        :param prompt: expected string in output
+        :param logger: logger
+        """
+
         pass
 
     def active(self):
@@ -91,14 +101,18 @@ class ExpectSession(Session):
         return out
 
     def connect(self, prompt, logger):
-        """Connect to device through ssh
+        """Connect to device.
         :param prompt: expected string in output
         :param logger: logger
         """
 
-        self._initialize_session(prompt, logger)
-        self._connect_actions(prompt, logger)
-        self._active = True
+        try:
+            self._initialize_session(prompt, logger)
+            self._connect_actions(prompt, logger)
+            self._active = True
+        except:
+            self.disconnect()
+            raise
 
     def send_line(self, command, logger):
         """
