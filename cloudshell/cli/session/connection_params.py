@@ -25,6 +25,10 @@ class ConnectionParams(object):
         self.on_session_start = on_session_start
         self.pkey = pkey
 
+    def _on_session_start(self, logger):
+        if self.on_session_start and callable(self.on_session_start):
+            self.on_session_start(self, logger)
+
     def __eq__(self, other):
         """
         :param other:

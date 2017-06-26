@@ -2,7 +2,7 @@ import socket
 import time
 from collections import OrderedDict
 
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 from cloudshell.cli.session.session_exceptions import SessionLoopDetectorException, SessionLoopLimitException, \
     ExpectedSessionException, CommandExecutionException, SessionReadTimeout, SessionReadEmptyData
 import re
@@ -60,6 +60,14 @@ class ExpectSession(Session):
     def session_type(self):
         return self.SESSION_TYPE
 
+    @abstractmethod
+    def _connect_actions(self, prompt, logger):
+        pass
+
+    @abstractmethod
+    def _initialize_session(self, prompt, logger):
+        pass
+
     def active(self):
         return self._active
 
@@ -81,6 +89,16 @@ class ExpectSession(Session):
             else:
                 break
         return out
+
+    def connect(self, prompt, logger):
+        """Connect to device through ssh
+        :param prompt: expected string in output
+        :param logger: logger
+        """
+
+        self._initialize_session(prompt, logger)
+        self._connect_actions(prompt, logger)
+        self._active = True
 
     def send_line(self, command, logger):
         """

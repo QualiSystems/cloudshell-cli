@@ -40,30 +40,23 @@ class TelnetSession(ExpectSession, ConnectionParams):
     def __del__(self):
         self.disconnect()
 
-    def connect(self, prompt, logger):
-        """Open connection to device / create session
+    def _connect_actions(self, prompt, logger):
+        action_map = OrderedDict()
+        action_map['[Ll]ogin:|[Uu]ser:|[Uu]sername:'] = lambda session, logger: session.send_line(session.username,
+                                                                                                  logger)
+        action_map['[Pp]assword:'] = lambda session, logger: session.send_line(session.password, logger)
+        self.hardware_expect(None, expected_string=prompt, timeout=self._timeout, logger=logger,
+                                   action_map=action_map)
+        self._on_session_start(logger)
 
-        :param prompt:
-        :param logger:
-        """
-        if not self._handler:
-            self._handler = telnetlib.Telnet()
+    def _initialize_session(self, prompt, logger):
+        self._handler = telnetlib.Telnet()
 
         self._handler.open(self.host, int(self.port), self._timeout)
         if self._handler.get_socket() is None:
             raise TelnetSessionException(self.__class__.__name__, "Failed to open telnet connection.")
 
         self._handler.get_socket().send(telnetlib.IAC + telnetlib.WILL + telnetlib.ECHO)
-
-        action_map = OrderedDict()
-        action_map['[Ll]ogin:|[Uu]ser:|[Uu]sername:'] = lambda session, logger: session.send_line(session.username,
-                                                                                                  logger)
-        action_map['[Pp]assword:'] = lambda session, logger: session.send_line(session.password, logger)
-        out = self.hardware_expect(None, expected_string=prompt, timeout=self._timeout, logger=logger,
-                                   action_map=action_map)
-        if self.on_session_start and callable(self.on_session_start):
-            self.on_session_start(self, logger)
-        self._active = True
 
     def disconnect(self):
         """Disconnect / close the session
