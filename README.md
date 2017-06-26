@@ -1,5 +1,5 @@
 # cloudshell-cli
-![alt tag](https://travis-ci.org/QualiSystems/cloudshell-cli.svg?branch=7.0_refactoring)
+[![Build status](https://travis-ci.org/QualiSystems/cloudshell-cli.svg?branch=dev)](https://travis-ci.org/QualiSystems/cloudshell-cli)
 [![Coverage Status](https://coveralls.io/repos/github/QualiSystems/cloudshell-cli/badge.svg?branch=dev)](https://coveralls.io/github/QualiSystems/cloudshell-cli?branch=dev)
 [![PyPI version](https://badge.fury.io/py/cloudshell-cli.svg)](https://badge.fury.io/py/cloudshell-cli)
 [![Dependency Status](https://dependencyci.com/github/QualiSystems/cloudshell-cli/badge)](https://dependencyci.com/github/QualiSystems/cloudshell-cli)
