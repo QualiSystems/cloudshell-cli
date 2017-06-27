@@ -11,6 +11,12 @@ class TestExpectSessionException(Exception):
 
 
 class ExpectSessionImpl(ExpectSession):
+    def _initialize_session(self, prompt, logger):
+        pass
+
+    def _connect_actions(self, prompt, logger):
+        pass
+
     def connect(self, prompt, logger):
         pass
 

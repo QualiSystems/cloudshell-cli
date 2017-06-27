@@ -2,7 +2,7 @@ import socket
 import time
 from collections import OrderedDict
 
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 from cloudshell.cli.session.session_exceptions import SessionLoopDetectorException, SessionLoopLimitException, \
     ExpectedSessionException, CommandExecutionException, SessionReadTimeout, SessionReadEmptyData
 import re
@@ -60,6 +60,24 @@ class ExpectSession(Session):
     def session_type(self):
         return self.SESSION_TYPE
 
+    @abstractmethod
+    def _connect_actions(self, prompt, logger):
+        """Read out buffer and run on_session_start actions
+        :param prompt: expected string in output
+        :param logger: logger
+        """
+        
+        pass
+
+    @abstractmethod
+    def _initialize_session(self, prompt, logger):
+        """Create handler and initialize session
+        :param prompt: expected string in output
+        :param logger: logger
+        """
+
+        pass
+
     def active(self):
         return self._active
 
@@ -81,6 +99,20 @@ class ExpectSession(Session):
             else:
                 break
         return out
+
+    def connect(self, prompt, logger):
+        """Connect to device.
+        :param prompt: expected string in output
+        :param logger: logger
+        """
+
+        try:
+            self._initialize_session(prompt, logger)
+            self._connect_actions(prompt, logger)
+            self._active = True
+        except:
+            self.disconnect()
+            raise
 
     def send_line(self, command, logger):
         """
