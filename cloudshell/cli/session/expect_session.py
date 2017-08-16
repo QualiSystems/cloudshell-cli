@@ -1,13 +1,12 @@
-import socket
+import re
 import time
+from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 
-from abc import ABCMeta, abstractmethod
+from cloudshell.cli.helper.normalize_buffer import normalize_buffer
+from cloudshell.cli.session.session import Session
 from cloudshell.cli.session.session_exceptions import SessionLoopDetectorException, SessionLoopLimitException, \
     ExpectedSessionException, CommandExecutionException, SessionReadTimeout, SessionReadEmptyData
-import re
-from cloudshell.cli.session.session import Session
-from cloudshell.cli.helper.normalize_buffer import normalize_buffer
 
 
 class ExpectSession(Session):
@@ -66,7 +65,7 @@ class ExpectSession(Session):
         :param prompt: expected string in output
         :param logger: logger
         """
-        
+
         pass
 
     @abstractmethod
@@ -75,8 +74,10 @@ class ExpectSession(Session):
         :param prompt: expected string in output
         :param logger: logger
         """
-
         pass
+
+    def set_active(self, state):
+        self._active = state
 
     def active(self):
         return self._active
@@ -109,7 +110,7 @@ class ExpectSession(Session):
         try:
             self._initialize_session(prompt, logger)
             self._connect_actions(prompt, logger)
-            self._active = True
+            self.set_active(True)
         except:
             self.disconnect()
             raise
