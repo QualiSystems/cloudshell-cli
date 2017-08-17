@@ -28,6 +28,13 @@ class SessionPoolContextManager(object):
 
         self._session = None
 
+    def _initialize_cli_service(self, session, prompt):
+        try:
+            return CliService(session, self._command_mode, self._logger)
+        except:
+            self._session.reconnect(prompt, self._logger)
+            return CliService(session, self._command_mode, self._logger)
+
     def __enter__(self):
         """
         :return:
@@ -36,22 +43,14 @@ class SessionPoolContextManager(object):
         prompts_re = r'|'.join(CommandModeHelper.defined_modes_by_prompt(self._command_mode).keys())
         self._session = self._session_pool.get_session(new_sessions=self._new_sessions, prompt=prompts_re,
                                                        logger=self._logger)
-
-        reconnected = False
-        while self._session.active():
-            try:
-                return CliService(self._session, self._command_mode, self._logger)
-            except:
-                if not reconnected:
-                    self._session.reconnect(prompts_re, self._logger)
-                    reconnected = True
-                else:
-                    self._session.set_active(False)
-                    raise
+        try:
+            return self._initialize_cli_service(self._session, prompts_re)
+        except:
+            self._session_pool.remove_session(self._session, self._logger)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self._session:
-            if not self._session.active() or exc_type and exc_type not in self.IGNORED_EXCEPTIONS:
+            if exc_type and exc_type not in self.IGNORED_EXCEPTIONS or not self._session.active():
                 self._session_pool.remove_session(self._session, self._logger)
             else:
                 self._session_pool.return_session(self._session, self._logger)
