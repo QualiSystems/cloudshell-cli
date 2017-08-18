@@ -47,6 +47,7 @@ class SessionPoolContextManager(object):
             return self._initialize_cli_service(self._session, prompts_re)
         except:
             self._session_pool.remove_session(self._session, self._logger)
+            raise
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self._session:
