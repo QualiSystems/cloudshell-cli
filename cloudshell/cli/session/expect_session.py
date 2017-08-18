@@ -206,7 +206,7 @@ class ExpectSession(Session):
 
             if read_buffer:
                 read_buffer = normalize_buffer(read_buffer)
-                logger.info(read_buffer)
+                logger.debug(read_buffer)
                 output_str += read_buffer
                 # if option remove_command_from_output is set to True, look for command in output buffer,
                 #  remove it in case of found
