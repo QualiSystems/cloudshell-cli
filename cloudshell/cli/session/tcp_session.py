@@ -25,8 +25,10 @@ class TCPSession(ExpectSession, ConnectionParams):
 
         self._handler.settimeout(self._timeout)
 
+    def probe_for_prompt(self, expected_string, logger):
+        return 'DUMMY_PROMPT'
+
     def _connect_actions(self, prompt, logger):
-        self.hardware_expect(command=None, expected_string=prompt, logger=logger)
         self._on_session_start(logger)
 
     def disconnect(self):
