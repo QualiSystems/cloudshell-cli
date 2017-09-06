@@ -1,6 +1,5 @@
-from collections import OrderedDict
-
 from abc import ABCMeta, abstractmethod
+from collections import OrderedDict
 
 
 class Session(object):
@@ -42,4 +41,8 @@ class Session(object):
 
     @abstractmethod
     def active(self):
+        pass
+
+    @abstractmethod
+    def set_active(self, state):
         pass
