@@ -32,7 +32,7 @@ class SessionPoolContextManager(object):
         try:
             return CliService(session, self._command_mode, self._logger)
         except:
-            self._session.reconnect(prompt, self._logger)
+            session.reconnect(prompt, self._logger)
             return CliService(session, self._command_mode, self._logger)
 
     def __enter__(self):
