@@ -11,7 +11,7 @@ class TL1Session(TCPSession):
     BUFFER_SIZE = 1024
 
     def __init__(self, host, username, password, port, on_session_start=None, *args, **kwargs):
-        super(TL1Session, self).__init__(host, port, on_session_start=on_session_start, *args, **kwargs)
+        super(TL1Session, self).__init__(host, port, on_session_start, *args, **kwargs)
         self._username = username
         self._password = password
         self.switch_name = 'switch-name-not-initialized'
@@ -29,21 +29,14 @@ class TL1Session(TCPSession):
     def probe_for_prompt(self, expected_string, logger):
         return 'DUMMY_PROMPT'
 
-    def connect(self, prompt, logger):
-        """
-        Open connection to device / create session
-        :param prompt:
-        :param logger:
-        :return:
-        """
-
-        if not self._handler:
-            self._handler = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    def _initialize_session(self, prompt, logger):
+        self._handler = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         server_address = (self.host, self.port)
         self._handler.connect(server_address)
         self._handler.settimeout(self._timeout)
 
+    def _connect_actions(self, prompt, logger):
         output = self.hardware_expect('ACT-USER::%s:{counter}::%s;' % (self._username, self._password),
                                       expected_string=None,
                                       logger=logger)

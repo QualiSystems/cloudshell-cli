@@ -1,13 +1,12 @@
-import socket
+import re
 import time
+from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 
-from abc import ABCMeta
+from cloudshell.cli.helper.normalize_buffer import normalize_buffer
+from cloudshell.cli.session.session import Session
 from cloudshell.cli.session.session_exceptions import SessionLoopDetectorException, SessionLoopLimitException, \
     ExpectedSessionException, CommandExecutionException, SessionReadTimeout, SessionReadEmptyData
-import re
-from cloudshell.cli.session.session import Session
-from cloudshell.cli.helper.normalize_buffer import normalize_buffer
 
 
 class ExpectSession(Session):
@@ -60,6 +59,26 @@ class ExpectSession(Session):
     def session_type(self):
         return self.SESSION_TYPE
 
+    @abstractmethod
+    def _connect_actions(self, prompt, logger):
+        """Read out buffer and run on_session_start actions
+        :param prompt: expected string in output
+        :param logger: logger
+        """
+
+        pass
+
+    @abstractmethod
+    def _initialize_session(self, prompt, logger):
+        """Create handler and initialize session
+        :param prompt: expected string in output
+        :param logger: logger
+        """
+        pass
+
+    def set_active(self, state):
+        self._active = state
+
     def active(self):
         return self._active
 
@@ -81,6 +100,20 @@ class ExpectSession(Session):
             else:
                 break
         return out
+
+    def connect(self, prompt, logger):
+        """Connect to device.
+        :param prompt: expected string in output
+        :param logger: logger
+        """
+
+        try:
+            self._initialize_session(prompt, logger)
+            self._connect_actions(prompt, logger)
+            self.set_active(True)
+        except:
+            self.disconnect()
+            raise
 
     def send_line(self, command, logger):
         """
@@ -173,7 +206,7 @@ class ExpectSession(Session):
 
             if read_buffer:
                 read_buffer = normalize_buffer(read_buffer)
-                logger.info(read_buffer)
+                logger.debug(read_buffer)
                 output_str += read_buffer
                 # if option remove_command_from_output is set to True, look for command in output buffer,
                 #  remove it in case of found

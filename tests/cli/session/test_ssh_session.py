@@ -3,18 +3,10 @@ import threading
 from StringIO import StringIO
 from abc import abstractmethod
 from time import sleep
-from unittest import TestCase, skip
+from unittest import TestCase
 
 import paramiko
 from paramiko import RSAKey
-
-from cloudshell.cli.session.ssh_session import SSHSession
-from mock import Mock, patch
-
-
-from paramiko import PasswordRequiredException
-from paramiko import RSAKey
-from paramiko import SSHException
 
 from cloudshell.cli.session.ssh_session import SSHSession, SSHSessionException
 from mock import Mock, patch
@@ -419,6 +411,40 @@ class TestSshSession(TestCase):
         self.assertFalse(
             self._instance.__eq__(SSHSession(self._hostname, self._username, self._password, port=self._port,
                                              on_session_start=self._on_session_start)))
+
+    @patch('cloudshell.cli.session.ssh_session.paramiko')
+    def test_intialize_session(self, mock_paramiko):
+        # Setup
+        mock_paramiko.SSHClient.return_value = Mock()
+        self._instance = SSHSession('127.0.0.1',
+                                    'user0', 'password0',
+                                    port=22,
+                                    on_session_start=self._on_session_start)
+        self._instance.hardware_expect = Mock(return_value="Done")
+
+        # Act
+        self._instance._initialize_session('>', logger=Mock())
+
+        # Assert
+        self.assertIsNotNone(self._instance._handler)
+        self.assertEqual(self._instance._handler, mock_paramiko.SSHClient.return_value)
+
+    def test_connect_actions(self):
+        # Setup
+        on_session_start = Mock()
+        self._instance = SSHSession('127.0.0.1',
+                                    'user0', 'password0',
+                                    port=22,
+                                    on_session_start=on_session_start)
+        self._instance.hardware_expect = Mock(return_value="Done")
+        self._instance._handler = Mock()
+
+        # Act
+        self._instance._connect_actions('>', logger=Mock())
+
+        # Assert
+        self._instance.hardware_expect.assert_called_once()
+        on_session_start.assert_called_once()
 
     def test_connect_simple(self):
         pkey = paramiko.RSAKey.from_private_key(StringIO(KEY_WITH_PASSPHRASE), password=KEY_PASSPHRASE)  # unused

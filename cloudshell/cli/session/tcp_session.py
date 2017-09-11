@@ -6,6 +6,7 @@ from cloudshell.cli.session.session_exceptions import SessionReadTimeout, Sessio
 
 
 class TCPSession(ExpectSession, ConnectionParams):
+
     SESSION_TYPE = 'TCP'
     BUFFER_SIZE = 1024
 
@@ -16,25 +17,19 @@ class TCPSession(ExpectSession, ConnectionParams):
         self._buffer_size = self.BUFFER_SIZE
         self._handler = None
 
-    def connect(self, prompt, logger):
-        """
-        Open connection to device / create session
-        :param prompt:
-        :param logger:
-        :return:
-        """
-
-        if not self._handler:
-            self._handler = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    def _initialize_session(self, prompt, logger):
+        self._handler = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         server_address = (self.host, self.port)
         self._handler.connect(server_address)
 
         self._handler.settimeout(self._timeout)
-        output = self.hardware_expect(command=None, expected_string=prompt, logger=logger)
-        if self.on_session_start and callable(self.on_session_start):
-            self.on_session_start(self, logger)
-        self._active = True
+
+    def probe_for_prompt(self, expected_string, logger):
+        return 'DUMMY_PROMPT'
+
+    def _connect_actions(self, prompt, logger):
+        self._on_session_start(logger)
 
     def disconnect(self):
         """Disconnect from device/close the session
