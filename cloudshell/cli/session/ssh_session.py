@@ -51,17 +51,13 @@ class SSHSession(ExpectSession, ConnectionParams):
     def __del__(self):
         self.disconnect()
 
-    def connect(self, prompt, logger):
-        """Connect to device through ssh
-        :param prompt: expected string in output
-        :param logger: logger
-        """
+    def _create_handler(self):
+        self._handler = paramiko.SSHClient()
+        self._handler.load_system_host_keys()
+        self._handler.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        if not self._handler:
-            self._handler = paramiko.SSHClient()
-            self._handler.load_system_host_keys()
-            self._handler.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
+    def _initialize_session(self, prompt, logger):
+        self._create_handler()
         try:
             self._handler.connect(self.host, self.port, self.username, self.password, timeout=self._timeout,
                                   banner_timeout=30, allow_agent=False, look_for_keys=False, pkey=self.pkey)
@@ -73,10 +69,9 @@ class SSHSession(ExpectSession, ConnectionParams):
         self._current_channel = self._handler.invoke_shell()
         self._current_channel.settimeout(self._timeout)
 
+    def _connect_actions(self, prompt, logger):
         self.hardware_expect(None, expected_string=prompt, timeout=self._timeout, logger=logger)
-        if self.on_session_start and callable(self.on_session_start):
-            self.on_session_start(self, logger)
-        self._active = True
+        self._on_session_start(logger)
 
     def disconnect(self):
         """Disconnect from device

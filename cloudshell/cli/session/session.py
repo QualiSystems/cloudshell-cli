@@ -1,6 +1,5 @@
-from collections import OrderedDict
-
 from abc import ABCMeta, abstractmethod
+from collections import OrderedDict
 
 
 class Session(object):
@@ -33,9 +32,17 @@ class Session(object):
         pass
 
     @abstractmethod
+    def probe_for_prompt(self, expected_string, logger):
+        pass
+
+    @abstractmethod
     def reconnect(self, prompt, logger, timeout=None):
         pass
 
     @abstractmethod
     def active(self):
+        pass
+
+    @abstractmethod
+    def set_active(self, state):
         pass
