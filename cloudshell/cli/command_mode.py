@@ -72,8 +72,14 @@ class CommandMode(Node):
         :param cli_service:
         :type cli_service: CliService
         """
-        cli_service.send_command(self._enter_command, expected_string=self.prompt,
-                                 action_map=self._enter_action_map, error_map=self._enter_error_map)
+
+        if not isinstance(self._enter_command, (list, tuple)):
+            enter_command_list = [self._enter_command]
+        else:
+            enter_command_list = self._enter_command
+        for enter_command in enter_command_list:
+            cli_service.send_command(enter_command, expected_string=self.prompt,
+                                     action_map=self._enter_action_map, error_map=self._enter_error_map)
         cli_service.command_mode = self
         self.enter_actions(cli_service)
 
@@ -84,8 +90,13 @@ class CommandMode(Node):
         :type cli_service: CliService
         :return:
         """
-        cli_service.send_command(self._exit_command, expected_string=self.parent_node.prompt,
-                                 action_map=self._exit_action_map, error_map=self._exit_error_map)
+        if not isinstance(self._exit_command, (list, tuple)):
+            exit_command_list = [self._exit_command]
+        else:
+            exit_command_list = self._exit_command
+        for exit_command in exit_command_list:
+            cli_service.send_command(exit_command, expected_string=self.parent_node.prompt,
+                                     action_map=self._exit_action_map, error_map=self._exit_error_map)
         cli_service.command_mode = self.parent_node
 
     def enter_actions(self, cli_service):
