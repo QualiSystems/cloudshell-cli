@@ -1,6 +1,8 @@
-from cloudshell.cli.command_mode_helper import CommandModeHelper
-from cloudshell.cli.command_mode import CommandMode
+import re
+
 from cloudshell.cli.cli_service import CliService
+from cloudshell.cli.command_mode import CommandMode
+from cloudshell.cli.command_mode_helper import CommandModeHelper
 
 
 class CommandModeContextManager(object):
@@ -61,19 +63,20 @@ class CliServiceImpl(CliService):
         """
         return CommandModeContextManager(self, command_mode, self._logger)
 
-    def send_command(self, command, expected_string=None, action_map=None, error_map=None, logger=None, *args,
-                     **kwargs):
+    def send_command(self, command, expected_string=None, action_map=None, error_map=None, logger=None,
+                     remove_prompt=True, *args, **kwargs):
         """
         Send command
         :param command:
-        :type command: str
         :param expected_string:
-        :type expected_string: str
+        :param action_map:
+        :param error_map:
         :param logger:
-        :type logger: Logger
+        :param remove_prompt:
         :param args:
         :param kwargs:
-        :return:
+        :return: Command output
+        :rtype: str
         """
         if not expected_string:
             expected_string = self.command_mode.prompt
@@ -81,8 +84,11 @@ class CliServiceImpl(CliService):
         if not logger:
             logger = self._logger
         self.session.logger = logger
-        return self.session.hardware_expect(command, expected_string=expected_string, action_map=action_map,
-                                            error_map=error_map, logger=logger, *args, **kwargs)
+        output = self.session.hardware_expect(command, expected_string=expected_string, action_map=action_map,
+                                              error_map=error_map, logger=logger, *args, **kwargs)
+        if remove_prompt:
+            output = re.sub(r'^.*{}.*$'.format(expected_string), '', output, flags=re.MULTILINE)
+        return output
 
     def _change_mode(self, requested_command_mode):
         """
