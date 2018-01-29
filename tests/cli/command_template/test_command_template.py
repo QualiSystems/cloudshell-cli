@@ -10,11 +10,43 @@ class TestCommandModeContextManager(TestCase):
             'text'
         )
         self.assertEqual(
+            CommandTemplate('text[ text1{arg1}]').prepare_command(),
+            'text'
+        )
+        self.assertEqual(
+            CommandTemplate('text [text1 {arg1}]').prepare_command(),
+            'text'
+        )
+        self.assertEqual(
+            CommandTemplate('text [text1{arg1}]').prepare_command(),
+            'text'
+        )
+        self.assertEqual(
             CommandTemplate('text[ text1 {arg1}]').prepare_command(arg1='test1'),
             'text text1 test1'
         )
         self.assertEqual(
+            CommandTemplate('text[ text1{arg1}]').prepare_command(arg1='test1'),
+            'text text1test1'
+        )
+        self.assertEqual(
+            CommandTemplate('text [text1 {arg1}]').prepare_command(arg1='test1'),
+            'text text1 test1'
+        )
+        self.assertEqual(
+            CommandTemplate('text [text1{arg1}]').prepare_command(arg1='test1'),
+            'text text1test1'
+        )
+        self.assertEqual(
             CommandTemplate('text[ text1 {arg1}][ text2 {arg2}]').prepare_command(),
+            'text'
+        )
+        self.assertEqual(
+            CommandTemplate('text [text1 {arg1}][ text2 {arg2}]').prepare_command(),
+            'text'
+        )
+        self.assertEqual(
+            CommandTemplate('text[ text1 {arg1}] [text2 {arg2}]').prepare_command(),
             'text'
         )
         self.assertEqual(
@@ -22,11 +54,20 @@ class TestCommandModeContextManager(TestCase):
             'text text1 test1'
         )
         self.assertEqual(
-            CommandTemplate('text[ text1 {arg1}][ text2 {arg2}]').prepare_command(arg2='test2',),
+            CommandTemplate('text [text1 {arg1}] [text2 {arg2}]').prepare_command(arg1='test1'),
+            'text text1 test1'
+        )
+        self.assertEqual(
+            CommandTemplate('text[ text1 {arg1}][ text2 {arg2}]').prepare_command(arg2='test2'),
             'text text2 test2'
         )
         self.assertEqual(
             CommandTemplate('text[ text1 {arg1}][ text2 {arg2}]').prepare_command(
+                arg1='test1', arg2='test2'),
+            'text text1 test1 text2 test2'
+        )
+        self.assertEqual(
+            CommandTemplate('text [text1 {arg1}] [text2 {arg2}]').prepare_command(
                 arg1='test1', arg2='test2'),
             'text text1 test1 text2 test2'
         )
