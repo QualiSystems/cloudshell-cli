@@ -43,7 +43,7 @@ class CommandTemplate:
         keys = re.findall(r"{(\w+)}", self._command)
         for key in keys:
             if key not in kwargs or kwargs[key] is None:
-                cmd = re.sub(r"(^.* )(\[.*{{{key}}}\])(.*)".format(key=key), r"\1\3", cmd)
+                cmd = re.sub(r"\[[^[]*?{{{key}}}.*?\]".format(key=key), r"", cmd)
 
         if not cmd:
             raise Exception(self.__class__.__name__, 'Unable to prepare command')
