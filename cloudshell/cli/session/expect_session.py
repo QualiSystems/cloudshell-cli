@@ -158,13 +158,15 @@ class ExpectSession(Session):
 
         :param command: command to send
         :param expected_string: expected string
-        :param expect_map: dict with {re_str: action} to trigger some action on received string
-        :param error_map: expected error list
+        :param logger: logger
+        :param action_map: dict with {re_str: action} to trigger some action on received string
+        :param error_map: expected error map
         :param timeout: session timeout
         :param retries: maximal retries count
         :param remove_command_from_output: In some switches the output string includes the command which was called.
             The flag used to verify whether the the command string removed from the output string.
         :return:
+        :rtype: str
         """
 
         if not action_map:
@@ -211,9 +213,9 @@ class ExpectSession(Session):
                 # if option remove_command_from_output is set to True, look for command in output buffer,
                 #  remove it in case of found
                 if command and remove_command_from_output:
-                    command_pattern = '^.*' + command + '.*\\n'
-                    if re.search(command_pattern, output_str):
-                        output_str = re.sub(command_pattern, '', output_str)
+                    command_pattern = '\s*' + command.replace('*', '\*') + '\s*'
+                    if re.search(command_pattern, output_str, flags=re.MULTILINE):
+                        output_str = re.sub(command_pattern, '', output_str, flags=re.MULTILINE)
                         remove_command_from_output = False
                 retries_count = 0
             else:

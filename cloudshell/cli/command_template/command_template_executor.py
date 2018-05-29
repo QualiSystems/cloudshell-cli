@@ -1,4 +1,5 @@
 from collections import OrderedDict
+
 from cloudshell.cli.command_template.command_template import CommandTemplate
 
 
@@ -37,6 +38,12 @@ class CommandTemplateExecutor(object):
         return self._optional_kwargs
 
     def execute_command(self, **command_kwargs):
+        """
+        Execute command
+        :param command_kwargs:
+        :return: Command output
+        :rtype: str
+        """
         command = self._command_template.prepare_command(**command_kwargs)
         return self._cli_service.send_command(command, action_map=self.action_map, error_map=self.error_map,
                                               **self.optional_kwargs)

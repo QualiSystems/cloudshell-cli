@@ -1,9 +1,11 @@
 from collections import OrderedDict
-from unittest import TestCase, skip
+from unittest import TestCase
+
+from mock import patch, Mock, call
+
 from cloudshell.cli.session.expect_session import ExpectSession, ActionLoopDetector
 from cloudshell.cli.session.session_exceptions import SessionReadTimeout, ExpectedSessionException, \
     SessionLoopLimitException, CommandExecutionException
-from mock import patch, Mock, call
 
 
 class TestExpectSessionException(Exception):
@@ -194,12 +196,13 @@ class TestExpectSession(TestCase):
                                                         normalize_buffer, loops_detected):
         command = 'test_command'
         expected_string = 'test_string'
-        out = command + '\n' + expected_string
+        out = """{0}
+        {1}""".format(command, expected_string)
         receive_all.return_value = out
         normalize_buffer.return_value = out
         timeout = Mock()
         result = self._instance.hardware_expect(command, expected_string, self._logger, timeout=timeout)
-        self.assertEqual(result, expected_string)
+        self.assertEqual(result.strip(), expected_string)
 
     @patch("cloudshell.cli.session.expect_session.ExpectSession.send_line")
     @patch("cloudshell.cli.session.expect_session.ExpectSession._receive_all")
