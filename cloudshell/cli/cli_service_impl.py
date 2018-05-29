@@ -64,7 +64,7 @@ class CliServiceImpl(CliService):
         return CommandModeContextManager(self, command_mode, self._logger)
 
     def send_command(self, command, expected_string=None, action_map=None, error_map=None, logger=None,
-                     remove_prompt=True, *args, **kwargs):
+                     remove_prompt=False, *args, **kwargs):
         """
         Send command
         :param command:

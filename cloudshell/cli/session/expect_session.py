@@ -213,7 +213,7 @@ class ExpectSession(Session):
                 # if option remove_command_from_output is set to True, look for command in output buffer,
                 #  remove it in case of found
                 if command and remove_command_from_output:
-                    command_pattern = '^.*' + command.replace('*', '\*') + '.*$'
+                    command_pattern = '\s*' + command.replace('*', '\*') + '\s*'
                     if re.search(command_pattern, output_str, flags=re.MULTILINE):
                         output_str = re.sub(command_pattern, '', output_str, flags=re.MULTILINE)
                         remove_command_from_output = False
