@@ -1,4 +1,5 @@
 from cloudshell.cli.cli_exception import CliException
+from cloudshell.cli.cli_service import CliService
 from cloudshell.cli.node import Node
 
 
@@ -14,7 +15,7 @@ class CommandMode(Node):
     RELATIONS_DICT = {}
 
     def __init__(self, prompt, enter_command=None, exit_command=None, enter_action_map=None, exit_action_map=None,
-                 enter_error_map=None, exit_error_map=None, parent_mode=None, enter_actions=None):
+                 enter_error_map=None, exit_error_map=None, parent_mode=None, enter_actions=None, strict_prompt=False):
         """
             :param prompt: Prompt of this mode
             :type prompt: str
@@ -52,6 +53,9 @@ class CommandMode(Node):
         self._enter_error_map = enter_error_map
         self._exit_error_map = exit_error_map
         self._enter_actions = enter_actions
+        self._strict_prompt = strict_prompt
+
+        self._strict_prompt_defined = False
 
         if parent_mode:
             self.add_parent_mode(parent_mode)
@@ -83,6 +87,10 @@ class CommandMode(Node):
         cli_service.command_mode = self
         self.enter_actions(cli_service)
 
+        if self._strict_prompt and not self._strict_prompt_defined:
+            self.prompt = self._get_current_prompt(cli_service) or self.prompt
+            self._strict_prompt_defined = True
+
     def step_down(self, cli_service):
         """
         Exit from command mode
@@ -106,5 +114,15 @@ class CommandMode(Node):
         :type cli_service: CliService
         :return:
         """
+
         if self._enter_actions:
             self._enter_actions(cli_service)
+
+    @staticmethod
+    def _get_current_prompt(cli_service):
+        """
+        :type cli_service: cloudshell.cli.cli_service.CliService
+        """
+        out = cli_service.send_command('')
+        if out:
+            return out.strip().splitlines()[-1].strip()
