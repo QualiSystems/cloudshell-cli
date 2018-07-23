@@ -146,7 +146,43 @@ class ExpectSession(Session):
                     raise ExpectedSessionException(self.__class__.__name__, 'Socket closed by timeout')
 
     def probe_for_prompt(self, expected_string, logger):
+        """
+        Matched string for regexp
+        :param expected_string:
+        :param logger:
+        :return:
+        """
         return self.hardware_expect('', expected_string, logger)
+
+    def exact_prompt(self, expected_string, logger):
+        """
+        Prepare exact prompt for regexp
+        :param expected_string:
+        :param logger:
+        :return:
+        """
+        output = self.probe_for_prompt(expected_string, logger)
+        match = re.search(expected_string, output, re.DOTALL)
+        if match.groups():
+            exact_prompt = match.group(1)
+        else:
+            exact_prompt = output.strip().splitlines()[-1].strip()
+        return re.escape(exact_prompt)
+
+    def match_prompt(self, prompt, match_string, logger):
+        """
+        Main verification for the prompt match
+        :param prompt: Expected string, string or regular expression
+        :type prompt: str
+        :param match_string: Match string
+        :type match_string: str
+        :param logger
+        :rtype: bool
+        """
+        if re.search(prompt, match_string, re.DOTALL):
+            return True
+        else:
+            return False
 
     def hardware_expect(self, command, expected_string, logger, action_map=None, error_map=None,
                         timeout=None, retries=None, check_action_loop_detector=True, empty_loop_timeout=None,
@@ -223,7 +259,7 @@ class ExpectSession(Session):
                 time.sleep(empty_loop_timeout)
                 continue
 
-            if re.search(expected_string, output_str, re.DOTALL):
+            if self.match_prompt(expected_string, output_str, logger):
                 # logger.debug('Expected str: {}'.format(expected_string))
                 output_list.append(output_str)
                 is_correct_exit = True

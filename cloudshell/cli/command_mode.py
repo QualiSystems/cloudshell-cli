@@ -46,7 +46,8 @@ class CommandMode(Node):
             enter_action_map = {}
 
         super(CommandMode, self).__init__()
-        self.prompt = prompt
+        self._prompt = prompt
+        self._exact_prompt = None
         self._enter_command = enter_command
         self._exit_command = exit_command
         self._enter_action_map = enter_action_map
@@ -56,10 +57,19 @@ class CommandMode(Node):
         self._enter_actions = enter_actions
         self._use_exact_prompt = use_exact_prompt
 
-        self._exact_prompt_defined = False
-
         if parent_mode:
             self.add_parent_mode(parent_mode)
+
+    @property
+    def prompt(self):
+        if self._use_exact_prompt and self._exact_prompt:
+            return self._exact_prompt
+        else:
+            return self._prompt
+
+    @prompt.setter
+    def prompt(self, value):
+        self._prompt = value
 
     def add_parent_mode(self, mode):
         """
@@ -71,11 +81,12 @@ class CommandMode(Node):
         if mode:
             mode.add_child_node(self)
 
-    def step_up(self, cli_service):
+    def step_up(self, cli_service, logger):
         """
         Enter command mode
         :param cli_service:
         :type cli_service: CliService
+        :type logger: logging.Logger
         """
 
         if not isinstance(self._enter_command, (list, tuple)):
@@ -87,17 +98,14 @@ class CommandMode(Node):
                                      action_map=self._enter_action_map, error_map=self._enter_error_map)
         cli_service.command_mode = self
         self.enter_actions(cli_service)
+        self.prompt_actions(cli_service, logger)
 
-        if self._use_exact_prompt and not self._exact_prompt_defined:
-            self.prompt = self._get_exact_prompt(cli_service) or self.prompt
-            self._exact_prompt_defined = True
-
-    def step_down(self, cli_service):
+    def step_down(self, cli_service, logger):
         """
         Exit from command mode
         :param cli_service:
         :type cli_service: CliService
-        :return:
+        :type logger: logging.Logger
         """
         if not isinstance(self._exit_command, (list, tuple)):
             exit_command_list = [self._exit_command]
@@ -111,19 +119,18 @@ class CommandMode(Node):
     def enter_actions(self, cli_service):
         """
         Default actions
-        :param cli_service:
-        :type cli_service: CliService
-        :return:
+        :type cli_service: cloudshell.cli.cli_service.CliService
         """
 
         if self._enter_actions:
             self._enter_actions(cli_service)
 
-    @staticmethod
-    def _get_exact_prompt(cli_service):
+    def prompt_actions(self, cli_service, logger):
         """
+        Prompt actions
         :type cli_service: cloudshell.cli.cli_service.CliService
+        :type logger: logging.Logger
         """
-        out = cli_service.send_command('')
-        if out:
-            return out.strip().splitlines()[-1].strip()
+        if self._use_exact_prompt:
+            self._exact_prompt = cli_service.session.exact_prompt(self._prompt, logger)
+            logger.debug('Exact prompt: ' + self._exact_prompt)
