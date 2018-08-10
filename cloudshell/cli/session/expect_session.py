@@ -54,6 +54,7 @@ class ExpectSession(Session):
         self._reconnect_timeout = reconnect_timeout
 
         self._active = False
+        self._command_patterns = {}
 
     @property
     def session_type(self):
@@ -145,6 +146,16 @@ class ExpectSession(Session):
                 elif time.time() - start_time > timeout:
                     raise ExpectedSessionException(self.__class__.__name__, 'Socket closed by timeout')
 
+    def _generate_command_pattern(self, command):
+        """
+        Generate command_pattern
+        :param command:
+        :return:
+        """
+        if command not in self._command_patterns:
+            self._command_patterns[command] = '\s*' + re.sub(r'\\\s+', '\s+', re.escape(command)) + '\s*'
+        return self._command_patterns[command]
+
     def probe_for_prompt(self, expected_string, logger):
         """
         Matched string for regexp
@@ -232,7 +243,6 @@ class ExpectSession(Session):
 
         action_loop_detector = ActionLoopDetector(self._loop_detector_max_action_loops,
                                                   self._loop_detector_max_combination_length)
-
         while retries == 0 or retries_count < retries:
 
             # try:
@@ -249,7 +259,7 @@ class ExpectSession(Session):
                 # if option remove_command_from_output is set to True, look for command in output buffer,
                 #  remove it in case of found
                 if command and remove_command_from_output:
-                    command_pattern = '\s*' + command.replace('*', '\*') + '\s*'
+                    command_pattern = self._generate_command_pattern(command)
                     if re.search(command_pattern, output_str, flags=re.MULTILINE):
                         output_str = re.sub(command_pattern, '', output_str, flags=re.MULTILINE)
                         remove_command_from_output = False
