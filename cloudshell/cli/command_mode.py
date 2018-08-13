@@ -1,3 +1,5 @@
+import re
+
 from cloudshell.cli.cli_exception import CliException
 from cloudshell.cli.cli_service import CliService
 from cloudshell.cli.node import Node
@@ -132,5 +134,25 @@ class CommandMode(Node):
         :type logger: logging.Logger
         """
         if self._use_exact_prompt:
-            self._exact_prompt = cli_service.session.exact_prompt(self._prompt, logger)
+            self._exact_prompt = self._initialize_exact_prompt(cli_service, logger)
             logger.debug('Exact prompt: ' + self._exact_prompt)
+
+    def _initialize_exact_prompt(self, cli_service, logger):
+        """
+        Exact prompt initialization
+        :type cli_service: cloudshell.cli.cli_service.CliService
+        :type logger: logging.Logger
+        """
+
+        if self._exact_prompt:
+            return self._exact_prompt
+
+        output = cli_service.session.probe_for_prompt(self._prompt, logger)
+        match = re.search(self._prompt, output, re.DOTALL)
+        if match.groups():
+            exact_prompt = match.group(1)
+        else:
+            exact_prompt = output.strip().splitlines()[-1].strip()
+        if not re.search(exact_prompt, output):
+            raise Exception(self.__class__.__name__, 'Exact prompt ')
+        return re.escape(exact_prompt)

@@ -165,21 +165,6 @@ class ExpectSession(Session):
         """
         return self.hardware_expect('', expected_string, logger)
 
-    def exact_prompt(self, expected_string, logger):
-        """
-        Prepare exact prompt for regexp
-        :param expected_string:
-        :param logger:
-        :return:
-        """
-        output = self.probe_for_prompt(expected_string, logger)
-        match = re.search(expected_string, output, re.DOTALL)
-        if match.groups():
-            exact_prompt = match.group(1)
-        else:
-            exact_prompt = output.strip().splitlines()[-1].strip()
-        return re.escape(exact_prompt)
-
     def match_prompt(self, prompt, match_string, logger):
         """
         Main verification for the prompt match

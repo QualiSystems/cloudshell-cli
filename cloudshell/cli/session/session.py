@@ -36,10 +36,6 @@ class Session(object):
         pass
 
     @abstractmethod
-    def exact_prompt(self, expected_string, logger):
-        pass
-
-    @abstractmethod
     def match_prompt(self, prompt, match_string, logger):
         pass
 
