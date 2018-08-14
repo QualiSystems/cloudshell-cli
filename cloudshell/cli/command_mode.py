@@ -153,6 +153,9 @@ class CommandMode(Node):
             exact_prompt = match.group(1)
         else:
             exact_prompt = output.strip().splitlines()[-1].strip()
-        if not re.search(exact_prompt, output):
+        exact_prompt = re.escape(exact_prompt)
+
+        if not re.search(exact_prompt, output, re.DOTALL):
             raise Exception(self.__class__.__name__, 'Exact prompt is not matching the output')
-        return re.escape(exact_prompt)
+
+        return exact_prompt
