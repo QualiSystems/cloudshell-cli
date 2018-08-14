@@ -246,7 +246,7 @@ class ExpectSession(Session):
                 if command and remove_command_from_output:
                     command_pattern = self._generate_command_pattern(command)
                     if re.search(command_pattern, output_str, flags=re.MULTILINE):
-                        output_str = re.sub(command_pattern, '', output_str, flags=re.MULTILINE)
+                        output_str = re.sub(command_pattern, '', output_str, count=1, flags=re.MULTILINE)
                         remove_command_from_output = False
                 retries_count = 0
             else:
