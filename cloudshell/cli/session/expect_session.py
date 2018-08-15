@@ -54,6 +54,7 @@ class ExpectSession(Session):
         self._reconnect_timeout = reconnect_timeout
 
         self._active = False
+        self._command_patterns = {}
 
     @property
     def session_type(self):
@@ -145,8 +146,39 @@ class ExpectSession(Session):
                 elif time.time() - start_time > timeout:
                     raise ExpectedSessionException(self.__class__.__name__, 'Socket closed by timeout')
 
+    def _generate_command_pattern(self, command):
+        """
+        Generate command_pattern
+        :param command:
+        :return:
+        """
+        if command not in self._command_patterns:
+            self._command_patterns[command] = '\s*' + re.sub(r'\\\s+', '\s+', re.escape(command)) + '\s*'
+        return self._command_patterns[command]
+
     def probe_for_prompt(self, expected_string, logger):
+        """
+        Matched string for regexp
+        :param expected_string:
+        :param logger:
+        :return:
+        """
         return self.hardware_expect('', expected_string, logger)
+
+    def match_prompt(self, prompt, match_string, logger):
+        """
+        Main verification for the prompt match
+        :param prompt: Expected string, string or regular expression
+        :type prompt: str
+        :param match_string: Match string
+        :type match_string: str
+        :param logger
+        :rtype: bool
+        """
+        if re.search(prompt, match_string, re.DOTALL):
+            return True
+        else:
+            return False
 
     def hardware_expect(self, command, expected_string, logger, action_map=None, error_map=None,
                         timeout=None, retries=None, check_action_loop_detector=True, empty_loop_timeout=None,
@@ -158,13 +190,15 @@ class ExpectSession(Session):
 
         :param command: command to send
         :param expected_string: expected string
-        :param expect_map: dict with {re_str: action} to trigger some action on received string
-        :param error_map: expected error list
+        :param logger: logger
+        :param action_map: dict with {re_str: action} to trigger some action on received string
+        :param error_map: expected error map
         :param timeout: session timeout
         :param retries: maximal retries count
         :param remove_command_from_output: In some switches the output string includes the command which was called.
             The flag used to verify whether the the command string removed from the output string.
         :return:
+        :rtype: str
         """
 
         if not action_map:
@@ -194,7 +228,6 @@ class ExpectSession(Session):
 
         action_loop_detector = ActionLoopDetector(self._loop_detector_max_action_loops,
                                                   self._loop_detector_max_combination_length)
-
         while retries == 0 or retries_count < retries:
 
             # try:
@@ -211,9 +244,9 @@ class ExpectSession(Session):
                 # if option remove_command_from_output is set to True, look for command in output buffer,
                 #  remove it in case of found
                 if command and remove_command_from_output:
-                    command_pattern = '^.*' + command + '.*\\n'
-                    if re.search(command_pattern, output_str):
-                        output_str = re.sub(command_pattern, '', output_str)
+                    command_pattern = self._generate_command_pattern(command)
+                    if re.search(command_pattern, output_str, flags=re.MULTILINE):
+                        output_str = re.sub(command_pattern, '', output_str, count=1, flags=re.MULTILINE)
                         remove_command_from_output = False
                 retries_count = 0
             else:
@@ -221,7 +254,7 @@ class ExpectSession(Session):
                 time.sleep(empty_loop_timeout)
                 continue
 
-            if re.search(expected_string, output_str, re.DOTALL):
+            if self.match_prompt(expected_string, output_str, logger):
                 # logger.debug('Expected str: {}'.format(expected_string))
                 output_list.append(output_str)
                 is_correct_exit = True

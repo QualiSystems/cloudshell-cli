@@ -36,6 +36,10 @@ class Session(object):
         pass
 
     @abstractmethod
+    def match_prompt(self, prompt, match_string, logger):
+        pass
+
+    @abstractmethod
     def reconnect(self, prompt, logger, timeout=None):
         pass
 

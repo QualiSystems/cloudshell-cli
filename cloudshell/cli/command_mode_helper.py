@@ -29,7 +29,7 @@ class CommandModeHelper(NodeOperations):
                                        'Cannot determine current command mode, see logs for more details')
 
         for prompt, mode in defined_modes.iteritems():
-            if re.search(prompt, result):
+            if session.match_prompt(prompt, result, logger):
                 return mode
 
     @staticmethod
