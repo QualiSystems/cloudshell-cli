@@ -27,11 +27,11 @@ class CommandModeContextManager(object):
         :return:
         :rtype: CliService
         """
-        self._command_mode.step_up(self._cli_service)
+        self._command_mode.step_up(self._cli_service, self._logger)
         return self._cli_service
 
     def __exit__(self, type, value, traceback):
-        self._command_mode.step_down(self._cli_service)
+        self._command_mode.step_down(self._cli_service, self._logger)
 
 
 class CliServiceImpl(CliService):
@@ -39,19 +39,24 @@ class CliServiceImpl(CliService):
     Session wrapper, used to keep session mode and enter any child mode
     """
 
-    def __init__(self, session, command_mode, logger):
+    def __init__(self, session, requested_command_mode, logger):
         """
-                :param session:
-                :param logger:
-                :param command_mode:
-                :return:
-                """
-        super(CliServiceImpl, self).__init__()
-        self.session = session
-        self._logger = logger
-        self.command_mode = CommandModeHelper.determine_current_mode(self.session, command_mode, self._logger)
+
+        :param session:
+        :param requested_command_mode:
+        :param logger:
+        """
+        super(CliServiceImpl, self).__init__(session, logger)
+        self._initialize(requested_command_mode)
+
+    def _initialize(self, requested_command_mode):
+        """
+        :type requested_command_mode: cloudshell.cli.command_mode.CommandMode
+        """
+        self.command_mode = CommandModeHelper.determine_current_mode(self.session, requested_command_mode, self._logger)
         self.command_mode.enter_actions(self)
-        self._change_mode(command_mode)
+        self.command_mode.prompt_actions(self, self._logger)
+        self._change_mode(requested_command_mode)
 
     def enter_mode(self, command_mode):
         """
@@ -98,7 +103,7 @@ class CliServiceImpl(CliService):
         """
         if requested_command_mode:
             steps = CommandModeHelper.calculate_route_steps(self.command_mode, requested_command_mode)
-            map(lambda x: x(self), steps)
+            map(lambda x: x(self, self._logger), steps)
 
     def reconnect(self, timeout=None):
         """
@@ -108,7 +113,4 @@ class CliServiceImpl(CliService):
         """
         prompts_re = r'|'.join(CommandModeHelper.defined_modes_by_prompt(self.command_mode).keys())
         self.session.reconnect(prompts_re, self._logger, timeout)
-        requested_command_mode = self.command_mode
-        self.command_mode = CommandModeHelper.determine_current_mode(self.session, self.command_mode, self._logger)
-        self.command_mode.enter_actions(self)
-        self._change_mode(requested_command_mode)
+        self._initialize(self.command_mode)

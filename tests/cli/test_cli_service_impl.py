@@ -16,12 +16,12 @@ class TestCommandModeContextManager(TestCase):
 
     def test_enter_call_step_up(self):
         operations = self._instance.__enter__()
-        self._command_mode.step_up.assert_called_once_with(self._cli_service)
+        self._command_mode.step_up.assert_called_once_with(self._cli_service, self._logger)
         self.assertEqual(operations, self._cli_service)
 
     def test_enter_call_step_down(self):
         self._instance.__exit__(Mock(), Mock(), Mock())
-        self._command_mode.step_down.assert_called_once_with(self._cli_service)
+        self._command_mode.step_down.assert_called_once_with(self._cli_service, self._logger)
 
 
 class TestCliOperationsImpl(TestCase):
