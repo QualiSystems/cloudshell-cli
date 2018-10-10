@@ -13,25 +13,31 @@ class CommandModeContextManager(object):
     def __init__(self, cli_service, command_mode, logger):
         """
         :param cli_service:
-        :type cli_service: CliService
+        :type cli_service: CliServiceImpl
         :param command_mode
         :type command_mode: CommandMode
         """
+
         self._cli_service = cli_service
         self._command_mode = command_mode
         self._logger = logger
-        self._previous_mode = None
+        self._previous_mode = CommandModeHelper.determine_current_mode(
+            cli_service.session, command_mode, logger)
 
     def __enter__(self):
         """
         :return:
-        :rtype: CliService
+        :rtype: CliServiceImpl
         """
-        self._command_mode.step_up(self._cli_service, self._logger)
+
+        self._cli_service._change_mode(self._command_mode)
         return self._cli_service
 
     def __exit__(self, type, value, traceback):
-        self._command_mode.step_down(self._cli_service, self._logger)
+        if type:  # if we catch an error throw it upper
+            return False
+
+        self._cli_service._change_mode(self._previous_mode)
 
 
 class CliServiceImpl(CliService):

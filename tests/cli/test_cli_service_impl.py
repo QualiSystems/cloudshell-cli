@@ -1,27 +1,48 @@
 from unittest import TestCase
 from cloudshell.cli.cli_service_impl import CommandModeContextManager, CliServiceImpl
-from mock import Mock, patch
+from cloudshell.cli.command_mode import CommandMode
+from mock import Mock, patch, create_autospec, MagicMock
 
 
 class TestCommandModeContextManager(TestCase):
-    def setUp(self):
-        self._cli_service = Mock()
-        self._command_mode = Mock()
+
+    @patch('cloudshell.cli.cli_service_impl.CommandModeHelper')
+    def setUp(self, command_mode_helper):
+        self._previous_command_mode = MagicMock()
+        command_mode_helper.determine_current_mode.return_value = self._previous_command_mode
+        self._command_mode_helper = command_mode_helper
+
+        self._cli_service = create_autospec(CliServiceImpl)
+        self._cli_service.session = MagicMock()
+
+        self._command_mode = create_autospec(CommandMode)
         self._logger = Mock()
+
         self._instance = CommandModeContextManager(self._cli_service, self._command_mode, self._logger)
 
     def test_init(self):
         mandatory_attributes = ['_logger', '_previous_mode', '_cli_service', '_command_mode']
         self.assertEqual(len(set(mandatory_attributes).difference(set(self._instance.__dict__.keys()))), 0)
+        self._command_mode_helper.determine_current_mode.assert_called_once_with(
+            self._cli_service.session, self._command_mode, self._logger)
 
     def test_enter_call_step_up(self):
-        operations = self._instance.__enter__()
-        self._command_mode.step_up.assert_called_once_with(self._cli_service, self._logger)
-        self.assertEqual(operations, self._cli_service)
+        cli_service = self._instance.__enter__()
+        self._cli_service._change_mode.assert_called_once_with(self._command_mode)
+        self.assertEqual(cli_service, self._cli_service)
 
-    def test_enter_call_step_down(self):
-        self._instance.__exit__(Mock(), Mock(), Mock())
-        self._command_mode.step_down.assert_called_once_with(self._cli_service, self._logger)
+    def test_exit_call_change_mode(self):
+        self._instance.__exit__(None, None, None)
+        self._cli_service._change_mode.assert_called_once_with(self._previous_command_mode)
+
+    def test_exit_dont_handle_error_if_catch(self):
+        try:
+            with self._instance:
+                1/0
+        except ZeroDivisionError:
+            self._cli_service._change_mode.assert_called_once()  # in enter command
+        else:
+            self.fail('context manager handle an error')
 
 
 class TestCliOperationsImpl(TestCase):
