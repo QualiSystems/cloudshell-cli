@@ -118,6 +118,19 @@ class TestCliOperationsImpl(TestCase):
         command_mode_context_manager_instance = Mock()
         command_mode_context_manager.return_value = command_mode_context_manager_instance
         command_mode = create_autospec(CommandMode)
+        command_mode.is_attached_command_mode.return_value = True
+
+        instance = self._instance.enter_mode(command_mode)
+
+        command_mode_context_manager.assert_called_once_with(self._instance, command_mode, self._logger)
+        self.assertEqual(command_mode_context_manager_instance, instance)
+
+    @patch("cloudshell.cli.cli_service_impl.EnterDetachCommandModeContextManager")
+    def test_enter_detach_mode(self, command_mode_context_manager):
+        command_mode_context_manager_instance = Mock()
+        command_mode_context_manager.return_value = command_mode_context_manager_instance
+        command_mode = create_autospec(CommandMode)
+        command_mode.is_attached_command_mode.return_value = False
 
         instance = self._instance.enter_mode(command_mode)
 
