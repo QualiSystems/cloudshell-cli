@@ -8,7 +8,8 @@ from cloudshell.cli.command_mode_helper import CommandModeHelper
 class EnterCommandModeContextManager(object):
 
     def __init__(self, cli_service, command_mode, logger):
-        """Context manager used to enter specific command mode
+        """Context manager used to enter specific command mode using CommandMode relations
+            in CommandMode.RELATIONS_DICT
 
         :param CliServiceImpl cli_service:
         :param CommandMode command_mode:
@@ -36,6 +37,9 @@ class EnterCommandModeContextManager(object):
 class EnterDetachCommandModeContextManager(EnterCommandModeContextManager):
 
     def __init__(self, cli_service, command_mode, logger):
+        """Context manager used to enter specific command mode without using CommandMode relations
+            in CommandMode.RELATIONS_DICT"""
+
         super(EnterDetachCommandModeContextManager, self).__init__(
             cli_service, command_mode, logger)
 
@@ -83,11 +87,11 @@ class CliServiceImpl(CliService):
         self._change_mode(requested_command_mode)
 
     def enter_mode(self, command_mode):
-        """
-        Enter child mode
+        """Enter specified command mode
+
         :param command_mode:
         :type command_mode: CommandMode
-        :return:
+        :return: context manager
         :rtype: EnterCommandModeContextManager|EnterDetachCommandModeContextManager
         """
 
