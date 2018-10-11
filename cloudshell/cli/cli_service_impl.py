@@ -5,33 +5,61 @@ from cloudshell.cli.command_mode import CommandMode
 from cloudshell.cli.command_mode_helper import CommandModeHelper
 
 
-class CommandModeContextManager(object):
-    """
-    Context manager used to enter specific command mode
-    """
+class EnterCommandModeContextManager(object):
 
     def __init__(self, cli_service, command_mode, logger):
+        """Context manager used to enter specific command mode using CommandMode relations
+            in CommandMode.RELATIONS_DICT
+
+        :param CliServiceImpl cli_service:
+        :param CommandMode command_mode:
+        :param logging.Logger logger:
         """
-        :param cli_service:
-        :type cli_service: CliService
-        :param command_mode
-        :type command_mode: CommandMode
-        """
+
         self._cli_service = cli_service
         self._command_mode = command_mode
         self._logger = logger
-        self._previous_mode = None
+        self._previous_mode = cli_service.command_mode
 
     def __enter__(self):
-        """
-        :return:
-        :rtype: CliService
-        """
+        """:rtype: CliServiceImpl"""
+
+        self._cli_service._change_mode(self._command_mode)
+        return self._cli_service
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type:  # if we catch an error throw it upper
+            return False
+
+        self._cli_service._change_mode(self._previous_mode)
+
+
+class EnterDetachCommandModeContextManager(EnterCommandModeContextManager):
+
+    def __init__(self, cli_service, command_mode, logger):
+        """Context manager used to enter specific command mode without using CommandMode relations
+            in CommandMode.RELATIONS_DICT"""
+
+        super(EnterDetachCommandModeContextManager, self).__init__(
+            cli_service, command_mode, logger)
+
+        if command_mode.parent_node is None:
+            command_mode.parent_node = self._previous_mode
+
+    def __enter__(self):
+        """:rtype: CliServiceImpl"""
+
         self._command_mode.step_up(self._cli_service, self._logger)
         return self._cli_service
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type:  # if we catch an error throw it upper
+            return False
+
         self._command_mode.step_down(self._cli_service, self._logger)
+
+
+CommandModeContextManager = EnterDetachCommandModeContextManager  # Deprecated
 
 
 class CliServiceImpl(CliService):
@@ -59,14 +87,20 @@ class CliServiceImpl(CliService):
         self._change_mode(requested_command_mode)
 
     def enter_mode(self, command_mode):
-        """
-        Enter child mode
+        """Enter specified command mode
+
         :param command_mode:
         :type command_mode: CommandMode
-        :return:
-        :rtype: CommandModeContextManager
+        :return: context manager
+        :rtype: EnterCommandModeContextManager|EnterDetachCommandModeContextManager
         """
-        return CommandModeContextManager(self, command_mode, self._logger)
+
+        if command_mode.is_attached_command_mode():
+            context = EnterCommandModeContextManager
+        else:
+            context = EnterDetachCommandModeContextManager
+
+        return context(self, command_mode, self._logger)
 
     def send_command(self, command, expected_string=None, action_map=None, error_map=None, logger=None,
                      remove_prompt=False, *args, **kwargs):
