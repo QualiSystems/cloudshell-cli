@@ -159,3 +159,18 @@ class CommandMode(Node):
             raise Exception(self.__class__.__name__, 'Exact prompt is not matching the output')
 
         return exact_prompt
+
+    @classmethod
+    def get_all_attached_command_modes(cls, relations_dict=None):
+        if relations_dict is None:
+            relations_dict = cls.RELATIONS_DICT
+
+        for key, val in relations_dict.items():
+            yield key
+
+            if isinstance(val, dict):
+                for key in cls.get_all_attached_command_modes(val):
+                    yield key
+
+    def is_attached_command_mode(self):
+        return isinstance(self, tuple(self.get_all_attached_command_modes()))
