@@ -72,3 +72,35 @@ class TestCommandMode(TestCase):
         self._command_mode.parent_node = parent_node
         self._command_mode.step_down(cli_service, self._logger)
         self.assertTrue(cli_service.command_mode == parent_node)
+
+    def test_get_all_attached_command_mode(self):
+        class CommandModeA(CommandMode):
+            pass
+
+        class CommandModeB(CommandMode):
+            pass
+
+        CommandMode.RELATIONS_DICT = {
+            CommandModeA: {
+                CommandModeB: {},
+            }
+        }
+
+        command_modes = CommandMode.get_all_attached_command_modes()
+
+        self.assertItemsEqual(command_modes, (CommandModeA, CommandModeB))
+
+    def test_is_attached_command_mode(self):
+        class CommandModeA(CommandMode):
+            pass
+
+        class CommandModeB(CommandMode):
+            pass
+
+        CommandMode.RELATIONS_DICT = {CommandModeA: {}}
+
+        command_mode_a = CommandModeA('')
+        command_mode_b = CommandModeB('')
+
+        self.assertTrue(command_mode_a.is_attached_command_mode())
+        self.assertFalse(command_mode_b.is_attached_command_mode())
