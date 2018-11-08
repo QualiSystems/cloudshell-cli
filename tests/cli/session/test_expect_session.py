@@ -207,6 +207,21 @@ class TestExpectSession(TestCase):
     @patch("cloudshell.cli.session.expect_session.ExpectSession.send_line")
     @patch("cloudshell.cli.session.expect_session.ExpectSession._receive_all")
     @patch("cloudshell.cli.session.expect_session.ExpectSession._clear_buffer", return_value='')
+    def test_hardware_expect_remove_command_with_symbols_from_output(self, clear_buffer, receive_all, send_line,
+                                                                     normalize_buffer, loops_detected):
+        command = 'description **Hostname*Foo-Bar*AAAA*never*BAR-Foo'
+        expected_string = '#'
+        out = """{0}
+        {1}""".format(command, expected_string)
+        receive_all.return_value = out
+        normalize_buffer.return_value = out
+        timeout = Mock()
+        result = self._instance.hardware_expect(command, expected_string, self._logger, timeout=timeout)
+        self.assertEqual(result.strip(), expected_string)
+
+    @patch("cloudshell.cli.session.expect_session.ExpectSession.send_line")
+    @patch("cloudshell.cli.session.expect_session.ExpectSession._receive_all")
+    @patch("cloudshell.cli.session.expect_session.ExpectSession._clear_buffer", return_value='')
     def test_hardware_expect_action_map_call(self, clear_buffer, receive_all, send_line,
                                              normalize_buffer, loops_detected):
         command = 'test_command'
