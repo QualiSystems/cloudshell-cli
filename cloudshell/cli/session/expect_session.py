@@ -54,6 +54,7 @@ class ExpectSession(Session):
         self._reconnect_timeout = reconnect_timeout
 
         self._active = False
+        self._command_patterns = {}
 
     @property
     def session_type(self):
@@ -213,9 +214,9 @@ class ExpectSession(Session):
                 # if option remove_command_from_output is set to True, look for command in output buffer,
                 #  remove it in case of found
                 if command and remove_command_from_output:
-                    command_pattern = '^.*' + command.replace('*', '\*') + '.*$'
+                    command_pattern = self._generate_command_pattern(command)
                     if re.search(command_pattern, output_str, flags=re.MULTILINE):
-                        output_str = re.sub(command_pattern, '', output_str, flags=re.MULTILINE)
+                        output_str = re.sub(command_pattern, '', output_str, count=1, flags=re.MULTILINE)
                         remove_command_from_output = False
                 retries_count = 0
             else:
@@ -261,6 +262,16 @@ class ExpectSession(Session):
         # Read buffer to the end. Useful when expected_string isn't last in buffer
         result_output += self._clear_buffer(self._clear_buffer_timeout, logger)
         return result_output
+
+    def _generate_command_pattern(self, command):
+        """
+        Generate command_pattern
+        :param command:
+        :return:
+        """
+        if command not in self._command_patterns:
+            self._command_patterns[command] = '\s*' + re.sub(r'\\\s+', '\s+', re.escape(command)) + '\s*'
+        return self._command_patterns[command]
 
     def reconnect(self, prompt, logger, timeout=None):
         """
