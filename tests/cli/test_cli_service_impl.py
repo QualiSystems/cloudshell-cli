@@ -67,9 +67,12 @@ class TestCliOperationsImpl(TestCase):
     def test_send_command_hardware_expect_call(self):
         command = Mock()
         expected_string = Mock()
-        self._instance.send_command(command, expected_string=expected_string, logger=self._logger)
+        result = "Completed. \n"
+        self._session.hardware_expect.return_value = "{}{}".format(result, expected_string)
+        response = self._instance.send_command(command, expected_string=expected_string, logger=self._logger)
         self._session.hardware_expect.assert_called_once_with(command, action_map=None, error_map=None,
                                                               expected_string=expected_string, logger=self._logger)
+        self.assertEqual(result, response)
 
     @patch('cloudshell.cli.command_mode_helper.CommandModeHelper.calculate_route_steps')
     def test_change_mode_calculate_steps(self, calculate_route_steps):
