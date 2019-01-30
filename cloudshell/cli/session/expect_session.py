@@ -283,11 +283,15 @@ class ExpectSession(Session):
 
         result_output = ''.join(output_list)
 
-        for error_string in error_map:
-            result_match = re.search(error_string, result_output, re.DOTALL)
+        for error_pattern, error in error_map.iteritems():
+            result_match = re.search(error_pattern, result_output, re.DOTALL)
+
             if result_match:
-                raise CommandExecutionException(self.__class__.__name__,
-                                                'Session returned \'{}\''.format(error_map[error_string]))
+                if isinstance(error, CommandExecutionException):
+                    raise error
+                else:
+                    raise CommandExecutionException(
+                        self.__class__.__name__, 'Session returned \'{}\''.format(error))
 
         # Read buffer to the end. Useful when expected_string isn't last in buffer
         result_output += self._clear_buffer(self._clear_buffer_timeout, logger)
