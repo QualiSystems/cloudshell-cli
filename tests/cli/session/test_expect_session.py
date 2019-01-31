@@ -238,7 +238,8 @@ class TestExpectSession(TestCase):
     @patch("cloudshell.cli.session.expect_session.ExpectSession._receive_all")
     @patch("cloudshell.cli.session.expect_session.ExpectSession._clear_buffer",
            MagicMock(return_value=''))
-    def test_hardware_expect_error_map_call(self, receive_all, normalize_buffer, loops_detected):
+    def test_hardware_expect_error_map_call_with_exception(self, receive_all, normalize_buffer,
+                                                           loops_detected):
         class TestException(CommandExecutionException):
             pass
 
