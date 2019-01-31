@@ -192,7 +192,8 @@ class ExpectSession(Session):
         :param expected_string: expected string
         :param logger: logger
         :param action_map: dict with {re_str: action} to trigger some action on received string
-        :param error_map: expected error map
+        :param error_map: expected error map with subclass of CommandExecutionException or str
+        :type error_map: dict[str, CommandExecutionException|str]
         :param timeout: session timeout
         :param retries: maximal retries count
         :param remove_command_from_output: In some switches the output string includes the command which was called.
@@ -290,8 +291,7 @@ class ExpectSession(Session):
                 if isinstance(error, CommandExecutionException):
                     raise error
                 else:
-                    raise CommandExecutionException(
-                        self.__class__.__name__, 'Session returned \'{}\''.format(error))
+                    raise CommandExecutionException('Session returned \'{}\''.format(error))
 
         # Read buffer to the end. Useful when expected_string isn't last in buffer
         result_output += self._clear_buffer(self._clear_buffer_timeout, logger)

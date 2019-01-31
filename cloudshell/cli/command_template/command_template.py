@@ -4,6 +4,13 @@ import re
 
 class CommandTemplate:
     def __init__(self, command, action_map=None, error_map=None):
+        """Command Template.
+
+        :type command: str
+        :type action_map: dict
+        :param error_map: expected error map with subclass of CommandExecutionException or str
+        :type error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]
+        """
         self._command = command
         self._action_map = action_map or OrderedDict()
         self._error_map = error_map or OrderedDict()
