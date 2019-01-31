@@ -14,6 +14,8 @@ class CommandTemplateExecutor(object):
         :type cli_service: CliService
         :param command_template:
         :type command_template: CommandTemplate
+        :param error_map: expected error map with subclass of CommandExecutionException or str
+        :type error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]
         :return:
         """
         self._cli_service = cli_service

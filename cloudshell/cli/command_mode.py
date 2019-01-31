@@ -29,12 +29,12 @@ class CommandMode(Node):
             :param enter_actions: Actions which needs to be done when entering this mode
             :param enter_action_map: Enter expected actions
             :type enter_action_map: dict
-            :param enter_error_map: Enter error map
-            :type enter_error_map: dict
+            :param enter_error_map: expected error map with subclass of CommandExecutionException or str
+            :type enter_error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]
             :param exit_action_map:
             :type exit_action_map: dict
-            :param exit_error_map:
-            :type exit_error_map: dict
+            :param exit_error_map: expected error map with subclass of CommandExecutionException or str
+            :type exit_error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]
             :param
             :param parent_mode: Connect parent mode
             """
