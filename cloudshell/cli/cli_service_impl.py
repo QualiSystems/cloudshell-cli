@@ -109,7 +109,8 @@ class CliServiceImpl(CliService):
         :param command:
         :param expected_string:
         :param action_map:
-        :param error_map:
+        :param error_map: expected error map with subclass of CommandExecutionException or str
+        :type error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]
         :param logger:
         :param remove_prompt:
         :param args:
