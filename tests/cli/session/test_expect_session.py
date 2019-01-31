@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from unittest import TestCase
 
-from mock import patch, Mock, call
+from mock import patch, Mock, call, MagicMock
 
 from cloudshell.cli.session.expect_session import ExpectSession, ActionLoopDetector
 from cloudshell.cli.session.session_exceptions import SessionReadTimeout, ExpectedSessionException, \
@@ -233,6 +233,23 @@ class TestExpectSession(TestCase):
         exception = CommandExecutionException
         with self.assertRaises(exception):
             result = self._instance.hardware_expect(command, expected_string, self._logger, error_map=error_map)
+
+    @patch("cloudshell.cli.session.expect_session.ExpectSession.send_line", MagicMock())
+    @patch("cloudshell.cli.session.expect_session.ExpectSession._receive_all")
+    @patch("cloudshell.cli.session.expect_session.ExpectSession._clear_buffer",
+           MagicMock(return_value=''))
+    def test_hardware_expect_error_map_call(self, receive_all, normalize_buffer, loops_detected):
+        class TestException(CommandExecutionException):
+            pass
+
+        command = 'test_command'
+        expected_string = 'test_string'
+        receive_all.return_value = expected_string
+        normalize_buffer.return_value = expected_string
+        error_map = OrderedDict({expected_string: TestException('test_error')})
+        with self.assertRaises(TestException):
+            self._instance.hardware_expect(
+                command, expected_string, self._logger, error_map=error_map)
 
     def test_reconnect_disconnect_call(self, normalize_buffer, loops_detected):
         prompt = Mock()
