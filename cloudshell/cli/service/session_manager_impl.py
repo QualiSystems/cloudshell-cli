@@ -1,5 +1,5 @@
-from cloudshell.cli.cli_exception import CliException
-from cloudshell.cli.session_manager import SessionManager
+from cloudshell.cli.service.cli_exception import CliException
+from cloudshell.cli.service.session_manager import SessionManager
 
 
 class SessionManagerException(CliException):

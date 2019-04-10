@@ -1,11 +1,11 @@
-from Queue import Queue
+from queue import Queue
 from threading import Condition
 import time
 
-from cloudshell.cli.cli_exception import CliException
-from cloudshell.cli.session_pool import SessionPool
+from cloudshell.cli.service.cli_exception import CliException
+from cloudshell.cli.service.session_pool import SessionPool
 from cloudshell.cli.session.session import Session
-from cloudshell.cli.session_manager_impl import SessionManagerImpl as SessionManager
+from cloudshell.cli.service.session_manager_impl import SessionManagerImpl as SessionManager
 
 
 class SessionPoolException(CliException):
@@ -41,23 +41,24 @@ class SessionPoolManager(SessionPool):
 
         self._pool = pool or Queue(self._max_pool_size)
 
-    def get_session(self, new_sessions, prompt, logger):
+    def get_session(self, defined_sessions, prompt, logger):
         """
         Return session object, takes it from pool or create new session
-        :param new_sessions
+        :param collections.Iterable defined_sessions:
         :param prompt:
         :param logger:
         :return:
         :rtype: Session
         """
+
         call_time = time.time()
         with self._session_condition:
             session_obj = None
             while session_obj is None:
                 if not self._pool.empty():
-                    session_obj = self._get_from_pool(new_sessions, prompt, logger)
+                    session_obj = self._get_from_pool(defined_sessions, prompt, logger)
                 elif self._session_manager.existing_sessions_count() < self._pool.maxsize:
-                    session_obj = self._new_session(new_sessions, prompt, logger)
+                    session_obj = self._new_session(defined_sessions, prompt, logger)
                 else:
                     self._session_condition.wait(self._pool_timeout)
                     if (time.time() - call_time) >= self._pool_timeout:

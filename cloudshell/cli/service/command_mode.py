@@ -1,8 +1,7 @@
 import re
 
-from cloudshell.cli.cli_exception import CliException
-from cloudshell.cli.cli_service import CliService
-from cloudshell.cli.node import Node
+from cloudshell.cli.service.cli_exception import CliException
+from cloudshell.cli.service.node import Node
 
 
 class CommandModeException(CliException):

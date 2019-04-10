@@ -3,7 +3,7 @@ import time
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 
-from cloudshell.cli.helper.normalize_buffer import normalize_buffer
+from cloudshell.cli.session.helper.normalize_buffer import normalize_buffer
 from cloudshell.cli.session.session import Session
 from cloudshell.cli.session.session_exceptions import SessionLoopDetectorException, SessionLoopLimitException, \
     ExpectedSessionException, CommandExecutionException, SessionReadTimeout, SessionReadEmptyData

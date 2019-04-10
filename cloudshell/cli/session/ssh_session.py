@@ -1,7 +1,7 @@
 import os
 import socket
 import traceback
-from StringIO import StringIO
+from io import StringIO
 
 from paramiko import RSAKey
 

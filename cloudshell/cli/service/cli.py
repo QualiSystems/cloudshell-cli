@@ -11,10 +11,10 @@ class CLI(object):
     def get_session(self, defined_sessions, command_mode, logger=None):
         """
         Get session from the pool or create new
-        :param list defined_sessions:
+        :param collections.Iterable defined_sessions:
         :param cloudshell.cli.command_mode.CommandMode command_mode:
         :param logging.Logger logger:
-        :rtype: SessionPoolContextManager
+        :rtype: cloudshell.cli.service.session_pool_context_manager.SessionPoolContextManager
         """
         if not isinstance(defined_sessions, list):
             defined_sessions = [defined_sessions]
