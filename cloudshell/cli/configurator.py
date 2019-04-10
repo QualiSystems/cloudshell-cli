@@ -82,7 +82,7 @@ class CLIServiceConfigurator(object):
                 'on_session_start': self._on_session_start}
 
     def _defined_sessions(self):
-        return map(lambda sess: sess(self._session_kwargs),
+        return map(lambda sess: sess(**self._session_kwargs),
                    self._session_dict.get(self._cli_type.lower(), self._registered_sessions))
 
     def get_cli_service(self, command_mode):
