@@ -95,7 +95,7 @@ class CLIServiceConfigurator(object):
         return self._cli.get_session(self._defined_sessions(), command_mode, self._logger)
 
 
-class EnableConfigModeConfigurator(ABC, CLIServiceConfigurator):
+class AbstractModeConfigurator(ABC, CLIServiceConfigurator):
     """
     Used by shells to run enable/config command
     """
