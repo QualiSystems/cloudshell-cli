@@ -212,14 +212,13 @@ class ExpectSession(Session, ABC):
         :param command: command to send
         :param expected_string: expected string
         :param logger: logger
-        :param action_map: dict with {re_str: action} to trigger some action on received string
+        :param action_map: ActionMap
         :param error_map: expected error map with subclass of CommandExecutionException or str
         :type error_map: dict[str, CommandExecutionException|str]
         :param timeout: session timeout
         :param retries: maximal retries count
-        :param remove_command_from_output: In some switches the output string includes
-            the command which was called. The flag used to verify whether the the
-            command string removed from the output string.
+        :param remove_command_from_output: In some switches the output string includes the command which was called.
+            The flag used to verify whether the the command string removed from the output string.
         :return:
         :rtype: str
         """
