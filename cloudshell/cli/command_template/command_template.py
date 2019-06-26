@@ -1,5 +1,8 @@
+from collections import OrderedDict
 import re
 from collections import OrderedDict
+
+from cloudshell.cli.service.action_map import ActionMap
 
 
 class CommandTemplate:
@@ -7,13 +10,12 @@ class CommandTemplate:
         """Command Template.
 
         :type command: str
-        :type action_map: dict
-        :param error_map: expected error map with subclass of CommandExecutionException
-            or str
-        :type error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]  # noqa: E501
+        :param cloudshell.cli.service.action_map.ActionMap action_map:
+        :param error_map: expected error map with subclass of CommandExecutionException or str
+        :type error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]
         """
         self._command = command
-        self._action_map = action_map or OrderedDict()
+        self._action_map = action_map or ActionMap()
         self._error_map = error_map or OrderedDict()
 
     @property
@@ -34,14 +36,17 @@ class CommandTemplate:
 
     # ToDo: Needs to be reviewed
     def get_command(self, **kwargs):
-        action_map = OrderedDict(kwargs.get("action_map", None) or OrderedDict())
-        action_map.update(self._action_map)
-        error_map = OrderedDict(self._error_map)
-        error_map.update(kwargs.get("error_map", None) or OrderedDict())
+        # todo: verify action map creation
+        action_map = kwargs.get('action_map') or ActionMap()
+        action_map.extend(self.action_map)
+
+        error_map = kwargs.get("error_map") or OrderedDict()
+        error_map.update(self.error_map)
+
         return {
-            "command": self.prepare_command(**kwargs),
-            "action_map": action_map,
-            "error_map": error_map,
+            'command': self.prepare_command(**kwargs),
+            'action_map': action_map,
+            'error_map': error_map
         }
 
     def prepare_command(self, **kwargs):
@@ -52,7 +57,7 @@ class CommandTemplate:
                 cmd = re.sub(r"\[[^[]*?{{{key}}}.*?\]".format(key=key), r"", cmd)
 
         if not cmd:
-            raise Exception(self.__class__.__name__, "Unable to prepare command")
+            raise Exception(self.__class__.__name__, 'Unable to prepare command')
 
         cmd = re.sub(r"\s+", " ", cmd).strip(" \t\n\r")
         result = re.sub(r"\[|\]", "", cmd).format(**kwargs)
