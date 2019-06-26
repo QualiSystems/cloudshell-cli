@@ -104,10 +104,10 @@ class CliServiceImpl(CliService):
     def send_command(self, command, expected_string=None, action_map=None, error_map=None, logger=None,
                      remove_prompt=False, *args, **kwargs):
         """
-        Send command
+
         :param command:
         :param expected_string:
-        :param action_map:
+        :param cloudshell.cli.service.action_map.ActionMap action_map:
         :param error_map: expected error map with subclass of CommandExecutionException or str
         :type error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]
         :param logger:
