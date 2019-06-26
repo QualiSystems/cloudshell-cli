@@ -183,23 +183,22 @@ class ExpectSession(Session, metaclass=ABCMeta):
                         timeout=None, retries=None, check_action_loop_detector=True, empty_loop_timeout=None,
                         remove_command_from_output=True, **optional_args):
         """Get response form the device and compare it to action_map, error_map and expected_string patterns,
+
         perform actions specified in action_map if any, and return output.
         Raise Exception if receive empty response from device within a minute
-
-        :param command: command to send
-        :param expected_string: expected string
-        :param logger: logger
-        :param action_map: ActionMap
+        :param str command: command to send
+        :param str expected_string: expected string
+        :param logging.Logger logger: logger
+        :param cloudshell.cli.service.action_map.ActionMap action_map:
         :param error_map: expected error map with subclass of CommandExecutionException or str
         :type error_map: dict[str, CommandExecutionException|str]
-        :param timeout: session timeout
-        :param retries: maximal retries count
-        :param remove_command_from_output: In some switches the output string includes the command which was called.
-            The flag used to verify whether the the command string removed from the output string.
-        :return:
+        :param int timeout: session timeout
+        :param int retries: maximal retries count
+        :param bool check_action_loop_detector:
+        :param bool remove_command_from_output: In some switches the output string includes the command which was
+            called. The flag used to verify whether the the command string removed from the output string.
         :rtype: str
         """
-
         if not action_map:
             action_map = ActionMap()
 
