@@ -2,7 +2,7 @@ from cloudshell.cli.cli import CLI
 from cloudshell.cli.session_pool_manager import SessionPoolManager
 from cloudshell.core.logger.qs_logger import get_qs_logger
 from connect_to_switch.SwitchClihandler import SwitchCliHandler
-from cloudshell.shell.core.context import ResourceCommandContext, ResourceContextDetails, ReservationContextDetails,ConnectivityContext
+from cloudshell.shell.standards.core import ResourceCommandContext, ResourceContextDetails
 
 logger = get_qs_logger()
 

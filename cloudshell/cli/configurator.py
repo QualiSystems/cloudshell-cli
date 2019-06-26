@@ -11,18 +11,16 @@ from cloudshell.cli.session.telnet_session import TelnetSession
 class CLIServiceConfigurator(object):
     REGISTERED_SESSIONS = (SSHSession, TelnetSession)
 
-    def __init__(self, resource_config, logger, api, cli=None, registered_sessions=REGISTERED_SESSIONS):
+    def __init__(self, resource_config, logger, cli=None, registered_sessions=REGISTERED_SESSIONS):
         """
-        :param cloudshell.shell_standards.resource_config_generic_models.GenericCLIConfig resource_config:
+        :param cloudshell.shell.standards.resource_config_generic_models.GenericCLIConfig resource_config:
         :param logging.Logger logger:
-        :param cloudshell.api.cloudshell_api.CloudShellAPISession api:
         :param cloudshell.cli.service.cli.CLI cli:
         :param registered_sessions: Session types and order
         """
         self._cli = cli or CLI()
         self._resource_config = resource_config
         self._logger = logger
-        self._api = api
         self._registered_sessions = registered_sessions
 
     @property
@@ -32,7 +30,7 @@ class CLIServiceConfigurator(object):
     @property
     @functools.lru_cache()
     def _password(self):
-        return self._api.DecryptPassword(self._resource_config.password).Value
+        return self._resource_config.password
 
     @property
     def _resource_address(self):

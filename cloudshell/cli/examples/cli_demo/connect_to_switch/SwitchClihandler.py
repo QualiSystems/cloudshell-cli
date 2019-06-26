@@ -2,7 +2,7 @@ import re
 from cloudshell.cli.command_mode import CommandMode
 from cloudshell.cli.command_mode_helper import CommandModeHelper
 from cloudshell.networking.cli_handler_impl import CliHandlerImpl
-from cloudshell.shell.core.context_utils import get_attribute_by_name
+from cloudshell.shell.standards.core import get_attribute_by_name
 
 class EnableCommandMode(CommandMode):
     PROMPT = r'(?:(?!\)).)#\s*$'
