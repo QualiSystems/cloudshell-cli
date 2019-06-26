@@ -1,7 +1,8 @@
 import socket
 import telnetlib
-from collections import OrderedDict
 
+from cloudshell.cli.service.action_map import Action
+from cloudshell.cli.service.action_map import ActionMap
 from cloudshell.cli.session.connection_params import ConnectionParams
 from cloudshell.cli.session.expect_session import ExpectSession
 from cloudshell.cli.session.session_exceptions import SessionException, SessionReadTimeout, SessionReadEmptyData
@@ -41,12 +42,20 @@ class TelnetSession(ExpectSession, ConnectionParams):
         self.disconnect()
 
     def _connect_actions(self, prompt, logger):
-        action_map = OrderedDict()
-        action_map['[Ll]ogin:|[Uu]ser:|[Uu]sername:'] = lambda session, logger: session.send_line(session.username,
-                                                                                                  logger)
-        action_map['[Pp]assword:'] = lambda session, logger: session.send_line(session.password, logger)
-        self.hardware_expect(None, expected_string=prompt, timeout=self._timeout, logger=logger,
-                                   action_map=action_map)
+        """
+
+        :param str prompt:
+        :param logging.Logger logger:
+        :return:
+        """
+        action_map = ActionMap(actions=[Action(pattern="[Ll]ogin:|[Uu]ser:|[Uu]sername:",
+                                               callback=lambda session, logger:
+                                               session.send_line(session.username, logger)),
+                                        Action(pattern="[Pp]assword:",
+                                               callback=lambda session, logger:
+                                               session.send_line(session.password, logger))])
+
+        self.hardware_expect(None, expected_string=prompt, timeout=self._timeout, logger=logger, action_map=action_map)
         self._on_session_start(logger)
 
     def _initialize_session(self, prompt, logger):
