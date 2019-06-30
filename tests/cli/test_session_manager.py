@@ -1,8 +1,9 @@
 from unittest import TestCase
-from cloudshell.cli.session_manager_impl import SessionManagerImpl, SessionManagerException
 
-from cloudshell.cli.session_pool_manager import SessionPoolManager, SessionPoolException
-from mock import Mock, MagicMock
+from mock import Mock
+
+from cloudshell.cli.service.session_manager_impl import SessionManagerImpl
+from cloudshell.cli.service.session_manager_impl import SessionManagerException
 
 
 class TestSessionManager(TestCase):

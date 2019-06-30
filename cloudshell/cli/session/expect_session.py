@@ -1,6 +1,7 @@
 import re
 import time
 from abc import ABCMeta, abstractmethod
+from collections import OrderedDict
 
 from cloudshell.cli.service.action_map import ActionMap
 from cloudshell.cli.service.action_map import ActionLoopDetector
@@ -205,7 +206,7 @@ class ExpectSession(Session):
             action_map = ActionMap()
 
         if not error_map:
-            error_map = ActionMap()
+            error_map = OrderedDict()
 
         retries = retries or self._max_loop_retries
         empty_loop_timeout = empty_loop_timeout or self._empty_loop_timeout
