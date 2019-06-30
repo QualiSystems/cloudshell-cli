@@ -1,5 +1,5 @@
 from unittest import TestCase
-from cloudshell.cli.node import Node, NodeOperations
+from cloudshell.cli.service.node import Node, NodeOperations
 from mock import Mock, MagicMock, patch
 
 
@@ -48,7 +48,7 @@ class TestNodeOperations(TestCase):
         node2.add_child_node(node3)
         self.assertTrue(len(NodeOperations.path_to_the_root(node3)) == 3)
 
-    @patch('cloudshell.cli.node.NodeOperations.path_to_the_root')
+    @patch('cloudshell.cli.service.node.NodeOperations.path_to_the_root')
     def test_calculate_route_steps_source_node_root_path_call(self, path_to_the_root):
         source_node = Mock()
         dest_node = Mock()
@@ -56,7 +56,7 @@ class TestNodeOperations(TestCase):
         path = NodeOperations.calculate_route_steps(source_node, dest_node)
         path_to_the_root.assert_called_with(source_node)
 
-    @patch('cloudshell.cli.node.NodeOperations.path_to_the_root')
+    @patch('cloudshell.cli.service.node.NodeOperations.path_to_the_root')
     def test_calculate_route_steps_source_node_root_path_call(self, path_to_the_root):
         source_node = Mock()
         dest_node = Mock()

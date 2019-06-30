@@ -1,6 +1,5 @@
 from unittest import TestCase
 from cloudshell.cli.session.connection_params import ConnectionParams
-from cloudshell.cli.session.session_exceptions import SessionException
 from mock import Mock
 
 
