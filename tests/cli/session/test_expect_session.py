@@ -3,6 +3,7 @@ from unittest import TestCase
 
 from mock import patch, Mock, call, MagicMock
 
+from cloudshell.cli.service.action_map import ActionMap, Action
 from cloudshell.cli.session.expect_session import ExpectSession, ActionLoopDetector
 from cloudshell.cli.session.session_exceptions import SessionReadTimeout, ExpectedSessionException, \
     SessionLoopLimitException, CommandExecutionException
@@ -216,7 +217,7 @@ class TestExpectSession(TestCase):
         receive_all.side_effect = side_effect
         normalize_buffer.side_effect = side_effect
         test_func = Mock()
-        action_map = OrderedDict({fake_out: test_func})
+        action_map = ActionMap(actions=[Action(pattern=fake_out, callback=test_func)])
         result = self._instance.hardware_expect(command, expected_string, self._logger, action_map=action_map)
         test_func.assert_called_once_with(self._instance, self._logger)
 

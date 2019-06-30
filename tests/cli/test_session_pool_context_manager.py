@@ -3,7 +3,7 @@ from unittest import TestCase
 from mock import MagicMock as Mock, patch, call
 
 from cloudshell.cli.session.session_exceptions import CommandExecutionException
-from cloudshell.cli.session_pool_context_manager import SessionPoolContextManager
+from cloudshell.cli.service.session_pool_context_manager import SessionPoolContextManager
 
 
 class TestSessionPoolContextManager(TestCase):
@@ -16,14 +16,14 @@ class TestSessionPoolContextManager(TestCase):
         self._instance = SessionPoolContextManager(self._session_pool_manager, self._new_sessions, self._command_mode,
                                                    self._logger)
 
-    @patch('cloudshell.cli.session_pool_context_manager.CliService')
+    @patch('cloudshell.cli.service.session_pool_context_manager.CliService')
     def test_initialize_cli_service(self, cli_service_class):
         session = Mock()
         prompt = Mock()
         self._instance._initialize_cli_service(session, prompt)
         cli_service_class.assert_called_once_with(session, self._command_mode, self._logger)
 
-    @patch('cloudshell.cli.session_pool_context_manager.CliService')
+    @patch('cloudshell.cli.service.session_pool_context_manager.CliService')
     def test_initialize_cli_service_call_reconnect(self, cli_service_class):
         session = Mock()
         prompt = Mock()
@@ -34,7 +34,7 @@ class TestSessionPoolContextManager(TestCase):
         cli_service_class.assert_has_calls(cli_service_calls)
         session.reconnect.assert_called_once_with(prompt, self._logger)
 
-    @patch('cloudshell.cli.session_pool_context_manager.CommandModeHelper')
+    @patch('cloudshell.cli.service.session_pool_context_manager.CommandModeHelper')
     def test_enter_without_exception(self, command_mode_helper):
         self._instance._initialize_cli_service = Mock()
         prompts = ['1']
@@ -50,7 +50,7 @@ class TestSessionPoolContextManager(TestCase):
                                                                        new_sessions=self._new_sessions)
         self._instance._initialize_cli_service.assert_called_once_with(session, '|'.join(prompts))
 
-    @patch('cloudshell.cli.session_pool_context_manager.CommandModeHelper')
+    @patch('cloudshell.cli.service.session_pool_context_manager.CommandModeHelper')
     def test_enter_with_exception(self, command_mode_helper):
         self._instance._initialize_cli_service = Mock(side_effect=[Exception()])
         prompts = ['1']
@@ -68,7 +68,7 @@ class TestSessionPoolContextManager(TestCase):
         self._instance._initialize_cli_service.assert_called_once_with(session, '|'.join(prompts))
         self._session_pool_manager.remove_session(session, self._logger)
 
-    @patch('cloudshell.cli.session_pool_context_manager.CommandModeHelper')
+    @patch('cloudshell.cli.service.session_pool_context_manager.CommandModeHelper')
     def test_exit_return_session(self, command_mode_helper):
         self._instance._initialize_cli_service = Mock()
         session_value = Mock()
@@ -78,7 +78,7 @@ class TestSessionPoolContextManager(TestCase):
 
         self._session_pool_manager.return_session.assert_called_once_with(session_value, self._logger)
 
-    @patch('cloudshell.cli.session_pool_context_manager.CommandModeHelper')
+    @patch('cloudshell.cli.service.session_pool_context_manager.CommandModeHelper')
     def test_exit_remove_session_on_exception(self, command_mode_helper):
         self._instance._initialize_cli_service = Mock()
         session_value = Mock()
@@ -89,7 +89,7 @@ class TestSessionPoolContextManager(TestCase):
                 raise exception(self.__class__.__name__, 'test')
         self._session_pool_manager.remove_session.assert_called_once_with(session_value, self._logger)
 
-    @patch('cloudshell.cli.session_pool_context_manager.CommandModeHelper')
+    @patch('cloudshell.cli.service.session_pool_context_manager.CommandModeHelper')
     def test_exit_return_session_on_ignored_exception(self, command_mode_helper):
         self._instance._initialize_cli_service = Mock()
         session_value = Mock()
@@ -100,7 +100,7 @@ class TestSessionPoolContextManager(TestCase):
                 raise exception(self.__class__.__name__, 'test')
         self._session_pool_manager.return_session.assert_called_once_with(session_value, self._logger)
 
-    @patch('cloudshell.cli.session_pool_context_manager.CommandModeHelper')
+    @patch('cloudshell.cli.service.session_pool_context_manager.CommandModeHelper')
     def test_exit_remove_session_on_inactive(self, command_mode_helper):
         self._instance._initialize_cli_service = Mock()
         session_value = Mock()

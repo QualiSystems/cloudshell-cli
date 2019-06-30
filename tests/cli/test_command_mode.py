@@ -1,5 +1,5 @@
 from unittest import TestCase
-from cloudshell.cli.command_mode import CommandMode
+from cloudshell.cli.service.command_mode import CommandMode
 from mock import Mock
 
 
