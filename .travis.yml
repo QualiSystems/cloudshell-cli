@@ -1,6 +1,6 @@
 language: python
 python:
-    - "2.7"
+    - "3.6"
 
 install:
     - 'if [ ${TRAVIS_BRANCH} \!= "master" ] && [ -f dev_requirements.txt ]; then
