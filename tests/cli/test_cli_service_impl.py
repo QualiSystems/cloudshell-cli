@@ -22,8 +22,8 @@ class TestEnterCommandModeContextManager(TestCase):
             self._cli_service, self._command_mode, self._logger)
 
     def test_init(self):
-        mandatory_attributes = ['_logger', '_previous_mode', '_cli_service', '_command_mode']
-        self.assertItemsEqual(mandatory_attributes, list(self._instance.__dict__.keys()))
+        mandatory_attributes = ['_cli_service', '_command_mode', '_logger', '_previous_mode']
+        self.assertEqual(mandatory_attributes, list(self._instance.__dict__.keys()))
 
     def test_enter_call_change_mode(self):
         cli_service = self._instance.__enter__()
@@ -60,8 +60,8 @@ class TestEnterDetachCommandModeContextManager(TestCase):
             self._cli_service, self._command_mode, self._logger)
 
     def test_init(self):
-        mandatory_attributes = ['_logger', '_previous_mode', '_cli_service', '_command_mode']
-        self.assertItemsEqual(mandatory_attributes, list(self._instance.__dict__.keys()))
+        mandatory_attributes = ['_cli_service', '_command_mode', '_logger', '_previous_mode']
+        self.assertEqual(mandatory_attributes, list(self._instance.__dict__.keys()))
 
     def test_enter_call_step_up(self):
         cli_service = self._instance.__enter__()
