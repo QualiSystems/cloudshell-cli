@@ -2,9 +2,7 @@ from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 
 
-class Session(object):
-    __metaclass__ = ABCMeta
-
+class Session(object, metaclass=ABCMeta):
     @abstractmethod
     def connect(self, prompt, logger):
         pass

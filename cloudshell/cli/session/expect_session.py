@@ -9,12 +9,10 @@ from cloudshell.cli.session.session_exceptions import SessionLoopDetectorExcepti
     ExpectedSessionException, CommandExecutionException, SessionReadTimeout, SessionReadEmptyData
 
 
-class ExpectSession(Session):
+class ExpectSession(Session, metaclass=ABCMeta):
     """
     Help to handle additional actions during send command
     """
-
-    __metaclass__ = ABCMeta
 
     SESSION_TYPE = 'EXPECT'
 

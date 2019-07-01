@@ -1,6 +1,6 @@
 import socket
 import threading
-from StringIO import StringIO
+from io import StringIO
 from abc import abstractmethod
 from time import sleep
 from unittest import TestCase

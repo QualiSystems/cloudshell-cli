@@ -2,9 +2,7 @@ from abc import ABCMeta, abstractmethod
 from cloudshell.cli.session.session import Session
 
 
-class SessionPool(object):
-    __metaclass__ = ABCMeta
-
+class SessionPool(object, metaclass=ABCMeta):
     @abstractmethod
     def get_session(self, new_sessions, prompt, logger):
         """
