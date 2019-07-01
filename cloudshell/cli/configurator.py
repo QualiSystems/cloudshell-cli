@@ -82,8 +82,7 @@ class CLIServiceConfigurator(object):
                 'on_session_start': self._on_session_start}
 
     def _defined_sessions(self):
-        return map(lambda sess: sess(**self._session_kwargs),
-                   self._session_dict.get(self._cli_type.lower(), self._registered_sessions))
+        return [sess(**self._session_kwargs) for sess in self._session_dict.get(self._cli_type.lower(), self._registered_sessions)]
 
     def get_cli_service(self, command_mode):
         """Use cli.get_session to open CLI connection and switch into required mode

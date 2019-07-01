@@ -137,7 +137,7 @@ class CliServiceImpl(CliService):
         """
         if requested_command_mode:
             steps = CommandModeHelper.calculate_route_steps(self.command_mode, requested_command_mode)
-            map(lambda x: x(self, self._logger), steps)
+            list(map(lambda x: x(self, self._logger), steps))
 
     def reconnect(self, timeout=None):
         """

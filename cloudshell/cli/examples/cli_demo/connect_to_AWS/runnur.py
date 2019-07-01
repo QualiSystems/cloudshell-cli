@@ -5,7 +5,7 @@ from cloudshell.cli.session.ssh_session import SSHSession
 from cloudshell.cli.session_pool_manager import SessionPoolManager
 from cloudshell.core.logger.qs_logger import get_qs_logger
 import paramiko
-import StringIO
+import io
 
 
 class CliCommandMode(CommandMode):
@@ -34,7 +34,7 @@ if __name__ == '__main__':
 
     pem_file = open('mykey.pem', 'r')
     key_str = pem_file.read()
-    keyfile = StringIO.StringIO(key_str)
+    keyfile = io.StringIO(key_str)
     mykey = paramiko.RSAKey.from_private_key(keyfile)
 
     modes = CommandModeHelper.create_command_mode(context)

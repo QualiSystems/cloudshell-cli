@@ -1,11 +1,10 @@
 from abc import ABCMeta
 
 
-class ConnectionParams(object):
+class ConnectionParams(object, metaclass=ABCMeta):
     """
     Session parameters
     """
-    __metaclass__ = ABCMeta
 
     def __init__(self, host, port=None, on_session_start=None, pkey=None):
         self.host = host

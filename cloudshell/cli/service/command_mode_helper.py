@@ -4,6 +4,7 @@ import re
 from cloudshell.cli.service.command_mode import CommandMode, CommandModeException
 from cloudshell.cli.service.node import NodeOperations
 from cloudshell.cli.session.session import Session
+from functools import reduce
 
 
 class CommandModeHelper(NodeOperations):
