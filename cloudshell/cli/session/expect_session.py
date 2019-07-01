@@ -284,7 +284,7 @@ class ExpectSession(Session):
 
         result_output = ''.join(output_list)
 
-        for error_pattern, error in error_map.iteritems():
+        for error_pattern, error in error_map.items():
             result_match = re.search(error_pattern, result_output, re.DOTALL)
 
             if result_match:

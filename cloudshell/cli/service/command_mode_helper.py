@@ -28,7 +28,7 @@ class CommandModeHelper(NodeOperations):
             raise CommandModeException(CommandModeHelper.__class__.__name__,
                                        'Cannot determine current command mode, see logs for more details')
 
-        for prompt, mode in defined_modes.iteritems():
+        for prompt, mode in defined_modes.items():
             if session.match_prompt(prompt, result, logger):
                 return mode
 
