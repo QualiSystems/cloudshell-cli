@@ -24,10 +24,9 @@ class CommandModeHelper(NodeOperations):
         prompts_re = r'|'.join(defined_modes.keys())
         try:
             result = session.probe_for_prompt(expected_string=prompts_re, logger=logger)
-        except Exception as e:
-            logger.debug(e.message)
-            raise CommandModeException(CommandModeHelper.__class__.__name__,
-                                       'Cannot determine current command mode, see logs for more details')
+        except Exception:
+            logger.exception("Cannot determine current command mode:")
+            raise CommandModeException("Cannot determine current command mode, see logs for more details")
 
         for prompt, mode in defined_modes.items():
             if session.match_prompt(prompt, result, logger):

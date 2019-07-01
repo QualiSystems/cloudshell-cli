@@ -86,9 +86,9 @@ class TestCommandMode(TestCase):
             }
         }
 
-        command_modes = CommandMode.get_all_attached_command_modes()
+        command_modes = list(CommandMode.get_all_attached_command_modes())
 
-        self.assertItemsEqual(command_modes, (CommandModeA, CommandModeB))
+        self.assertEqual(command_modes, [CommandModeA, CommandModeB])
 
     def test_is_attached_command_mode(self):
         class CommandModeA(CommandMode):
