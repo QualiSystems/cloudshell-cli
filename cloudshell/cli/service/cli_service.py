@@ -1,9 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 
-class CliService(object):
-    __metaclass__ = ABCMeta
-
+class CliService(object, metaclass=ABCMeta):
     def __init__(self, session, logger):
         """
         :type session: cloudshell.cli.session.session.Session
