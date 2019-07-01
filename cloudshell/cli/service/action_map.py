@@ -61,7 +61,7 @@ class ActionMap(object):
 
         :rtype: list[Action]
         """
-        return [action for action in self._actions_dict.values()]
+        return list(self._actions_dict.values())
 
     @property
     def active_actions(self):

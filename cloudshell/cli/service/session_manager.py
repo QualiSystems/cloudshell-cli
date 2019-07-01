@@ -1,9 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 
-class SessionManager(object):
-    __metaclass__ = ABCMeta
-
+class SessionManager(object, metaclass=ABCMeta):
     @abstractmethod
     def new_session(self, new_sessions, prompt, logger):
         """

@@ -1,8 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 
-class Node(object):
-    __metaclass__ = ABCMeta
+class Node(object, metaclass=ABCMeta):
     """
     Node
     """
