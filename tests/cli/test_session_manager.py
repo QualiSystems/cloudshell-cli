@@ -1,6 +1,5 @@
 from unittest import TestCase
-
-from mock import Mock
+from unittest.mock import Mock
 
 from cloudshell.cli.service.session_manager_impl import SessionManagerImpl
 from cloudshell.cli.service.session_manager_impl import SessionManagerException

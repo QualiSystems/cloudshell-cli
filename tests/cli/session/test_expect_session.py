@@ -1,7 +1,6 @@
 from collections import OrderedDict
 from unittest import TestCase
-
-from mock import patch, Mock, call, MagicMock
+from unittest.mock import patch, Mock, call, MagicMock
 
 from cloudshell.cli.service.action_map import ActionMap, Action
 from cloudshell.cli.session.expect_session import ExpectSession, ActionLoopDetector

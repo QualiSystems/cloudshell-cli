@@ -4,12 +4,12 @@ from io import StringIO
 from abc import abstractmethod
 from time import sleep
 from unittest import TestCase
+from unittest.mock import Mock, patch
 
 import paramiko
 from paramiko import RSAKey
 
 from cloudshell.cli.session.ssh_session import SSHSession, SSHSessionException
-from mock import Mock, patch
 
 
 KEY_WITH_PASSPHRASE = '''-----BEGIN RSA PRIVATE KEY-----
