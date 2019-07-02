@@ -30,9 +30,7 @@ class Action(object):
 
         :rtype: str
         """
-        return "{} pattern: {}, execute once: {}".format(super(Action, self).__repr__(),
-                                                         self.pattern,
-                                                         self.execute_once)
+        return "{} pattern: {}, execute once: {}".format(super().__repr__(), self.pattern, self.execute_once)
 
     def match(self, output):
         """
@@ -137,9 +135,7 @@ class ActionMap(object):
 
         :rtype: str
         """
-        return "{} matched patterns: {}, actions: {}".format(super(ActionMap, self).__repr__(),
-                                                             self.matched_patterns,
-                                                             self.actions)
+        return "{} matched patterns: {}, actions: {}".format(super().__repr__(), self.matched_patterns, self.actions)
 
 
 class ActionLoopDetector(object):
