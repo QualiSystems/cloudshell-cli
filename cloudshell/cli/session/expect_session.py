@@ -342,7 +342,7 @@ class ActionLoopDetector(object):
         # """Added action key to the history and detect for loops"""
         loops_detected = False
         self._action_history.append(action_key)
-        for combination_length in xrange(1, self._max_combination_length + 1):
+        for combination_length in range(1, self._max_combination_length + 1):
             if self._is_combination_compatible(combination_length):
                 if self._detect_loops_for_combination_length(combination_length):
                     loops_detected = True
@@ -371,9 +371,9 @@ class ActionLoopDetector(object):
         """
         reversed_history = self._action_history[::-1]
         combinations = [reversed_history[x:x + combination_length] for x in
-                        xrange(0, len(reversed_history), combination_length)][:self._max_action_loops]
+                        range(0, len(reversed_history), combination_length)][:self._max_action_loops]
         is_loops_exist = True
-        for x, y in [combinations[x:x + 2] for x in xrange(0, len(combinations) - 1)]:
+        for x, y in [combinations[x:x + 2] for x in range(0, len(combinations) - 1)]:
             if x != y:
                 is_loops_exist = False
                 break
