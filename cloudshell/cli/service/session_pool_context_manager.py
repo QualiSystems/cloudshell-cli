@@ -40,8 +40,11 @@ class SessionPoolContextManager(object):
         :rtype: CliServiceImpl
         """
         prompts_re = r'|'.join(CommandModeHelper.defined_modes_by_prompt(self._command_mode).keys())
-        self._active_session = self._session_pool.get_session(new_sessions=self._defined_sessions, prompt=prompts_re,
-                                                              logger=self._logger)
+        self._active_session = self._session_pool.get_session(
+            self._defined_sessions,
+            prompts_re,
+            self._logger
+        )
         try:
             return self._initialize_cli_service(self._active_session, prompts_re)
         except Exception:
