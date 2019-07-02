@@ -44,9 +44,9 @@ class TestSessionPoolContextManager(TestCase):
         with self._instance as cli_service:
             pass
         command_mode_helper.defined_modes_by_prompt.assert_called_once_with(self._command_mode)
-        self._session_pool_manager.get_session.assert_called_once_with(logger=self._logger,
-                                                                       prompt='|'.join(prompts),
-                                                                       new_sessions=self._new_sessions)
+        self._session_pool_manager.get_session.assert_called_once_with(self._new_sessions,
+                                                                       '|'.join(prompts),
+                                                                       self._logger)
         self._instance._initialize_cli_service.assert_called_once_with(session, '|'.join(prompts))
 
     @patch('cloudshell.cli.service.session_pool_context_manager.CommandModeHelper')
@@ -61,9 +61,9 @@ class TestSessionPoolContextManager(TestCase):
             with self._instance as cli_service:
                 pass
         command_mode_helper.defined_modes_by_prompt.assert_called_once_with(self._command_mode)
-        self._session_pool_manager.get_session.assert_called_once_with(logger=self._logger,
-                                                                       prompt='|'.join(prompts),
-                                                                       new_sessions=self._new_sessions)
+        self._session_pool_manager.get_session.assert_called_once_with(self._new_sessions,
+                                                                       '|'.join(prompts),
+                                                                       self._logger)
         self._instance._initialize_cli_service.assert_called_once_with(session, '|'.join(prompts))
         self._session_pool_manager.remove_session(session, self._logger)
 

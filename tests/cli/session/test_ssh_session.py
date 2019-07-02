@@ -103,7 +103,7 @@ class SFTPReceiver(paramiko.SFTPHandle):
         self.buf = buf
 
     def write(self, offset, data):
-        self.buf.write(data)
+        self.buf.write(data.decode())
         return paramiko.SFTP_OK
 
     def close(self):
@@ -231,7 +231,7 @@ class SSHServer(paramiko.ServerInterface):
         self.reads[channel.get_id()] = []
         buf = ''
         while True:
-            b = channel.recv(1024)
+            b = channel.recv(1024).decode()
             self.reads[channel.get_id()].append(b)
             if len(b) > 0:
                 buf += b
@@ -264,7 +264,7 @@ class SSHServer(paramiko.ServerInterface):
         channel.sendall(self.fake_device.get_banner())
         buf = ''
         while True:
-            b = channel.recv(1024)
+            b = channel.recv(1024).decode()
             self.reads[channel.get_id()].append(b)
             if len(b) > 0:
                 buf += b
@@ -303,6 +303,7 @@ class SSHServer(paramiko.ServerInterface):
 
     def check_channel_exec_request(self, channel, command):
         # print 'channel %d exec command %s' % (channel.get_id(), command)
+        command = command.decode()
         if command.startswith('scp'):
             if not self.enable_scp:
                 return False
