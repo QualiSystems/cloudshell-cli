@@ -1,6 +1,7 @@
 from unittest import TestCase
+from unittest.mock import Mock, patch
+
 from cloudshell.cli.service.node import Node, NodeOperations
-from mock import Mock, MagicMock, patch
 
 
 class NodeImplementation(Node):

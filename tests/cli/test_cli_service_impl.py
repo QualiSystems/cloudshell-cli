@@ -1,7 +1,6 @@
 from logging import Logger
 from unittest import TestCase
-
-from mock import Mock, patch, create_autospec, MagicMock
+from unittest.mock import Mock, patch, create_autospec, MagicMock
 
 from cloudshell.cli.service.cli_service_impl import EnterCommandModeContextManager, CliServiceImpl, \
     EnterDetachCommandModeContextManager
