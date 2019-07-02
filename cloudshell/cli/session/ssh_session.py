@@ -104,7 +104,8 @@ class SSHSession(ExpectSession, ConnectionParams):
         self._current_channel.settimeout(timeout)
 
         try:
-            data = self._current_channel.recv(self._buffer_size)
+            byte_data = self._current_channel.recv(self._buffer_size)
+            data = byte_data.decode()
         except socket.timeout:
             raise SessionReadTimeout()
 
