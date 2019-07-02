@@ -62,9 +62,8 @@ class SSHSession(ExpectSession, ConnectionParams):
             self._handler.connect(self.host, self.port, self.username, self.password, timeout=self._timeout,
                                   banner_timeout=30, allow_agent=False, look_for_keys=False, pkey=self.pkey)
         except Exception as e:
-            logger.error(traceback.format_exc())
-            raise SSHSessionException(self.__class__.__name__,
-                                      'Failed to open connection to device: {0}'.format(e.message))
+            logger.exception("Failed to initialize session:")
+            raise SSHSessionException(f"Failed to open connection to device: {e}")
 
         self._current_channel = self._handler.invoke_shell()
         self._current_channel.settimeout(self._timeout)
