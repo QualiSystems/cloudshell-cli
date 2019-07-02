@@ -70,11 +70,12 @@ class TelnetSession(ExpectSession, ConnectionParams):
     def _send(self, command, logger):
         """send message / command to device
 
-        :param data_str: message / command to send
+        :param command: message / command to send
+        :type command: str
         :return:
         """
-
-        self._handler.write(command)
+        byte_command = command.encode()
+        self._handler.write(byte_command)
 
     def _receive(self, timeout, logger):
         """read session buffer
@@ -87,11 +88,12 @@ class TelnetSession(ExpectSession, ConnectionParams):
         self._handler.get_socket().settimeout(timeout)
 
         try:
-            data = self._handler.read_some()
+            byte_data = self._handler.read_some()
         except socket.timeout:
             raise SessionReadTimeout()
 
-        if not data:
+        if not byte_data:
             raise SessionReadEmptyData()
 
+        data = byte_data.decode()
         return data
