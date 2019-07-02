@@ -11,7 +11,7 @@ from cloudshell.cli.session.telnet_session import TelnetSession
 class CLIServiceConfigurator(object):
     REGISTERED_SESSIONS = (SSHSession, TelnetSession)
 
-    def __init__(self, resource_config, logger, cli=None, registered_sessions=REGISTERED_SESSIONS):
+    def __init__(self, resource_config, logger, cli=None, registered_sessions=None):
         """
         :param cloudshell.shell.standards.resource_config_generic_models.GenericCLIConfig resource_config:
         :param logging.Logger logger:
@@ -21,7 +21,7 @@ class CLIServiceConfigurator(object):
         self._cli = cli or CLI()
         self._resource_config = resource_config
         self._logger = logger
-        self._registered_sessions = registered_sessions
+        self._registered_sessions = registered_sessions or self.REGISTERED_SESSIONS
 
     @property
     def _username(self):
