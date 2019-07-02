@@ -1,6 +1,5 @@
 from unittest import TestCase
-
-from mock import MagicMock as Mock, patch, call
+from unittest.mock import MagicMock as Mock, patch, call
 
 from cloudshell.cli.session.session_exceptions import CommandExecutionException
 from cloudshell.cli.service.session_pool_context_manager import SessionPoolContextManager
