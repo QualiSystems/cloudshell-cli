@@ -1,6 +1,5 @@
 import re
 
-from cloudshell.cli.service.action_map import ActionMap
 from cloudshell.cli.service.cli_exception import CliException
 from cloudshell.cli.service.node import Node
 
@@ -10,7 +9,9 @@ class CommandModeException(CliException):
 
 
 class CommandMode(Node):
-    """Class describes our prompt and implement enter and exit command functions"""
+    """
+    Class describes our prompt and implement enter and exit command functions
+    """
 
     RELATIONS_DICT = {}
 
@@ -18,30 +19,34 @@ class CommandMode(Node):
                  enter_error_map=None, exit_error_map=None, parent_mode=None, enter_actions=None,
                  use_exact_prompt=False):
         """
-
-        :param str prompt: Prompt of this mode
-        :param str enter_command: Command used to enter this mode
-        :param str exit_command: Command used to exit from this mode
-        :param enter_actions: Actions which needs to be done when entering this mode
-        :param cloudshell.cli.service.action_map.ActionMap enter_action_map: Enter expected actions
-        :param enter_error_map: expected error map with subclass of CommandExecutionException or str
-        :type enter_error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]
-        :param cloudshell.cli.service.action_map.ActionMap exit_action_map:
-        :param exit_error_map: expected error map with subclass of CommandExecutionException or str
-        :type exit_error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]
-        :param parent_mode: Connect parent mode
-        """
-        super(CommandMode, self).__init__()
-
+            :param prompt: Prompt of this mode
+            :type prompt: str
+            :param enter_command: Command used to enter this mode
+            :type enter_command: str
+            :param exit_command: Command used to exit from this mode
+            :type exit_command: str
+            :param enter_actions: Actions which needs to be done when entering this mode
+            :param enter_action_map: Enter expected actions
+            :type enter_action_map: dict
+            :param enter_error_map: expected error map with subclass of CommandExecutionException or str
+            :type enter_error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]
+            :param exit_action_map:
+            :type exit_action_map: dict
+            :param exit_error_map: expected error map with subclass of CommandExecutionException or str
+            :type exit_error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]
+            :param
+            :param parent_mode: Connect parent mode
+            """
         if not exit_error_map:
             exit_error_map = {}
         if not enter_error_map:
             enter_error_map = {}
         if not exit_action_map:
-            exit_action_map = ActionMap()
+            exit_action_map = {}
         if not enter_action_map:
-            enter_action_map = ActionMap()
+            enter_action_map = {}
 
+        super(CommandMode, self).__init__()
         self._prompt = prompt
         self._exact_prompt = None
         self._enter_command = enter_command
