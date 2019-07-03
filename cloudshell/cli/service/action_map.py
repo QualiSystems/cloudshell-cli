@@ -30,7 +30,7 @@ class Action(object):
 
         :rtype: str
         """
-        return f"{super().__repr__()} pattern: {self.pattern}, execute once: {self.execute_once}"
+        return "{} pattern: {}, execute once: {}".format(super().__repr__(), self.pattern, self.execute_once)
 
     def match(self, output):
         """
@@ -104,13 +104,13 @@ class ActionMap(object):
         """
         for action in self.active_actions:
             if action.match(output):
-                logger.debug(f"Matched Action with pattern: {action.pattern}")
+                logger.debug("Matched Action with pattern: {}".format(action.pattern))
 
                 if check_action_loop_detector:
-                    logger.debug(f"Checking loops for Action with pattern : {action.pattern}")
+                    logger.debug("Checking loops fro Action with pattern : {}".format(action.pattern))
 
                     if action_loop_detector.loops_detected(action.pattern):
-                        logger.error(f"Loops detected for action patter: {action.pattern}")
+                        logger.error("Loops detected for action patter: {}".format(action.pattern))
                         raise SessionLoopDetectorException("Expected actions loops detected")
 
                 action(session, logger)
@@ -128,14 +128,14 @@ class ActionMap(object):
         if isinstance(other, type(self)):
             return ActionMap(actions=self.actions + other.actions)
 
-        raise TypeError(f"unsupported operand type(s) for +: '{type(self)}' and '{type(other)}'")
+        raise TypeError("unsupported operand type(s) for +: '{}' and '{}'".format(type(self), type(other)))
 
     def __repr__(self):
         """
 
         :rtype: str
         """
-        return f"{super().__repr__()} matched patterns: {self.matched_patterns}, actions: {self.actions}"
+        return "{} matched patterns: {}, actions: {}".format(super().__repr__(), self.matched_patterns, self.actions)
 
 
 class ActionLoopDetector(object):
