@@ -126,10 +126,7 @@ class ActionMap(object):
         :rtype: ActionMap
         """
         if isinstance(other, type(self)):
-            actions = self.actions + [action for action in other.actions if action.pattern not in
-                                      [action.pattern for action in self.actions]]
-
-            return ActionMap(actions=actions)
+            return ActionMap(actions=self.actions + other.actions)
 
         raise TypeError(f"unsupported operand type(s) for +: '{type(self)}' and '{type(other)}'")
 
