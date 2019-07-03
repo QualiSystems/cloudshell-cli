@@ -1,12 +1,11 @@
 import re
 import time
 from abc import ABCMeta, abstractmethod
+from collections import OrderedDict
 
-from cloudshell.cli.service.action_map import ActionMap
-from cloudshell.cli.service.action_map import ActionLoopDetector
 from cloudshell.cli.session.helper.normalize_buffer import normalize_buffer
 from cloudshell.cli.session.session import Session
-from cloudshell.cli.session.session_exceptions import SessionLoopLimitException, \
+from cloudshell.cli.session.session_exceptions import SessionLoopDetectorException, SessionLoopLimitException, \
     ExpectedSessionException, CommandExecutionException, SessionReadTimeout, SessionReadEmptyData
 
 
@@ -182,6 +181,7 @@ class ExpectSession(Session, metaclass=ABCMeta):
     def hardware_expect(self, command, expected_string, logger, action_map=None, error_map=None,
                         timeout=None, retries=None, check_action_loop_detector=True, empty_loop_timeout=None,
                         remove_command_from_output=True, **optional_args):
+
         """Get response form the device and compare it to action_map, error_map and expected_string patterns,
         perform actions specified in action_map if any, and return output.
         Raise Exception if receive empty response from device within a minute
@@ -189,7 +189,7 @@ class ExpectSession(Session, metaclass=ABCMeta):
         :param command: command to send
         :param expected_string: expected string
         :param logger: logger
-        :param action_map: ActionMap
+        :param action_map: dict with {re_str: action} to trigger some action on received string
         :param error_map: expected error map with subclass of CommandExecutionException or str
         :type error_map: dict[str, CommandExecutionException|str]
         :param timeout: session timeout
@@ -201,10 +201,10 @@ class ExpectSession(Session, metaclass=ABCMeta):
         """
 
         if not action_map:
-            action_map = ActionMap()
+            action_map = OrderedDict()
 
         if not error_map:
-            error_map = ActionMap()
+            error_map = OrderedDict()
 
         retries = retries or self._max_loop_retries
         empty_loop_timeout = empty_loop_timeout or self._empty_loop_timeout
@@ -227,7 +227,6 @@ class ExpectSession(Session, metaclass=ABCMeta):
 
         action_loop_detector = ActionLoopDetector(self._loop_detector_max_action_loops,
                                                   self._loop_detector_max_combination_length)
-
         while retries == 0 or retries_count < retries:
 
             # try:
@@ -259,15 +258,20 @@ class ExpectSession(Session, metaclass=ABCMeta):
                 output_list.append(output_str)
                 is_correct_exit = True
 
-            action_matched = action_map(session=self,
-                                        logger=logger,
-                                        output=output_str,
-                                        check_action_loop_detector=check_action_loop_detector,
-                                        action_loop_detector=action_loop_detector)
+            for action_key in action_map:
+                result_match = re.search(action_key, output_str, re.DOTALL)
+                if result_match:
+                    output_list.append(output_str)
 
-            if action_matched:
-                output_list.append(output_str)
-                output_str = ''
+                    if check_action_loop_detector:
+                        if action_loop_detector.loops_detected(action_key):
+                            logger.error('Loops detected')
+                            raise SessionLoopDetectorException(self.__class__.__name__,
+                                                               'Expected actions loops detected')
+                    logger.debug('Action key: {}'.format(action_key))
+                    action_map[action_key](self, logger)
+                    output_str = ''
+                    break
 
             if is_correct_exit:
                 break
@@ -312,3 +316,65 @@ class ExpectSession(Session, metaclass=ABCMeta):
                 logger.debug(e)
         raise ExpectedSessionException(self.__class__.__name__,
                                        'Reconnect unsuccessful, timeout exceeded, see logs for more details')
+
+
+class ActionLoopDetector(object):
+    """Help to detect loops for action combinations"""
+
+    def __init__(self, max_loops, max_combination_length):
+        """
+
+        :param max_loops:
+        :param max_combination_length:
+        :return:
+        """
+        self._max_action_loops = max_loops
+        self._max_combination_length = max_combination_length
+        self._action_history = []
+
+    def loops_detected(self, action_key):
+        """
+        Add action key to the history and detect loops
+
+        :param action_key:
+        :return:
+        """
+        # """Added action key to the history and detect for loops"""
+        loops_detected = False
+        self._action_history.append(action_key)
+        for combination_length in range(1, self._max_combination_length + 1):
+            if self._is_combination_compatible(combination_length):
+                if self._detect_loops_for_combination_length(combination_length):
+                    loops_detected = True
+                    break
+        return loops_detected
+
+    def _is_combination_compatible(self, combination_length):
+        """
+        Check if combinations may exist
+
+        :param combination_length:
+        :return:
+        """
+        if len(self._action_history) / combination_length >= self._max_action_loops:
+            is_compatible = True
+        else:
+            is_compatible = False
+        return is_compatible
+
+    def _detect_loops_for_combination_length(self, combination_length):
+        """
+        Detect loops for combination length
+
+        :param combination_length:
+        :return:
+        """
+        reversed_history = self._action_history[::-1]
+        combinations = [reversed_history[x:x + combination_length] for x in
+                        range(0, len(reversed_history), combination_length)][:self._max_action_loops]
+        is_loops_exist = True
+        for x, y in [combinations[x:x + 2] for x in range(0, len(combinations) - 1)]:
+            if x != y:
+                is_loops_exist = False
+                break
+        return is_loops_exist
