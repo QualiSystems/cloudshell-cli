@@ -12,12 +12,9 @@ from cloudshell.cli.session.session_exceptions import SessionLoopLimitException,
 
 
 class ExpectSession(Session, metaclass=ABCMeta):
-    """
-    Help to handle additional actions during send command
-    """
+    """Help to handle additional actions during send command"""
 
     SESSION_TYPE = 'EXPECT'
-
     MAX_LOOP_RETRIES = 20
     READ_TIMEOUT = 30
     EMPTY_LOOP_TIMEOUT = 0.5
@@ -30,19 +27,17 @@ class ExpectSession(Session, metaclass=ABCMeta):
                  empty_loop_timeout=EMPTY_LOOP_TIMEOUT, loop_detector_max_action_loops=LOOP_DETECTOR_MAX_ACTION_LOOPS,
                  loop_detector_max_combination_length=LOOP_DETECTOR_MAX_COMBINATION_LENGTH,
                  clear_buffer_timeout=CLEAR_BUFFER_TIMEOUT, reconnect_timeout=RECONNECT_TIMEOUT):
-
         """
 
-        :param timeout:
-        :param new_line:
-        :param max_loop_retries:
-        :param empty_loop_timeout:
-        :param loop_detector_max_action_loops:
-        :param loop_detector_max_combination_length:
-        :param clear_buffer_timeout:
+        :param int timeout:
+        :param str new_line:
+        :param int max_loop_retries:
+        :param float empty_loop_timeout:
+        :param int loop_detector_max_action_loops:
+        :param int loop_detector_max_combination_length:
+        :param float clear_buffer_timeout:
         :return:
         """
-
         self._new_line = new_line
         self._timeout = timeout
         self._max_loop_retries = max_loop_retries
@@ -63,32 +58,42 @@ class ExpectSession(Session, metaclass=ABCMeta):
     @abstractmethod
     def _connect_actions(self, prompt, logger):
         """Read out buffer and run on_session_start actions
-        :param prompt: expected string in output
-        :param logger: logger
-        """
 
+        :param str prompt: expected string in output
+        :param logging.Logger logger: logger
+        """
         pass
 
     @abstractmethod
     def _initialize_session(self, prompt, logger):
         """Create handler and initialize session
-        :param prompt: expected string in output
-        :param logger: logger
+
+        :param str prompt: expected string in output
+        :param logging.Logger logger: logger
         """
         pass
 
     def set_active(self, state):
+        """
+
+        :param bool state:
+        :return:
+        """
         self._active = state
 
     def active(self):
+        """
+
+        :rtype: bool
+        """
         return self._active
 
     def _clear_buffer(self, timeout, logger):
-        """
-        Clear buffer
+        """Clear buffer
 
-        :param timeout:
-        :return:
+        :param int|float timeout:
+        :param logging.Logger logger:
+        :rtype: str
         """
         out = ''
         while True:
@@ -103,11 +108,11 @@ class ExpectSession(Session, metaclass=ABCMeta):
         return out
 
     def connect(self, prompt, logger):
-        """Connect to device.
-        :param prompt: expected string in output
-        :param logger: logger
-        """
+        """Connect to device
 
+        :param str prompt: expected string in output
+        :param logging.Logger logger: logger
+        """
         try:
             self._initialize_session(prompt, logger)
             self._connect_actions(prompt, logger)
@@ -117,26 +122,25 @@ class ExpectSession(Session, metaclass=ABCMeta):
             raise
 
     def send_line(self, command, logger):
-        """
-        Add new line to the end of command string and send
+        """Add new line to the end of command string and send
 
-        :param command:
+        :param str command:
+        :param logging.Logger logger:
         :return:
         """
         self._send(command + self._new_line, logger)
 
     def _receive_all(self, timeout, logger):
-        """
-        Read as much as possible before catch SessionTimeoutException
-        :param timeout:
-        :param logger:
-        :return:
+        """Read as much as possible before catch SessionTimeoutException
+
+        :param int timeout:
+        :param logging.Logger logger:
         :rtype: str
         """
-        if not timeout:
-            timeout = self._timeout
+        timeout = timeout or self._timeout
         start_time = time.time()
         read_buffer = ''
+
         while True:
             try:
                 read_buffer += self._receive(0.1, logger)
@@ -144,41 +148,37 @@ class ExpectSession(Session, metaclass=ABCMeta):
                 if read_buffer:
                     return read_buffer
                 elif time.time() - start_time > timeout:
-                    raise ExpectedSessionException(self.__class__.__name__, 'Socket closed by timeout')
+                    raise ExpectedSessionException('Socket closed by timeout')
 
     def _generate_command_pattern(self, command):
-        """
-        Generate command_pattern
-        :param command:
+        """Generate command_pattern
+
+        :param str command:
         :return:
         """
         if command not in self._command_patterns:
             self._command_patterns[command] = '\s*' + re.sub(r'\\\s+', '\s+', re.escape(command)) + '\s*'
+
         return self._command_patterns[command]
 
     def probe_for_prompt(self, expected_string, logger):
-        """
-        Matched string for regexp
-        :param expected_string:
-        :param logger:
+        """Matched string for regexp
+
+        :param str expected_string:
+        :param logging.Logger logger:
         :return:
         """
         return self.hardware_expect('', expected_string, logger)
 
     def match_prompt(self, prompt, match_string, logger):
-        """
-        Main verification for the prompt match
-        :param prompt: Expected string, string or regular expression
-        :type prompt: str
-        :param match_string: Match string
-        :type match_string: str
-        :param logger
+        """Main verification for the prompt match
+
+        :param str prompt: expected string, string or regular expression
+        :param str match_string: Match string
+        :param logging.Logger logger:
         :rtype: bool
         """
-        if re.search(prompt, match_string, re.DOTALL):
-            return True
-        else:
-            return False
+        return bool(re.search(prompt, match_string, re.DOTALL))
 
     def hardware_expect(self, command, expected_string, logger, action_map=None, error_map=None,
                         timeout=None, retries=None, check_action_loop_detector=True, empty_loop_timeout=None,
@@ -195,27 +195,23 @@ class ExpectSession(Session, metaclass=ABCMeta):
         :param int timeout: session timeout
         :param int retries: maximal retries count
         :param bool check_action_loop_detector:
+        :param bool empty_loop_timeout:
         :param bool remove_command_from_output: In some switches the output string includes the command which was
             called. The flag used to verify whether the the command string removed from the output string.
         :rtype: str
         """
-        if not action_map:
-            action_map = ActionMap()
-
-        if not error_map:
-            error_map = ErrorMap()
-
+        action_map = action_map or ActionMap()
+        error_map = error_map or  ErrorMap()
         retries = retries or self._max_loop_retries
         empty_loop_timeout = empty_loop_timeout or self._empty_loop_timeout
 
         if command is not None:
             self._clear_buffer(self._clear_buffer_timeout, logger)
-
-            logger.debug('Command: {}'.format(command))
+            logger.debug(f'Command: {command}')
             self.send_line(command, logger)
 
         if not expected_string:
-            raise ExpectedSessionException(self.__class__.__name__, 'List of expected messages can\'t be empty!')
+            raise ExpectedSessionException('List of expected messages can\'t be empty!')
 
         # Loop until one of the expressions is matched or MAX_RETRIES
         # nothing is expected (usually used for exit)
@@ -272,8 +268,7 @@ class ExpectSession(Session, metaclass=ABCMeta):
                 break
 
         if not is_correct_exit:
-            raise SessionLoopLimitException(self.__class__.__name__,
-                                            'Session Loop limit exceeded, {} loops'.format(retries_count))
+            raise SessionLoopLimitException(f'Session Loop limit exceeded, {retries_count} loops')
 
         result_output = ''.join(output_list)
         error_map.process(output=result_output, logger=logger)
@@ -283,23 +278,22 @@ class ExpectSession(Session, metaclass=ABCMeta):
         return result_output
 
     def reconnect(self, prompt, logger, timeout=None):
-        """
-        Recconnect implementation
+        """Reconnect implementation
 
-        :param prompt:
-        :param logger:
-        :param timeout:
+        :param str prompt:
+        :param logging.Logger logger:
+        :param int timeout:
         :return:
         """
         logger.debug('Reconnect')
         timeout = timeout or self._reconnect_timeout
-
         call_time = time.time()
+
         while time.time() - call_time < timeout:
             try:
                 self.disconnect()
                 return self.connect(prompt, logger)
-            except Exception as e:
-                logger.debug(e)
-        raise ExpectedSessionException(self.__class__.__name__,
-                                       'Reconnect unsuccessful, timeout exceeded, see logs for more details')
+            except Exception:
+                logger.debug('Failed to reconnect:', exc_info=True)
+
+        raise ExpectedSessionException('Reconnect unsuccessful, timeout exceeded, see logs for more details')
