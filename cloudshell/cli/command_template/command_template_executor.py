@@ -29,11 +29,11 @@ class CommandTemplateExecutor(object):
         """
         Return updated action
         """
-        return OrderedDict(self._action_map.items() + self._command_template.action_map.items())
+        return dict(**self._action_map, **self._command_template.action_map)
 
     @property
     def error_map(self):
-        return OrderedDict(self._command_template.error_map.items() + self._error_map.items())
+        return dict(**self._error_map, **self._command_template.error_map)
 
     @property
     def optional_kwargs(self):
