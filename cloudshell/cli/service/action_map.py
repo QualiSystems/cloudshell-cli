@@ -13,6 +13,7 @@ class Action:
         :param bool execute_once:
         """
         self.pattern = pattern
+        self.compiled_pattern = re.compile(pattern=pattern, flags=re.DOTALL)
         self.callback = callback
         self.execute_once = execute_once
 
@@ -38,7 +39,7 @@ class Action:
         :param str output:
         :rtype: bool
         """
-        return bool(re.search(self.pattern, output, re.DOTALL))
+        return bool(self.compiled_pattern.search(output))
 
 
 class ActionMap:

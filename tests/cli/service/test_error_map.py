@@ -18,21 +18,17 @@ class TestError(unittest.TestCase):
         with self.assertRaisesRegex(CommandExecutionException, self.error_msg):
             self.error()
 
-    @mock.patch("cloudshell.cli.service.error_map.re")
-    def test_match_return_true(self, re):
+    def test_match_return_true(self):
         """Check that method will return True if output matches pattern"""
-        re.search.return_value = True
-        output = "test output"
+        output = "test pattern"
         # act
         result = self.error.match(output)
         # verify
         self.assertTrue(result)
 
-    @mock.patch("cloudshell.cli.service.error_map.re")
-    def test_match_return_false(self, re):
+    def test_match_return_false(self):
         """Check that method will return False if output doesn't match pattern"""
-        re.search.return_value = False
-        output = "test output"
+        output = "missed pattern"
         # act
         result = self.error.match(output)
         # verify
