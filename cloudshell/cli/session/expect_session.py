@@ -191,8 +191,7 @@ class ExpectSession(Session, metaclass=ABCMeta):
         :param str expected_string: expected string
         :param logging.Logger logger: logger
         :param cloudshell.cli.service.action_map.ActionMap action_map:
-        :param error_map: expected error map with subclass of CommandExecutionException or str
-        :type error_map: dict[str, CommandExecutionException|str]
+        :param cloudshell.cli.service.error_map.ErrorMap error_map:
         :param int timeout: session timeout
         :param int retries: maximal retries count
         :param bool check_action_loop_detector:

@@ -1,4 +1,3 @@
-from collections import OrderedDict
 import re
 
 from cloudshell.cli.service.action_map import ActionMap

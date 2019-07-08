@@ -9,7 +9,7 @@ class Error:
         """
 
         :param str pattern:
-        :param str error:
+        :param str|CommandExecutionException error:
         """
         self.pattern = pattern
         self.error = error
@@ -90,11 +90,7 @@ class ErrorMap:
         for error in self.errors:
             if error.match(output):
                 logger.debug(f"Matched Error with pattern: {error.pattern}")
-
-                if isinstance(error, CommandExecutionException):
-                    raise error
-                else:
-                    raise CommandExecutionException('Session returned \'{}\''.format(error))
+                error()
 
     def __add__(self, other):
         """
