@@ -12,6 +12,7 @@ class Error:
         :param str|CommandExecutionException error:
         """
         self.pattern = pattern
+        self.compiled_pattern = re.compile(pattern=pattern, flags=re.DOTALL)
         self.error = error
 
     def __call__(self):
@@ -37,7 +38,7 @@ class Error:
         :param str output:
         :rtype: bool
         """
-        return bool(re.search(self.pattern, output, re.DOTALL))
+        return bool(self.compiled_pattern.search(output))
 
 
 class ErrorMap:
