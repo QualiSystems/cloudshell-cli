@@ -1,6 +1,7 @@
 import re
 
 from cloudshell.cli.service.action_map import ActionMap
+from cloudshell.cli.service.error_map import ErrorMap
 from cloudshell.cli.service.cli_exception import CliException
 from cloudshell.cli.service.node import Node
 
@@ -24,19 +25,17 @@ class CommandMode(Node):
         :param str exit_command: Command used to exit from this mode
         :param enter_actions: Actions which needs to be done when entering this mode
         :param cloudshell.cli.service.action_map.ActionMap enter_action_map: Enter expected actions
-        :param enter_error_map: expected error map with subclass of CommandExecutionException or str
-        :type enter_error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]
+        :param cloudshell.cli.service.error_map.ErrorMap enter_error_map:
         :param cloudshell.cli.service.action_map.ActionMap exit_action_map:
-        :param exit_error_map: expected error map with subclass of CommandExecutionException or str
-        :type exit_error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]
+        :param cloudshell.cli.service.error_map.ErrorMap exit_error_map:
         :param parent_mode: Connect parent mode
         """
         super(CommandMode, self).__init__()
 
         if not exit_error_map:
-            exit_error_map = {}
+            exit_error_map = ErrorMap()
         if not enter_error_map:
-            enter_error_map = {}
+            enter_error_map = ErrorMap()
         if not exit_action_map:
             exit_action_map = ActionMap()
         if not enter_action_map:
