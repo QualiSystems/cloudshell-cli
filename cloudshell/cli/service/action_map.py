@@ -4,7 +4,7 @@ import re
 from cloudshell.cli.session.session_exceptions import SessionLoopDetectorException
 
 
-class Action(object):
+class Action:
     def __init__(self, pattern, callback, execute_once=False):
         """
 
@@ -41,7 +41,7 @@ class Action(object):
         return bool(re.search(self.pattern, output, re.DOTALL))
 
 
-class ActionMap(object):
+class ActionMap:
     def __init__(self, actions=None):
         """
 
@@ -59,7 +59,7 @@ class ActionMap(object):
 
         :rtype: list[Action]
         """
-        return [action for action in self._actions_dict.values()]
+        return list(self._actions_dict.values())
 
     @property
     def active_actions(self):
@@ -141,7 +141,7 @@ class ActionMap(object):
         return f"{super().__repr__()} matched patterns: {self.matched_patterns}, actions: {self.actions}"
 
 
-class ActionLoopDetector(object):
+class ActionLoopDetector:
     """Help to detect loops for action combinations"""
 
     def __init__(self, max_loops, max_combination_length):
