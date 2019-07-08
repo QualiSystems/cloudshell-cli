@@ -1,8 +1,7 @@
-from collections import OrderedDict
 import re
-from collections import OrderedDict
 
 from cloudshell.cli.service.action_map import ActionMap
+from cloudshell.cli.service.error_map import ErrorMap
 
 
 class CommandTemplate:
@@ -11,18 +10,17 @@ class CommandTemplate:
 
         :type command: str
         :param cloudshell.cli.service.action_map.ActionMap action_map:
-        :param error_map: expected error map with subclass of CommandExecutionException or str
-        :type error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]
+        :param cloudshell.cli.service.error_map.ErrorMap error_map:
         """
         self._command = command
         self._action_map = action_map or ActionMap()
-        self._error_map = error_map or OrderedDict()
+        self._error_map = error_map or ErrorMap()
 
     @property
     def action_map(self):
         """Property for action map.
 
-        :rtype: OrderedDict()
+        :rtype: cloudshell.cli.service.action_map.ActionMap
         """
         return self._action_map
 
@@ -30,7 +28,7 @@ class CommandTemplate:
     def error_map(self):
         """Property for error map.
 
-        :rtype: OrderedDict
+        :rtype: cloudshell.cli.service.error_map.ErrorMap
         """
         return self._error_map
 
@@ -40,8 +38,8 @@ class CommandTemplate:
         action_map = kwargs.get('action_map') or ActionMap()
         action_map.extend(self.action_map)
 
-        error_map = kwargs.get("error_map") or OrderedDict()
-        error_map.update(self.error_map)
+        error_map = kwargs.get("error_map") or ErrorMap()
+        error_map.extend(self.error_map)
 
         return {
             'command': self.prepare_command(**kwargs),

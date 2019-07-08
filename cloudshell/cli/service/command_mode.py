@@ -1,6 +1,7 @@
 import re
 
 from cloudshell.cli.service.action_map import ActionMap
+from cloudshell.cli.service.error_map import ErrorMap
 from cloudshell.cli.service.cli_exception import CliException
 from cloudshell.cli.service.node import Node
 
@@ -29,30 +30,20 @@ class CommandMode(Node):
     ):
         """Initialize Command Mode.
 
-        :param prompt: Prompt of this mode
-        :type prompt: str
-        :param enter_command: Command used to enter this mode
-        :type enter_command: str
-        :param exit_command: Command used to exit from this mode
-        :type exit_command: str
+        :param str prompt: Prompt of this mode
+        :param str enter_command: Command used to enter this mode
+        :param str exit_command: Command used to exit from this mode
         :param enter_actions: Actions which needs to be done when entering this mode
         :param cloudshell.cli.service.action_map.ActionMap enter_action_map: Enter expected actions
-        :type enter_action_map: dict
-        :param enter_error_map: expected error map with subclass of
-            CommandExecutionException or str
-        :type enter_error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]  # noqa: E501
-        :param exit_action_map:
-        :type exit_action_map: dict
-        :param exit_error_map: expected error map with subclass of
-            CommandExecutionException or str
-        :type exit_error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]  # noqa: E501
-        :param
+        :param cloudshell.cli.service.error_map.ErrorMap enter_error_map:
+        :param cloudshell.cli.service.action_map.ActionMap exit_action_map:
+        :param cloudshell.cli.service.error_map.ErrorMap exit_error_map:
         :param parent_mode: Connect parent mode
         """
         if not exit_error_map:
-            exit_error_map = {}
+            exit_error_map = ErrorMap()
         if not enter_error_map:
-            enter_error_map = {}
+            enter_error_map = ErrorMap()
         if not exit_action_map:
             exit_action_map = ActionMap()
         if not enter_action_map:
