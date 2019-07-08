@@ -1,6 +1,9 @@
-from collections import OrderedDict
 from unittest import TestCase
 
+from cloudshell.cli.service.action_map import Action
+from cloudshell.cli.service.action_map import ActionMap
+from cloudshell.cli.service.error_map import Error
+from cloudshell.cli.service.error_map import ErrorMap
 from cloudshell.cli.session.expect_session import ActionLoopDetector, ExpectSession
 from cloudshell.cli.session.session_exceptions import (
     CommandExecutionException,
@@ -275,10 +278,8 @@ class TestExpectSession(TestCase):
         receive_all.side_effect = side_effect
         normalize_buffer.side_effect = side_effect
         test_func = Mock()
-        action_map = OrderedDict({fake_out: test_func})
-        self._instance.hardware_expect(
-            command, expected_string, self._logger, action_map=action_map
-        )
+        action_map = ActionMap(actions=[Action(pattern=fake_out, callback=test_func)])
+        self._instance.hardware_expect(command, expected_string, self._logger, action_map=action_map)
         test_func.assert_called_once_with(self._instance, self._logger)
 
     @patch("cloudshell.cli.session.expect_session.ExpectSession.send_line")
@@ -294,7 +295,7 @@ class TestExpectSession(TestCase):
         expected_string = "test_string"
         receive_all.return_value = expected_string
         normalize_buffer.return_value = expected_string
-        error_map = OrderedDict({expected_string: "test_error"})
+        error_map = ErrorMap(errors=[Error(pattern=expected_string, error='test_error')])
         exception = CommandExecutionException
         with self.assertRaises(exception):
             self._instance.hardware_expect(
@@ -317,7 +318,8 @@ class TestExpectSession(TestCase):
         expected_string = "test_string"
         receive_all.return_value = expected_string
         normalize_buffer.return_value = expected_string
-        error_map = OrderedDict({expected_string: TestException("test_error")})
+        error_map = ErrorMap(errors=[Error(pattern=expected_string, error=TestException('test_error'))])
+
         with self.assertRaises(TestException):
             self._instance.hardware_expect(
                 command, expected_string, self._logger, error_map=error_map
