@@ -1,7 +1,6 @@
-import os
 import socket
 
-from scpclient import Write
+from scp import SCPClient
 import paramiko
 
 from cloudshell.cli.session.session_exceptions import SessionException, SessionReadTimeout, SessionReadEmptyData
@@ -137,10 +136,9 @@ class SSHSession(ExpectSession, ConnectionParams):
         :param str dest_permissions: permission string as octal digits, e.g. 0601
         :return:
         """
-        folder = os.path.dirname(dest_pathname)
-        file_name = os.path.basename(dest_pathname)
-        scp = Write(self._handler.get_transport(), folder)
-        scp.send(file_stream, file_name, dest_permissions, file_size)
+        scp = SCPClient(self._handler.get_transport())
+        scp.putfo(fl=file_stream, remote_path=dest_pathname, mode=dest_permissions, size=file_size)
+        scp.close()
 
     def upload_sftp(self, file_stream, dest_pathname, file_size, dest_permissions='0601'):
         """
