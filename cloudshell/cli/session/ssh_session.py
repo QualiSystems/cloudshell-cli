@@ -127,7 +127,7 @@ class SSHSession(ExpectSession, ConnectionParams):
 
         return data
 
-    def upload_scp(self, file_stream, dest_pathname, file_size, dest_permissions='0601'):
+    def upload_scp(self, file_stream, dest_pathname, file_size=None, dest_permissions='0601'):
         """
 
         :param file_stream: filelike object: open file, StringIO, or other filelike object to read data from
