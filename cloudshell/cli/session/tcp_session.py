@@ -1,18 +1,18 @@
 import socket
 
 from cloudshell.cli.session.connection_params import ConnectionParams
-from cloudshell.cli.session.expect_session import ExpectSession
+from cloudshell.cli.session.session import AbstractSession
 from cloudshell.cli.session.session_exceptions import SessionReadTimeout, SessionReadEmptyData
 
 
-class TCPSession(ExpectSession, ConnectionParams):
+class TCPSession(AbstractSession, ConnectionParams):
 
     SESSION_TYPE = 'TCP'
     BUFFER_SIZE = 1024
 
     def __init__(self, host, port, on_session_start=None, *args, **kwargs):
         ConnectionParams.__init__(self, host=host, port=port, on_session_start=on_session_start)
-        ExpectSession.__init__(self, *args, **kwargs)
+        AbstractSession.__init__(self, *args, **kwargs)
 
         self._buffer_size = self.BUFFER_SIZE
         self._handler = None
@@ -38,7 +38,7 @@ class TCPSession(ExpectSession, ConnectionParams):
         """
 
         self._handler.close()
-        self._active = False
+        self.active = False
 
     def _send(self, command, logger):
         """Send message to the session

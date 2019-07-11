@@ -4,7 +4,6 @@ import time
 
 from cloudshell.cli.service.cli_exception import CliException
 from cloudshell.cli.service.session_pool import SessionPool
-from cloudshell.cli.session.session import Session
 from cloudshell.cli.service.session_manager_impl import SessionManagerImpl as SessionManager
 
 
@@ -48,7 +47,7 @@ class SessionPoolManager(SessionPool):
         :param prompt:
         :param logger:
         :return:
-        :rtype: Session
+        :rtype: cloudshell.cli.session.session.AbstractSession
         """
 
         call_time = time.time()

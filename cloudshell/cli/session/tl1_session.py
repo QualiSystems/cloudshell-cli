@@ -53,7 +53,7 @@ class TL1Session(TCPSession):
                 self.switch_name = ''
         if self.on_session_start and callable(self.on_session_start):
             self.on_session_start(self, logger)
-        self._active = True
+        self.active = True
 
     def hardware_expect(self, command, expected_string, logger, action_map=None, error_map=None, timeout=None,
                         retries=None, check_action_loop_detector=True, empty_loop_timeout=None,

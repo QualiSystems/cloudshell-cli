@@ -1,6 +1,6 @@
 from cloudshell.cli.service.cli_service_impl import CliServiceImpl as CliService
 from cloudshell.cli.service.command_mode_helper import CommandModeHelper
-from cloudshell.cli.session.expect_session import CommandExecutionException
+from cloudshell.cli.session.session_exceptions import CommandExecutionException
 
 
 class SessionPoolContextManager(object):
@@ -53,7 +53,7 @@ class SessionPoolContextManager(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self._active_session:
-            if exc_type and not issubclass(exc_type, self.IGNORED_EXCEPTIONS) or not self._active_session.active():
+            if exc_type and not issubclass(exc_type, self.IGNORED_EXCEPTIONS) or not self._active_session.active:
                 self._session_pool.remove_session(self._active_session, self._logger)
             else:
                 self._session_pool.return_session(self._active_session, self._logger)

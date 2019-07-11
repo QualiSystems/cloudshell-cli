@@ -4,7 +4,7 @@ import telnetlib
 from cloudshell.cli.service.action_map import Action
 from cloudshell.cli.service.action_map import ActionMap
 from cloudshell.cli.session.connection_params import ConnectionParams
-from cloudshell.cli.session.expect_session import ExpectSession
+from cloudshell.cli.session.session import AbstractSession
 from cloudshell.cli.session.session_exceptions import SessionException, SessionReadTimeout, SessionReadEmptyData
 
 
@@ -12,14 +12,14 @@ class TelnetSessionException(SessionException):
     pass
 
 
-class TelnetSession(ExpectSession, ConnectionParams):
+class TelnetSession(AbstractSession, ConnectionParams):
     SESSION_TYPE = 'TELNET'
 
     AUTHENTICATION_ERROR_PATTERN = '%.*($|\n)'
 
     def __init__(self, host, username, password, port=None, on_session_start=None, *args, **kwargs):
         ConnectionParams.__init__(self, host, port=port, on_session_start=on_session_start)
-        ExpectSession.__init__(self, *args, **kwargs)
+        AbstractSession.__init__(self, *args, **kwargs)
 
         if hasattr(self, 'port') and self.port is None:
             self.port = 23
@@ -74,7 +74,7 @@ class TelnetSession(ExpectSession, ConnectionParams):
         """
         if self._handler:
             self._handler.close()
-        self._active = False
+        self.active = False
 
     def _send(self, command, logger):
         """send message / command to device

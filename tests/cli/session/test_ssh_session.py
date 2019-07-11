@@ -379,7 +379,7 @@ class TestSshSession(TestCase):
         mandatory_attributes = ['username', '_handler', '_current_channel', 'password', '_buffer_size']
         self.assertEqual(len(set(mandatory_attributes).difference(set(self._instance.__dict__.keys()))), 0)
 
-    @patch('cloudshell.cli.session.ssh_session.ExpectSession')
+    @patch('cloudshell.cli.session.ssh_session.AbstractSession')
     def test_eq(self, expect_session):
         self._instance = SSHSession(self._hostname, self._username, self._password, port=self._port,
                                     on_session_start=self._on_session_start)
@@ -398,7 +398,7 @@ class TestSshSession(TestCase):
             self._instance.__eq__(SSHSession(self._hostname, self._username, '', port=self._port,
                                              on_session_start=self._on_session_start, pkey=pkey)))
 
-    @patch('cloudshell.cli.session.ssh_session.ExpectSession')
+    @patch('cloudshell.cli.session.ssh_session.AbstractSession')
     def test_eq_rsa(self, expect_session):
         pkey = paramiko.RSAKey.from_private_key(StringIO(KEY_WITH_PASSPHRASE), password=KEY_PASSPHRASE)
         self._instance = SSHSession(self._hostname, self._username, self._password, port=self._port,

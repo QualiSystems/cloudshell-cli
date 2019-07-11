@@ -5,20 +5,20 @@ import paramiko
 
 from cloudshell.cli.session.session_exceptions import SessionException, SessionReadTimeout, SessionReadEmptyData
 from cloudshell.cli.session.connection_params import ConnectionParams
-from cloudshell.cli.session.expect_session import ExpectSession
+from cloudshell.cli.session.session import AbstractSession
 
 
 class SSHSessionException(SessionException):
     pass
 
 
-class SSHSession(ExpectSession, ConnectionParams):
+class SSHSession(AbstractSession, ConnectionParams):
     SESSION_TYPE = 'SSH'
     BUFFER_SIZE = 512
 
     def __init__(self, host, username, password, port=None, on_session_start=None, pkey=None, *args, **kwargs):
         ConnectionParams.__init__(self, host, port=port, on_session_start=on_session_start, pkey=pkey)
-        ExpectSession.__init__(self, *args, **kwargs)
+        AbstractSession.__init__(self, *args, **kwargs)
 
         if self.port is None:
             self.port = 22
@@ -94,7 +94,7 @@ class SSHSession(ExpectSession, ConnectionParams):
         # self._current_channel = None
         if self._handler:
             self._handler.close()
-        self._active = False
+        self.active = False
 
     def _send(self, command, logger):
         """Send message to device

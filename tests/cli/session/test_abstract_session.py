@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from unittest import TestCase
 from unittest.mock import patch, Mock, call, MagicMock
 
@@ -6,16 +5,16 @@ from cloudshell.cli.service.action_map import Action
 from cloudshell.cli.service.action_map import ActionMap
 from cloudshell.cli.service.error_map import Error
 from cloudshell.cli.service.error_map import ErrorMap
-from cloudshell.cli.session.expect_session import ExpectSession, ActionLoopDetector
+from cloudshell.cli.session.session import AbstractSession, ActionLoopDetector
 from cloudshell.cli.session.session_exceptions import SessionReadTimeout, ExpectedSessionException, \
     SessionLoopLimitException, CommandExecutionException
 
 
-class TestExpectSessionException(Exception):
+class TestAbstractSessionException(Exception):
     pass
 
 
-class ExpectSessionImpl(ExpectSession):
+class AbstractSessionImpl(AbstractSession):
     def _initialize_session(self, prompt, logger):
         pass
 
@@ -35,16 +34,16 @@ class ExpectSessionImpl(ExpectSession):
         pass
 
 
-@patch("cloudshell.cli.session.expect_session.ActionLoopDetector.loops_detected", return_value=False)
-@patch("cloudshell.cli.session.expect_session.normalize_buffer")
-class TestExpectSession(TestCase):
+@patch("cloudshell.cli.session.session.ActionLoopDetector.loops_detected", return_value=False)
+@patch("cloudshell.cli.session.session.normalize_buffer")
+class TestAbstractSession(TestCase):
     def setUp(self):
         self._logger = Mock()
         self._connect = Mock()
         self._disconnect = Mock()
         self._send = Mock()
         self._receive = Mock()
-        self._instance = ExpectSessionImpl()
+        self._instance = AbstractSessionImpl()
         self._instance._send = self._send
         self._instance._receive = self._receive
         self._instance.connect = self._connect
@@ -60,7 +59,7 @@ class TestExpectSession(TestCase):
         self.assertEqual(self._instance.session_type, 'EXPECT')
 
     def test_active(self, normalize_buffer, loops_detected):
-        self.assertFalse(self._instance.active())
+        self.assertFalse(self._instance.active)
 
     def test_clear_buffer_receive_call(self, normalize_buffer, loops_detected):
         timeout = Mock()
@@ -76,13 +75,13 @@ class TestExpectSession(TestCase):
             self._instance._clear_buffer(timeout, self._logger)
 
     def test_clear_buffer_exit_with_no_data(self, normalize_buffer, loops_detected):
-        self._receive.side_effect = ['', TestExpectSessionException('Breaking loop')]
+        self._receive.side_effect = ['', TestAbstractSessionException('Breaking loop')]
         timeout = Mock()
         self._instance._clear_buffer(timeout, self._logger)
         self.assertTrue(True)
 
     def test_clear_buffer_exit_on_second_attempt(self, normalize_buffer, loops_detected):
-        self._receive.side_effect = ['test', '', TestExpectSessionException('Breaking loop')]
+        self._receive.side_effect = ['test', '', TestAbstractSessionException('Breaking loop')]
         timeout = Mock()
         self._instance._clear_buffer(timeout, self._logger)
         mock_calls = [call(timeout, self._logger), call(timeout, self._logger)]
@@ -112,9 +111,9 @@ class TestExpectSession(TestCase):
         result = self._instance._receive_all(2, self._logger)
         self.assertTrue(result and result == data1 + data2)
 
-    @patch("cloudshell.cli.session.expect_session.ExpectSession.send_line")
-    @patch("cloudshell.cli.session.expect_session.ExpectSession._receive_all")
-    @patch("cloudshell.cli.session.expect_session.ExpectSession._clear_buffer")
+    @patch("cloudshell.cli.session.session.AbstractSession.send_line")
+    @patch("cloudshell.cli.session.session.AbstractSession._receive_all")
+    @patch("cloudshell.cli.session.session.AbstractSession._clear_buffer")
     def test_hardware_expect_clear_buffer_calls(self, clear_buffer, receive_all, send_line, normalize_buffer,
                                                 loops_detected):
         command = 'test_command'
@@ -126,9 +125,9 @@ class TestExpectSession(TestCase):
                       call(self._instance._clear_buffer_timeout, self._logger)]
         clear_buffer.assert_has_calls(mock_calls)
 
-    @patch("cloudshell.cli.session.expect_session.ExpectSession.send_line")
-    @patch("cloudshell.cli.session.expect_session.ExpectSession._receive_all")
-    @patch("cloudshell.cli.session.expect_session.ExpectSession._clear_buffer")
+    @patch("cloudshell.cli.session.session.AbstractSession.send_line")
+    @patch("cloudshell.cli.session.session.AbstractSession._receive_all")
+    @patch("cloudshell.cli.session.session.AbstractSession._clear_buffer")
     def test_hardware_expect_send_line_call(self, clear_buffer, receive_all, send_line, normalize_buffer,
                                             loops_detected):
         command = 'test_command'
@@ -138,9 +137,9 @@ class TestExpectSession(TestCase):
         self._instance.hardware_expect(command, expected_string, self._logger)
         send_line.assert_called_once_with(command, self._logger)
 
-    @patch("cloudshell.cli.session.expect_session.ExpectSession.send_line")
-    @patch("cloudshell.cli.session.expect_session.ExpectSession._receive_all")
-    @patch("cloudshell.cli.session.expect_session.ExpectSession._clear_buffer")
+    @patch("cloudshell.cli.session.session.AbstractSession.send_line")
+    @patch("cloudshell.cli.session.session.AbstractSession._receive_all")
+    @patch("cloudshell.cli.session.session.AbstractSession._clear_buffer")
     def test_hardware_expect_empty_expected_string(self, clear_buffer, receive_all, send_line, normalize_buffer,
                                                    loops_detected):
         command = 'test_command'
@@ -151,9 +150,9 @@ class TestExpectSession(TestCase):
         with self.assertRaises(exception):
             self._instance.hardware_expect(command, expected_string, self._logger)
 
-    @patch("cloudshell.cli.session.expect_session.ExpectSession.send_line")
-    @patch("cloudshell.cli.session.expect_session.ExpectSession._receive_all")
-    @patch("cloudshell.cli.session.expect_session.ExpectSession._clear_buffer")
+    @patch("cloudshell.cli.session.session.AbstractSession.send_line")
+    @patch("cloudshell.cli.session.session.AbstractSession._receive_all")
+    @patch("cloudshell.cli.session.session.AbstractSession._clear_buffer")
     def test_hardware_expect_raise_session_loop_limit_exceded(self, clear_buffer, receive_all, send_line,
                                                               normalize_buffer, loops_detected):
         command = 'test_command'
@@ -166,9 +165,9 @@ class TestExpectSession(TestCase):
         with self.assertRaises(exception):
             self._instance.hardware_expect(command, expected_string, self._logger, retries=retries)
 
-    @patch("cloudshell.cli.session.expect_session.ExpectSession.send_line")
-    @patch("cloudshell.cli.session.expect_session.ExpectSession._receive_all")
-    @patch("cloudshell.cli.session.expect_session.ExpectSession._clear_buffer")
+    @patch("cloudshell.cli.session.session.AbstractSession.send_line")
+    @patch("cloudshell.cli.session.session.AbstractSession._receive_all")
+    @patch("cloudshell.cli.session.session.AbstractSession._clear_buffer")
     def test_hardware_expect_receive_all_call(self, clear_buffer, receive_all, send_line,
                                               normalize_buffer, loops_detected):
         command = 'test_command'
@@ -179,9 +178,9 @@ class TestExpectSession(TestCase):
         self._instance.hardware_expect(command, expected_string, self._logger, timeout=timeout)
         receive_all.assrrt_called_once_with(timeout, self._logger)
 
-    @patch("cloudshell.cli.session.expect_session.ExpectSession.send_line")
-    @patch("cloudshell.cli.session.expect_session.ExpectSession._receive_all")
-    @patch("cloudshell.cli.session.expect_session.ExpectSession._clear_buffer")
+    @patch("cloudshell.cli.session.session.AbstractSession.send_line")
+    @patch("cloudshell.cli.session.session.AbstractSession._receive_all")
+    @patch("cloudshell.cli.session.session.AbstractSession._clear_buffer")
     def test_hardware_expect_normalize_buffer_call(self, clear_buffer, receive_all, send_line,
                                                    normalize_buffer, loops_detected):
         command = 'test_command'
@@ -192,9 +191,9 @@ class TestExpectSession(TestCase):
         self._instance.hardware_expect(command, expected_string, self._logger, timeout=timeout)
         normalize_buffer.assrrt_called_once_with(expected_string)
 
-    @patch("cloudshell.cli.session.expect_session.ExpectSession.send_line")
-    @patch("cloudshell.cli.session.expect_session.ExpectSession._receive_all")
-    @patch("cloudshell.cli.session.expect_session.ExpectSession._clear_buffer", return_value='')
+    @patch("cloudshell.cli.session.session.AbstractSession.send_line")
+    @patch("cloudshell.cli.session.session.AbstractSession._receive_all")
+    @patch("cloudshell.cli.session.session.AbstractSession._clear_buffer", return_value='')
     def test_hardware_expect_remove_command_from_output(self, clear_buffer, receive_all, send_line,
                                                         normalize_buffer, loops_detected):
         command = 'test_command'
@@ -207,9 +206,9 @@ class TestExpectSession(TestCase):
         result = self._instance.hardware_expect(command, expected_string, self._logger, timeout=timeout)
         self.assertEqual(result.strip(), expected_string)
 
-    @patch("cloudshell.cli.session.expect_session.ExpectSession.send_line")
-    @patch("cloudshell.cli.session.expect_session.ExpectSession._receive_all")
-    @patch("cloudshell.cli.session.expect_session.ExpectSession._clear_buffer", return_value='')
+    @patch("cloudshell.cli.session.session.AbstractSession.send_line")
+    @patch("cloudshell.cli.session.session.AbstractSession._receive_all")
+    @patch("cloudshell.cli.session.session.AbstractSession._clear_buffer", return_value='')
     def test_hardware_expect_action_map_call(self, clear_buffer, receive_all, send_line,
                                              normalize_buffer, loops_detected):
         command = 'test_command'
@@ -223,9 +222,9 @@ class TestExpectSession(TestCase):
         self._instance.hardware_expect(command, expected_string, self._logger, action_map=action_map)
         test_func.assert_called_once_with(self._instance, self._logger)
 
-    @patch("cloudshell.cli.session.expect_session.ExpectSession.send_line")
-    @patch("cloudshell.cli.session.expect_session.ExpectSession._receive_all")
-    @patch("cloudshell.cli.session.expect_session.ExpectSession._clear_buffer", return_value='')
+    @patch("cloudshell.cli.session.session.AbstractSession.send_line")
+    @patch("cloudshell.cli.session.session.AbstractSession._receive_all")
+    @patch("cloudshell.cli.session.session.AbstractSession._clear_buffer", return_value='')
     def test_hardware_expect_error_map_call(self, clear_buffer, receive_all, send_line,
                                             normalize_buffer, loops_detected):
         command = 'test_command'
@@ -237,9 +236,9 @@ class TestExpectSession(TestCase):
         with self.assertRaises(exception):
             result = self._instance.hardware_expect(command, expected_string, self._logger, error_map=error_map)
 
-    @patch("cloudshell.cli.session.expect_session.ExpectSession.send_line", MagicMock())
-    @patch("cloudshell.cli.session.expect_session.ExpectSession._receive_all")
-    @patch("cloudshell.cli.session.expect_session.ExpectSession._clear_buffer",
+    @patch("cloudshell.cli.session.session.AbstractSession.send_line", MagicMock())
+    @patch("cloudshell.cli.session.session.AbstractSession._receive_all")
+    @patch("cloudshell.cli.session.session.AbstractSession._clear_buffer",
            MagicMock(return_value=''))
     def test_hardware_expect_error_map_call_with_exception(self, receive_all, normalize_buffer,
                                                            loops_detected):

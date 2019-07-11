@@ -1,13 +1,12 @@
 from abc import ABCMeta, abstractmethod
-from cloudshell.cli.session.session import Session
 
 
 class SessionPool(object, metaclass=ABCMeta):
     @abstractmethod
     def get_session(self, new_sessions, prompt, logger):
-        """
-        Get session from pool
-        :rtype Session
+        """Get session from pool
+
+        :rtype: cloudshell.cli.session.session.AbstractSession
         """
         pass
 
