@@ -373,9 +373,7 @@ class TestSshSession(TestCase):
         self._port = 22
         self._on_session_start = Mock()
 
-    @patch('cloudshell.cli.session.ssh_session.ExpectSession')
-    @patch('cloudshell.cli.session.ssh_session.ConnectionParams')
-    def test_init_attributes(self, connection_params, expect_session):
+    def test_init_attributes(self):
         self._instance = SSHSession(self._hostname, self._username, self._password, port=self._port,
                                     on_session_start=self._on_session_start)
         mandatory_attributes = ['username', '_handler', '_current_channel', 'password', '_buffer_size']
