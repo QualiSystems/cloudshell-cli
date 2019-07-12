@@ -99,11 +99,11 @@ class ErrorMap:
         :param other:
         :rtype: ActionMap
         """
-        if isinstance(other, type(self)):
-            errors = self.errors + [error for error in other.errors if error.pattern not in
-                                    [error.pattern for error in self.errors]]
-
-            return ErrorMap(errors=errors)
+        error_map_class = type(self)
+        if isinstance(other, error_map_class):
+            error_map = error_map_class(errors=self.errors)
+            error_map.extend(other)
+            return error_map
 
         raise TypeError(f"unsupported operand type(s) for +: '{type(self)}' and '{type(other)}'")
 
