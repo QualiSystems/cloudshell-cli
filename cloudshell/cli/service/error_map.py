@@ -15,9 +15,10 @@ class Error:
         self.compiled_pattern = re.compile(pattern=pattern, flags=re.DOTALL)
         self.error = error
 
-    def __call__(self):
+    def __call__(self, output):
         """
 
+        :param str output:
         :raises: CommandExecutionException
         """
         if isinstance(self.error, CommandExecutionException):
@@ -91,7 +92,7 @@ class ErrorMap:
         for error in self.errors:
             if error.match(output):
                 logger.debug(f"Matched Error with pattern: {error.pattern}")
-                error()
+                error(output)
 
     def __add__(self, other):
         """
