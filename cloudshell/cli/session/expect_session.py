@@ -215,7 +215,7 @@ class ExpectSession(Session, ABC):
         :param logger: logger
         :param action_map: ActionMap
         :param error_map: expected error map with subclass of CommandExecutionException or str
-        :type error_map: dict[str, CommandExecutionException|str]
+        :type error_map: ErrorMap
         :param timeout: session timeout
         :param retries: maximal retries count
         :param remove_command_from_output: In some switches the output string includes the command which was called.
@@ -281,11 +281,11 @@ class ExpectSession(Session, ABC):
                 output_list.append(output_str)
                 is_correct_exit = True
 
-            action_matched = action_map(session=self,
-                                        logger=logger,
-                                        output=output_str,
-                                        check_action_loop_detector=check_action_loop_detector,
-                                        action_loop_detector=action_loop_detector)
+            action_matched = action_map.process(session=self,
+                                                logger=logger,
+                                                output=output_str,
+                                                check_action_loop_detector=check_action_loop_detector,
+                                                action_loop_detector=action_loop_detector)
 
             if action_matched:
                 output_list.append(output_str)
@@ -300,9 +300,8 @@ class ExpectSession(Session, ABC):
                 "Session Loop limit exceeded, {} loops".format(retries_count),
             )
 
-        result_output = "".join(output_list)
-
-        error_map(output=result_output, logger=logger)
+        result_output = ''.join(output_list)
+        error_map.process(output=result_output, logger=logger)
 
         # Read buffer to the end. Useful when expected_string isn't last in buffer
         result_output += self._clear_buffer(self._clear_buffer_timeout, logger)

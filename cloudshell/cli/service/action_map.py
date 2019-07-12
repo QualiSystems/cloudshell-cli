@@ -93,7 +93,7 @@ class ActionMap:
 
         self.matched_patterns |= action_map.matched_patterns
 
-    def __call__(self, session, logger, output, check_action_loop_detector, action_loop_detector):
+    def process(self, session, logger, output, check_action_loop_detector, action_loop_detector):
         """
 
         :param cloudshell.cli.session.expect_session.ExpectSession session:
