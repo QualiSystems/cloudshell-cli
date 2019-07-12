@@ -79,11 +79,12 @@ class ActionMap:
         """
         self._actions_dict[action.pattern] = action
 
-    def extend(self, action_map, override=False):
+    def extend(self, action_map, override=False, extend_matched_patterns=True):
         """
 
         :param ActionMap action_map:
         :param bool override:
+        :param bool extend_matched_patterns:
         :return:
         """
         for action in action_map.actions:
@@ -91,7 +92,8 @@ class ActionMap:
                 continue
             self.add(action)
 
-        self.matched_patterns |= action_map.matched_patterns
+        if extend_matched_patterns:
+            self.matched_patterns |= action_map.matched_patterns
 
     def process(self, session, logger, output, check_action_loop_detector, action_loop_detector):
         """
@@ -126,11 +128,11 @@ class ActionMap:
         :param other:
         :rtype: ActionMap
         """
-        if isinstance(other, type(self)):
-            actions = self.actions + [action for action in other.actions if action.pattern not in
-                                      [action.pattern for action in self.actions]]
-
-            return ActionMap(actions=actions)
+        action_map_class = type(self)
+        if isinstance(other, action_map_class):
+            action_map = action_map_class(actions=self.actions)
+            action_map.extend(other, extend_matched_patterns=False)
+            return action_map
 
         raise TypeError(f"unsupported operand type(s) for +: '{type(self)}' and '{type(other)}'")
 
