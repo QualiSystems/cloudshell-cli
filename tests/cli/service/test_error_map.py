@@ -16,7 +16,7 @@ class TestError(unittest.TestCase):
     def test_call(self):
         """Check that method will raise CommandExecutionException"""
         with self.assertRaisesRegex(CommandExecutionException, self.error_msg):
-            self.error()
+            self.error(output="test output")
 
     def test_match_return_true(self):
         """Check that method will return True if output matches pattern"""
