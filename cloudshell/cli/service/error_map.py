@@ -80,7 +80,7 @@ class ErrorMap:
                 continue
             self.add(error)
 
-    def __call__(self, output, logger):
+    def process(self, output, logger):
         """
 
         :param str output:
