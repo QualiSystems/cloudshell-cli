@@ -151,7 +151,7 @@ class ExpectSession(Session, metaclass=ABCMeta):
         :return:
         """
         if command not in self._command_patterns:
-            self._command_patterns[command] = '\s*' + re.sub(r'\\\s+', '\s+', re.escape(command)) + '\s*'
+            self._command_patterns[command] = '\\s*' + re.sub(r'\\\s+', r'\\s+', re.escape(command)) + '\\s*'
         return self._command_patterns[command]
 
     def probe_for_prompt(self, expected_string, logger):
