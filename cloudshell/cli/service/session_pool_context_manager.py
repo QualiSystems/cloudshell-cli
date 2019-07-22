@@ -37,7 +37,7 @@ class SessionPoolContextManager(object):
     def __enter__(self):
         """
         :return:
-        :rtype: CliServiceImpl
+        :rtype: CliService
         """
         prompts_re = r'|'.join(CommandModeHelper.defined_modes_by_prompt(self._command_mode).keys())
         self._active_session = self._session_pool.get_session(
