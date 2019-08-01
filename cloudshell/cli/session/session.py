@@ -12,13 +12,13 @@ from cloudshell.cli.session.session_exceptions import SessionLoopLimitException,
 
 class AbstractSession(metaclass=ABCMeta):
     SESSION_TYPE = 'EXPECT'
-    MAX_LOOP_RETRIES = 20
-    READ_TIMEOUT = 30
-    EMPTY_LOOP_TIMEOUT = 0.5
-    CLEAR_BUFFER_TIMEOUT = 0.1
-    LOOP_DETECTOR_MAX_ACTION_LOOPS = 3
-    LOOP_DETECTOR_MAX_COMBINATION_LENGTH = 4
-    RECONNECT_TIMEOUT = 30
+    # MAX_LOOP_RETRIES = 20
+    # READ_TIMEOUT = 30
+    # EMPTY_LOOP_TIMEOUT = 0.5
+    # CLEAR_BUFFER_TIMEOUT = 0.1
+    # LOOP_DETECTOR_MAX_ACTION_LOOPS = 3
+    # LOOP_DETECTOR_MAX_COMBINATION_LENGTH = 4
+    # RECONNECT_TIMEOUT = 30
 
     @abstractmethod
     def _send(self, command, logger):
@@ -112,7 +112,7 @@ class AbstractSession(metaclass=ABCMeta):
                 read_buffer = self._receive(timeout, logger)
             except (SessionReadTimeout, SessionReadEmptyData):
                 read_buffer = None
-            if read_buffer:
+            if read_buffer:  # todo: rework
                 out += read_buffer
             else:
                 break

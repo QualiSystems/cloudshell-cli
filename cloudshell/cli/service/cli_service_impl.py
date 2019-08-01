@@ -122,8 +122,25 @@ class CliServiceImpl(CliService):
         if not logger:
             logger = self._logger
         self.session.logger = logger
-        output = self.session.hardware_expect(command, expected_string=expected_string, action_map=action_map,
-                                              error_map=error_map, logger=logger, *args, **kwargs)
+
+        # option 1:
+        # one HardwareExpect instance per command
+        # output = HardwareExpect(session=session).hardware_expect(command=command)
+
+        # option 2:
+        # HardwareExpect service without state that operates command ans session objects
+        # self.hardware_expect(command=command)
+
+        # option 3: test
+        # output = CommandRunner(session=self.session).hardware_expect(command=command)
+
+        # option 4: test
+        # output = CommandRunner(session=self.session, command=command, expected_string=expected_string,
+        #                        action_map=action_map, error_map=error_map,
+        #                        logger=logger, *args, **kwargs).hardware_expect()
+
+        # output = self.session.hardware_expect(command, expected_string=expected_string, action_map=action_map,
+        #                                       error_map=error_map, logger=logger, *args, **kwargs)
         if remove_prompt:
             output = re.sub(r'^.*{}.*$'.format(expected_string), '', output, flags=re.MULTILINE)
         return output

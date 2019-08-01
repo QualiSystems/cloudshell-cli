@@ -11,7 +11,7 @@ class CliCommandMode(CommandMode):
     ENTER_COMMAND = ''
     EXIT_COMMAND = 'exit'
 
-    def __init__(self,context):
+    def __init__(self, context):
 
         CommandMode.__init__(self, CliCommandMode.PROMPT, CliCommandMode.ENTER_COMMAND,
                              CliCommandMode.EXIT_COMMAND)
