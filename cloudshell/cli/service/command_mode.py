@@ -1,8 +1,8 @@
 import re
 
 from cloudshell.cli.service.action_map import ActionMap
-from cloudshell.cli.service.error_map import ErrorMap
 from cloudshell.cli.service.cli_exception import CliException
+from cloudshell.cli.service.error_map import ErrorMap
 from cloudshell.cli.service.node import Node
 
 
@@ -11,20 +11,31 @@ class CommandModeException(CliException):
 
 
 class CommandMode(Node):
-    """Class describes our prompt and implement enter and exit command functions"""
+    """Class describes our prompt and implement enter and exit command functions."""
 
     RELATIONS_DICT = {}
 
-    def __init__(self, prompt, enter_command=None, exit_command=None, enter_action_map=None, exit_action_map=None,
-                 enter_error_map=None, exit_error_map=None, parent_mode=None, enter_actions=None,
-                 use_exact_prompt=False):
-        """
+    def __init__(
+        self,
+        prompt,
+        enter_command=None,
+        exit_command=None,
+        enter_action_map=None,
+        exit_action_map=None,
+        enter_error_map=None,
+        exit_error_map=None,
+        parent_mode=None,
+        enter_actions=None,
+        use_exact_prompt=False,
+    ):
+        """Initialize Command Mode.
 
         :param str prompt: Prompt of this mode
         :param str enter_command: Command used to enter this mode
         :param str exit_command: Command used to exit from this mode
         :param enter_actions: Actions which needs to be done when entering this mode
-        :param cloudshell.cli.service.action_map.ActionMap enter_action_map: Enter expected actions
+        :param enter_action_map: Enter expected actions
+        :type enter_action_map: cloudshell.cli.service.action_map.ActionMap
         :param cloudshell.cli.service.error_map.ErrorMap enter_error_map:
         :param cloudshell.cli.service.action_map.ActionMap exit_action_map:
         :param cloudshell.cli.service.error_map.ErrorMap exit_error_map:
@@ -67,8 +78,8 @@ class CommandMode(Node):
         self._prompt = value
 
     def add_parent_mode(self, mode):
-        """
-        Add parent mode
+        """Add parent mode.
+
         :param mode:
         :type mode: CommandMode
         :return:
@@ -77,27 +88,30 @@ class CommandMode(Node):
             mode.add_child_node(self)
 
     def step_up(self, cli_service, logger):
-        """
-        Enter command mode
+        """Enter command mode.
+
         :param cli_service:
         :type cli_service: CliService
         :type logger: logging.Logger
         """
-
         if not isinstance(self._enter_command, (list, tuple)):
             enter_command_list = [self._enter_command]
         else:
             enter_command_list = self._enter_command
         for enter_command in enter_command_list:
-            cli_service.send_command(enter_command, expected_string=self.prompt,
-                                     action_map=self._enter_action_map, error_map=self._enter_error_map)
+            cli_service.send_command(
+                enter_command,
+                expected_string=self.prompt,
+                action_map=self._enter_action_map,
+                error_map=self._enter_error_map,
+            )
         cli_service.command_mode = self
         self.enter_actions(cli_service)
         self.prompt_actions(cli_service, logger)
 
     def step_down(self, cli_service, logger):
-        """
-        Exit from command mode
+        """Exit from command mode.
+
         :param cli_service:
         :type cli_service: CliService
         :type logger: logging.Logger
@@ -107,36 +121,38 @@ class CommandMode(Node):
         else:
             exit_command_list = self._exit_command
         for exit_command in exit_command_list:
-            cli_service.send_command(exit_command, expected_string=self.parent_node.prompt,
-                                     action_map=self._exit_action_map, error_map=self._exit_error_map)
+            cli_service.send_command(
+                exit_command,
+                expected_string=self.parent_node.prompt,
+                action_map=self._exit_action_map,
+                error_map=self._exit_error_map,
+            )
         cli_service.command_mode = self.parent_node
 
     def enter_actions(self, cli_service):
-        """
-        Default actions
+        """Default actions.
+
         :type cli_service: cloudshell.cli.cli_service.CliService
         """
-
         if self._enter_actions:
             self._enter_actions(cli_service)
 
     def prompt_actions(self, cli_service, logger):
-        """
-        Prompt actions
+        """Prompt actions.
+
         :type cli_service: cloudshell.cli.cli_service.CliService
         :type logger: logging.Logger
         """
         if self._use_exact_prompt:
             self._exact_prompt = self._initialize_exact_prompt(cli_service, logger)
-            logger.debug('Exact prompt: ' + self._exact_prompt)
+            logger.debug("Exact prompt: " + self._exact_prompt)
 
     def _initialize_exact_prompt(self, cli_service, logger):
-        """
-        Exact prompt initialization
+        """Exact prompt initialization.
+
         :type cli_service: cloudshell.cli.cli_service.CliService
         :type logger: logging.Logger
         """
-
         if self._exact_prompt:
             return self._exact_prompt
 
@@ -149,7 +165,9 @@ class CommandMode(Node):
         exact_prompt = re.escape(exact_prompt)
 
         if not re.search(exact_prompt, output, re.DOTALL):
-            raise Exception(self.__class__.__name__, 'Exact prompt is not matching the output')
+            raise Exception(
+                self.__class__.__name__, "Exact prompt is not matching the output"
+            )
 
         return exact_prompt
 

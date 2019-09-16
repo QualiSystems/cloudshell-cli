@@ -1,12 +1,12 @@
-from collections import OrderedDict
 import re
+from collections import OrderedDict
 
 from cloudshell.cli.session.session_exceptions import CommandExecutionException
 
 
 class Error:
     def __init__(self, pattern, error):
-        """
+        """Initialize Error.
 
         :param str pattern:
         :param str|CommandExecutionException error:
@@ -16,7 +16,7 @@ class Error:
         self.error = error
 
     def __call__(self, output):
-        """
+        """Executes on call.
 
         :param str output:
         :raises: CommandExecutionException
@@ -27,14 +27,10 @@ class Error:
         raise CommandExecutionException(f"Session returned '{self.error}'")
 
     def __repr__(self):
-        """
-
-        :rtype: str
-        """
         return f"{super().__repr__()} pattern: {self.pattern}, error: {self.error}"
 
     def match(self, output):
-        """
+        """Match.
 
         :param str output:
         :rtype: bool
@@ -44,7 +40,7 @@ class Error:
 
 class ErrorMap:
     def __init__(self, errors=None):
-        """
+        """Initialize Error Map.
 
         :param list[Error] errors:
         """
@@ -55,14 +51,14 @@ class ErrorMap:
 
     @property
     def errors(self):
-        """
+        """Errors.
 
         :rtype: list[Error]
         """
         return list(self._errors_dict.values())
 
     def add(self, error):
-        """
+        """Add.
 
         :param Error error:
         :return:
@@ -70,7 +66,7 @@ class ErrorMap:
         self._errors_dict[error.pattern] = error
 
     def extend(self, error_map, override=False):
-        """
+        """Extend.
 
         :param ErrorMap error_map:
         :param bool override:
@@ -82,20 +78,19 @@ class ErrorMap:
             self.add(error)
 
     def process(self, output, logger):
-        """
+        """Process.
 
         :param str output:
         :param logging.Logger logger:
         :rtype: bool
         """
-
         for error in self.errors:
             if error.match(output):
                 logger.debug(f"Matched Error with pattern: {error.pattern}")
                 error(output)
 
     def __add__(self, other):
-        """
+        """Add another Action Map.
 
         :param other:
         :rtype: ActionMap
@@ -106,11 +101,9 @@ class ErrorMap:
             error_map.extend(other)
             return error_map
 
-        raise TypeError(f"unsupported operand type(s) for +: '{type(self)}' and '{type(other)}'")
+        raise TypeError(
+            f"unsupported operand type(s) for +: '{type(self)}' and '{type(other)}'"
+        )
 
     def __repr__(self):
-        """
-
-        :rtype: str
-        """
         return f"{super().__repr__()} errors: {self.errors}"
