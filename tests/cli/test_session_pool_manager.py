@@ -1,8 +1,10 @@
 from unittest import TestCase
 from unittest.mock import MagicMock, Mock
 
-from cloudshell.cli.service.session_pool_manager import SessionPoolException
-from cloudshell.cli.service.session_pool_manager import SessionPoolManager
+from cloudshell.cli.service.session_pool_manager import (
+    SessionPoolException,
+    SessionPoolManager,
+)
 
 
 class TestSessionPoolManager(TestCase):

@@ -1,6 +1,8 @@
 import logging
 
-from cloudshell.cli.service.session_pool_context_manager import SessionPoolContextManager
+from cloudshell.cli.service.session_pool_context_manager import (
+    SessionPoolContextManager,
+)
 from cloudshell.cli.service.session_pool_manager import SessionPoolManager
 
 

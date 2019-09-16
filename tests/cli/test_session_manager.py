@@ -1,8 +1,10 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cloudshell.cli.service.session_manager_impl import SessionManagerImpl
-from cloudshell.cli.service.session_manager_impl import SessionManagerException
+from cloudshell.cli.service.session_manager_impl import (
+    SessionManagerException,
+    SessionManagerImpl,
+)
 
 
 class TestSessionManager(TestCase):
@@ -54,4 +56,3 @@ class TestSessionManager(TestCase):
         session = self._new_session
         self._session_manager._existing_sessions.append(self._new_session)
         self.assertTrue(self._session_manager.is_compatible(session, [self._new_session], self._logger))
-
