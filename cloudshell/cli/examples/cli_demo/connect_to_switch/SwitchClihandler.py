@@ -126,7 +126,7 @@ class SwitchCliHandler(CliHandlerImpl):
             logger,
         )
         if not re.search(EnableCommandMode.PROMPT, result):
-             raise Exception("enter_enable_mode", "Enable password is incorrect")
+            raise Exception("enter_enable_mode", "Enable password is incorrect")
 
     def _enter_config_mode(self, session, logger):
         error_message = "Failed to enter config mode, please check logs, for details"
