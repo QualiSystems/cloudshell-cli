@@ -16,9 +16,7 @@ from cloudshell.cli.session.session_exceptions import (
 
 
 class ExpectSession(Session, metaclass=ABCMeta):
-    """
-    Help to handle additional actions during send command
-    """
+    """Help to handle additional actions during send command."""
 
     SESSION_TYPE = "EXPECT"
 
@@ -41,8 +39,7 @@ class ExpectSession(Session, metaclass=ABCMeta):
         clear_buffer_timeout=CLEAR_BUFFER_TIMEOUT,
         reconnect_timeout=RECONNECT_TIMEOUT,
     ):
-
-        """
+        """Help to handle additional actions during send command.
 
         :param timeout:
         :param new_line:
@@ -53,7 +50,6 @@ class ExpectSession(Session, metaclass=ABCMeta):
         :param clear_buffer_timeout:
         :return:
         """
-
         self._new_line = new_line
         self._timeout = timeout
         self._max_loop_retries = max_loop_retries
@@ -75,16 +71,17 @@ class ExpectSession(Session, metaclass=ABCMeta):
 
     @abstractmethod
     def _connect_actions(self, prompt, logger):
-        """Read out buffer and run on_session_start actions
+        """Read out buffer and run on_session_start actions.
+
         :param prompt: expected string in output
         :param logger: logger
         """
-
         pass
 
     @abstractmethod
     def _initialize_session(self, prompt, logger):
-        """Create handler and initialize session
+        """Create handler and initialize session.
+
         :param prompt: expected string in output
         :param logger: logger
         """
@@ -97,8 +94,7 @@ class ExpectSession(Session, metaclass=ABCMeta):
         return self._active
 
     def _clear_buffer(self, timeout, logger):
-        """
-        Clear buffer
+        """Clear buffer.
 
         :param timeout:
         :return:
@@ -117,21 +113,20 @@ class ExpectSession(Session, metaclass=ABCMeta):
 
     def connect(self, prompt, logger):
         """Connect to device.
+
         :param prompt: expected string in output
         :param logger: logger
         """
-
         try:
             self._initialize_session(prompt, logger)
             self._connect_actions(prompt, logger)
             self.set_active(True)
-        except:
+        except Exception:
             self.disconnect()
             raise
 
     def send_line(self, command, logger):
-        """
-        Add new line to the end of command string and send
+        """Add new line to the end of command string and send.
 
         :param command:
         :return:
@@ -139,8 +134,8 @@ class ExpectSession(Session, metaclass=ABCMeta):
         self._send(command + self._new_line, logger)
 
     def _receive_all(self, timeout, logger):
-        """
-        Read as much as possible before catch SessionTimeoutException
+        """Read as much as possible before catch SessionTimeoutException.
+
         :param timeout:
         :param logger:
         :return:
@@ -162,8 +157,8 @@ class ExpectSession(Session, metaclass=ABCMeta):
                     )
 
     def _generate_command_pattern(self, command):
-        """
-        Generate command_pattern
+        """Generate command_pattern.
+
         :param command:
         :return:
         """
@@ -174,8 +169,8 @@ class ExpectSession(Session, metaclass=ABCMeta):
         return self._command_patterns[command]
 
     def probe_for_prompt(self, expected_string, logger):
-        """
-        Matched string for regexp
+        """Matched string for regexp.
+
         :param expected_string:
         :param logger:
         :return:
@@ -183,8 +178,8 @@ class ExpectSession(Session, metaclass=ABCMeta):
         return self.hardware_expect("", expected_string, logger)
 
     def match_prompt(self, prompt, match_string, logger):
-        """
-        Main verification for the prompt match
+        """Main verification for the prompt match.
+
         :param prompt: Expected string, string or regular expression
         :type prompt: str
         :param match_string: Match string
@@ -211,25 +206,28 @@ class ExpectSession(Session, metaclass=ABCMeta):
         remove_command_from_output=True,
         **optional_args
     ):
+        """Get response from the device.
 
-        """Get response form the device and compare it to action_map, error_map and expected_string patterns,
+        Compare it to action_map, error_map and expected_string patterns,
         perform actions specified in action_map if any, and return output.
         Raise Exception if receive empty response from device within a minute
 
         :param command: command to send
         :param expected_string: expected string
         :param logger: logger
-        :param action_map: dict with {re_str: action} to trigger some action on received string
-        :param error_map: expected error map with subclass of CommandExecutionException or str
+        :param action_map: dict with {re_str: action} to trigger some action
+            on received string
+        :param error_map: expected error map with subclass of CommandExecutionException
+            or str
         :type error_map: dict[str, CommandExecutionException|str]
         :param timeout: session timeout
         :param retries: maximal retries count
-        :param remove_command_from_output: In some switches the output string includes the command which was called.
-            The flag used to verify whether the the command string removed from the output string.
+        :param remove_command_from_output: In some switches the output string includes
+            the command which was called. The flag used to verify whether the the
+            command string removed from the output string.
         :return:
         :rtype: str
         """
-
         if not action_map:
             action_map = OrderedDict()
 
@@ -252,7 +250,7 @@ class ExpectSession(Session, metaclass=ABCMeta):
 
         # Loop until one of the expressions is matched or MAX_RETRIES
         # nothing is expected (usually used for exit)
-        output_list = list()
+        output_list = []
         output_str = ""
         retries_count = 0
         is_correct_exit = False
@@ -263,19 +261,14 @@ class ExpectSession(Session, metaclass=ABCMeta):
         )
         while retries == 0 or retries_count < retries:
 
-            # try:
-            # read_buffer = self._receive(timeout, logger)
-            # read all data from buffer
             read_buffer = self._receive_all(timeout, logger)
-            # except socket.timeout:
-            #     read_buffer = None
 
             if read_buffer:
                 read_buffer = normalize_buffer(read_buffer)
                 logger.debug(read_buffer)
                 output_str += read_buffer
-                # if option remove_command_from_output is set to True, look for command in output buffer,
-                #  remove it in case of found
+                # if option remove_command_from_output is set to True, look for command
+                # in output buffer, remove it in case of found
                 if command and remove_command_from_output:
                     command_pattern = self._generate_command_pattern(command)
                     if re.search(command_pattern, output_str, flags=re.MULTILINE):
@@ -290,7 +283,6 @@ class ExpectSession(Session, metaclass=ABCMeta):
                 continue
 
             if self.match_prompt(expected_string, output_str, logger):
-                # logger.debug('Expected str: {}'.format(expected_string))
                 output_list.append(output_str)
                 is_correct_exit = True
 
@@ -338,8 +330,7 @@ class ExpectSession(Session, metaclass=ABCMeta):
         return result_output
 
     def reconnect(self, prompt, logger, timeout=None):
-        """
-        Recconnect implementation
+        """Recconnect implementation.
 
         :param prompt:
         :param logger:
@@ -363,10 +354,10 @@ class ExpectSession(Session, metaclass=ABCMeta):
 
 
 class ActionLoopDetector(object):
-    """Help to detect loops for action combinations"""
+    """Help to detect loops for action combinations."""
 
     def __init__(self, max_loops, max_combination_length):
-        """
+        """Help to detect loops for action combinations.
 
         :param max_loops:
         :param max_combination_length:
@@ -377,8 +368,7 @@ class ActionLoopDetector(object):
         self._action_history = []
 
     def loops_detected(self, action_key):
-        """
-        Add action key to the history and detect loops
+        """Add action key to the history and detect loops.
 
         :param action_key:
         :return:
@@ -394,8 +384,7 @@ class ActionLoopDetector(object):
         return loops_detected
 
     def _is_combination_compatible(self, combination_length):
-        """
-        Check if combinations may exist
+        """Check if combinations may exist.
 
         :param combination_length:
         :return:
@@ -407,8 +396,7 @@ class ActionLoopDetector(object):
         return is_compatible
 
     def _detect_loops_for_combination_length(self, combination_length):
-        """
-        Detect loops for combination length
+        """Detect loops for combination length.
 
         :param combination_length:
         :return:

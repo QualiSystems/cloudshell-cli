@@ -1,25 +1,20 @@
-import re
 from collections import OrderedDict
 from functools import reduce
 
 from cloudshell.cli.service.command_mode import CommandMode, CommandModeException
 from cloudshell.cli.service.node import NodeOperations
-from cloudshell.cli.session.session import Session
 
 
 class CommandModeHelper(NodeOperations):
     @staticmethod
     def determine_current_mode(session, command_mode, logger):
-        """
-        Determine current command mode
-        :param session:
-        :type session: Session
-        :param command_mode
+        """Determine current command mode.
+
+        :type session: cloudshell.cli.session.session.Session
         :type command_mode: CommandMode
-        :return: command_mode
+        :type logger: logging.Logger
         :rtype: CommandMode
         """
-
         defined_modes = CommandModeHelper.defined_modes_by_prompt(command_mode)
         prompts_re = r"|".join(defined_modes.keys())
         try:
@@ -36,12 +31,11 @@ class CommandModeHelper(NodeOperations):
 
     @staticmethod
     def defined_modes_by_prompt(command_mode):
-        """
-        Find all modes by relations and generate dict
-        :return:
+        """Find all modes by relations and generate dict.
+
         :rtype: OrderedDict
         """
-
+        # noqa
         def _get_child_nodes(command_node):
             return reduce(
                 lambda x, y: x + _get_child_nodes(y),
@@ -62,15 +56,11 @@ class CommandModeHelper(NodeOperations):
 
     @staticmethod
     def create_command_mode(*args, **kwargs):
-        """
-        Create specific command mode with relations
-        :param command_mode_type:
-        :param args:
-        :param kwargs:
-        :return:
+        """Create specific command mode with relations.
+
         :rtype: dict
         """
-
+        # noqa
         def _create_child_modes(instance, child_dict):
             instance_dict = {}
             for mode_type in child_dict:

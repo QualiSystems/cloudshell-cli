@@ -16,7 +16,6 @@ class CliCommandMode(CommandMode):
     EXIT_COMMAND = "exit"
 
     def __init__(self, context):
-
         CommandMode.__init__(
             self,
             CliCommandMode.PROMPT,
@@ -51,4 +50,4 @@ if __name__ == "__main__":
     session = SSHSession(host, username="<username>", password="", pkey=mykey)
     with cli.get_session(session, default_mode) as default_session:
         out = default_session.send_command("echo Cli Demo connected to AWS Machine")
-        print(out)
+        print(out)  # noqa T001

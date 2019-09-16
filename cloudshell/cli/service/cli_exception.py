@@ -1,4 +1,2 @@
 class CliException(Exception):
-    """
-    Basic cli exception
-    """
+    """Basic cli exception."""

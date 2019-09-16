@@ -2,20 +2,16 @@ from abc import ABCMeta, abstractmethod
 
 
 class Node(object, metaclass=ABCMeta):
-    """
-    Node
-    """
+    """Node."""
 
     def __init__(self):
         self.parent_node = None
         self.child_nodes = []
 
     def add_child_node(self, node):
-        """
-        Connect child node
-        :param node:
+        """Connect child node.
+
         :type node: Node
-        :return:
         """
         self.child_nodes.append(node)
         node.parent_node = self
@@ -32,11 +28,9 @@ class Node(object, metaclass=ABCMeta):
 class NodeOperations(object):
     @staticmethod
     def path_to_the_root(node):
-        """
-        Calculate path to the root node
-        :param node:
+        """Calculate path to the root node.
+
         :type node: Node
-        :return:
         """
         path = [node]
         while node.parent_node:
@@ -46,11 +40,9 @@ class NodeOperations(object):
 
     @staticmethod
     def calculate_route_steps(source_node, dest_node):
-        """
-        Calculate route between two nodes, 
-        :param source_node:
+        """Calculate route between two nodes.
+
         :type source_node: Node
-        :param dest_node:
         :type dest_node: Node
         :return: List of functions, needed to call to get from source to dest node
         :rtype: list

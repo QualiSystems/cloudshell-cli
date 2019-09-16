@@ -8,8 +8,9 @@ class CommandTemplate:
 
         :type command: str
         :type action_map: dict
-        :param error_map: expected error map with subclass of CommandExecutionException or str
-        :type error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]
+        :param error_map: expected error map with subclass of CommandExecutionException
+            or str
+        :type error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]  # noqa: E501
         """
         self._command = command
         self._action_map = action_map or OrderedDict()
@@ -17,18 +18,16 @@ class CommandTemplate:
 
     @property
     def action_map(self):
-        """
-        Property for action map
-        :return:
+        """Property for action map.
+
         :rtype: OrderedDict()
         """
         return self._action_map
 
     @property
     def error_map(self):
-        """
-        Property for error map
-        :return:
+        """Property for error map.
+
         :rtype: OrderedDict
         """
         return self._error_map

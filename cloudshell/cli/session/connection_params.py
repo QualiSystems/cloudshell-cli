@@ -2,9 +2,7 @@ from abc import ABCMeta
 
 
 class ConnectionParams(object, metaclass=ABCMeta):
-    """
-    Session parameters
-    """
+    """Session parameters."""
 
     def __init__(self, host, port=None, on_session_start=None, pkey=None):
         self.host = host
@@ -29,10 +27,9 @@ class ConnectionParams(object, metaclass=ABCMeta):
             self.on_session_start(self, logger)
 
     def __eq__(self, other):
-        """
-        :param other:
+        """Is equal.
+
         :type other: ConnectionParams
-        :return:
         :rtype: bool
         """
         return (

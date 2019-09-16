@@ -19,10 +19,9 @@ class TL1Session(TCPSession):
         self._tl1_counter = 0
 
     def __eq__(self, other):
-        """
-        :param other:
+        """Is equal.
+
         :type other: TL1Session
-        :return:
         """
         return (
             ConnectionParams.__eq__(self, other)

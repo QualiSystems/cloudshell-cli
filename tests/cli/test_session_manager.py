@@ -24,16 +24,12 @@ class TestSessionManager(TestCase):
 
     def test_new_sessions_new_sessions_call_connect(self):
         new_sessions = [self._new_session]
-        session = self._session_manager.new_session(
-            new_sessions, self._prompt, self._logger
-        )
+        self._session_manager.new_session(new_sessions, self._prompt, self._logger)
         self._new_session.connect.assert_called_once_with(self._prompt, self._logger)
 
     def test_new_sessions_new_sessions_add_to_existing_sessions(self):
         new_sessions = [self._new_session]
-        session = self._session_manager.new_session(
-            new_sessions, self._prompt, self._logger
-        )
+        self._session_manager.new_session(new_sessions, self._prompt, self._logger)
         self.assertTrue(self._new_session in self._session_manager._existing_sessions)
 
     def test_new_sessions_new_sessions_catch_exception(self):
@@ -42,9 +38,7 @@ class TestSessionManager(TestCase):
         new_sessions = [self._new_session]
         exception = SessionManagerException
         with self.assertRaises(exception):
-            session = self._session_manager.new_session(
-                new_sessions, self._prompt, self._logger
-            )
+            self._session_manager.new_session(new_sessions, self._prompt, self._logger)
 
     def test_existing_sessions_count(self):
         self._session_manager._existing_sessions.append(Mock())

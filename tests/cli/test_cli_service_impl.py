@@ -109,7 +109,8 @@ class TestCliOperationsImpl(TestCase):
         self._instance = self._create_instance()
 
     @patch(
-        "cloudshell.cli.service.command_mode_helper.CommandModeHelper.determine_current_mode"
+        "cloudshell.cli.service.command_mode_helper.CommandModeHelper"
+        ".determine_current_mode"
     )
     @patch("cloudshell.cli.service.cli_service_impl.CliServiceImpl._change_mode")
     def _create_instance(self, change_mode, determine_current_mode):
@@ -191,7 +192,8 @@ class TestCliOperationsImpl(TestCase):
         )
 
     @patch(
-        "cloudshell.cli.service.command_mode_helper.CommandModeHelper.calculate_route_steps"
+        "cloudshell.cli.service.command_mode_helper.CommandModeHelper"
+        ".calculate_route_steps"
     )
     def test_change_mode_calculate_steps(self, calculate_route_steps):
         command_mode = Mock()
@@ -201,10 +203,12 @@ class TestCliOperationsImpl(TestCase):
         )
 
     @patch(
-        "cloudshell.cli.service.command_mode_helper.CommandModeHelper.defined_modes_by_prompt"
+        "cloudshell.cli.service.command_mode_helper.CommandModeHelper"
+        ".defined_modes_by_prompt"
     )
     @patch(
-        "cloudshell.cli.service.command_mode_helper.CommandModeHelper.determine_current_mode"
+        "cloudshell.cli.service.command_mode_helper.CommandModeHelper"
+        ".determine_current_mode"
     )
     @patch("cloudshell.cli.service.cli_service_impl.CliServiceImpl._change_mode")
     def test_reconnect_get_prompts(
@@ -217,10 +221,12 @@ class TestCliOperationsImpl(TestCase):
         defined_modes_by_prompt.assert_called_once_with(self._determined_command_mode)
 
     @patch(
-        "cloudshell.cli.service.command_mode_helper.CommandModeHelper.defined_modes_by_prompt"
+        "cloudshell.cli.service.command_mode_helper.CommandModeHelper"
+        ".defined_modes_by_prompt"
     )
     @patch(
-        "cloudshell.cli.service.command_mode_helper.CommandModeHelper.determine_current_mode"
+        "cloudshell.cli.service.command_mode_helper.CommandModeHelper"
+        ".determine_current_mode"
     )
     @patch("cloudshell.cli.service.cli_service_impl.CliServiceImpl._change_mode")
     def test_reconnect_session_call(
@@ -234,10 +240,12 @@ class TestCliOperationsImpl(TestCase):
         self._session.reconnect.assert_called_once_with(prompt, self._logger, timeout)
 
     @patch(
-        "cloudshell.cli.service.command_mode_helper.CommandModeHelper.defined_modes_by_prompt"
+        "cloudshell.cli.service.command_mode_helper.CommandModeHelper"
+        ".defined_modes_by_prompt"
     )
     @patch(
-        "cloudshell.cli.service.command_mode_helper.CommandModeHelper.determine_current_mode"
+        "cloudshell.cli.service.command_mode_helper.CommandModeHelper"
+        ".determine_current_mode"
     )
     @patch("cloudshell.cli.service.cli_service_impl.CliServiceImpl._change_mode")
     def test_reconnect_determine_current_mode_call(
@@ -254,10 +262,12 @@ class TestCliOperationsImpl(TestCase):
         )
 
     @patch(
-        "cloudshell.cli.service.command_mode_helper.CommandModeHelper.defined_modes_by_prompt"
+        "cloudshell.cli.service.command_mode_helper.CommandModeHelper"
+        ".defined_modes_by_prompt"
     )
     @patch(
-        "cloudshell.cli.service.command_mode_helper.CommandModeHelper.determine_current_mode"
+        "cloudshell.cli.service.command_mode_helper.CommandModeHelper"
+        ".determine_current_mode"
     )
     @patch("cloudshell.cli.service.cli_service_impl.CliServiceImpl._change_mode")
     def test_reconnect_command_mode_enter_action_call(
@@ -272,10 +282,12 @@ class TestCliOperationsImpl(TestCase):
         command_mode.enter_actions.assert_called_once_with(self._instance)
 
     @patch(
-        "cloudshell.cli.service.command_mode_helper.CommandModeHelper.defined_modes_by_prompt"
+        "cloudshell.cli.service.command_mode_helper.CommandModeHelper"
+        ".defined_modes_by_prompt"
     )
     @patch(
-        "cloudshell.cli.service.command_mode_helper.CommandModeHelper.determine_current_mode"
+        "cloudshell.cli.service.command_mode_helper.CommandModeHelper"
+        ".determine_current_mode"
     )
     @patch("cloudshell.cli.service.cli_service_impl.CliServiceImpl._change_mode")
     def test_reconnect_change_mode(

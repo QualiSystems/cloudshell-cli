@@ -13,11 +13,7 @@ class EnableCommandMode(CommandMode):
     EXIT_COMMAND = ""
 
     def __init__(self, context):
-        """
-        Initialize Enable command mode - default command mode for Cisco Shells
-
-        :param context:
-        """
+        """Initialize Enable command mode - default command mode for Cisco Shells."""
         self._context = context
 
         CommandMode.__init__(
@@ -34,10 +30,9 @@ class DefaultCommandMode(CommandMode):
     EXIT_COMMAND = ""
 
     def __init__(self, context):
-        """
-        Initialize Default command mode, only for cases when session started not in enable mode
+        """Initialize Default command mode.
 
-        :param context:
+        Only for cases when session started not in enable mode
         """
         self._context = context
         CommandMode.__init__(
@@ -54,11 +49,7 @@ class ConfigCommandMode(CommandMode):
     EXIT_COMMAND = "exit"
 
     def __init__(self, context):
-        """
-        Initialize Config command mode
-
-        :param context:
-        """
+        """Initialize Config command mode."""
         exit_action_map = {
             self.PROMPT: lambda session, logger: session.send_line("exit", logger)
         }
@@ -96,10 +87,7 @@ class SwitchCliHandler(CliHandlerImpl):
         return password
 
     def on_session_start(self, session, logger):
-        """Send default commands to configure/clear session outputs
-        :return:
-        """
-
+        """Send default commands to configure/clear session outputs."""
         self.enter_enable_mode(session=session, logger=logger)
         session.hardware_expect("terminal length 0", EnableCommandMode.PROMPT, logger)
         session.hardware_expect("terminal width 300", EnableCommandMode.PROMPT, logger)

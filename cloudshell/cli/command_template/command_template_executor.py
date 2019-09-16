@@ -1,12 +1,8 @@
 from collections import OrderedDict
 
-from cloudshell.cli.command_template.command_template import CommandTemplate
-
 
 class CommandTemplateExecutor(object):
-    """
-    Execute command template using cli service
-    """
+    """Execute command template using cli service."""
 
     def __init__(
         self,
@@ -16,14 +12,15 @@ class CommandTemplateExecutor(object):
         error_map=None,
         **optional_kwargs
     ):
-        """
+        """Initialize Command template executor.
+
         :param cli_service:
         :type cli_service: CliService
         :param command_template:
-        :type command_template: CommandTemplate
-        :param error_map: expected error map with subclass of CommandExecutionException or str
-        :type error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]
-        :return:
+        :type command_template: cloudshell.cli.command_template.command_template.CommandTemplate  # noqa: E501
+        :param error_map: expected error map with subclass of CommandExecutionException
+            or str
+        :type error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]  # noqa: E501
         """
         self._cli_service = cli_service
         self._command_template = command_template
@@ -33,9 +30,7 @@ class CommandTemplateExecutor(object):
 
     @property
     def action_map(self):
-        """
-        Return updated action
-        """
+        """Return updated action."""
         return dict(**self._action_map, **self._command_template.action_map)
 
     @property
@@ -47,8 +42,8 @@ class CommandTemplateExecutor(object):
         return self._optional_kwargs
 
     def execute_command(self, **command_kwargs):
-        """
-        Execute command
+        """Execute command.
+
         :param command_kwargs:
         :return: Command output
         :rtype: str

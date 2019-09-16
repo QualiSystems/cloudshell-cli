@@ -48,10 +48,9 @@ class SSHSession(ExpectSession, ConnectionParams):
         self._buffer_size = self.BUFFER_SIZE
 
     def __eq__(self, other):
-        """
+        """Is equal.
 
         :param SSHSession other:
-        :return:
         """
         return all(
             [
@@ -63,27 +62,18 @@ class SSHSession(ExpectSession, ConnectionParams):
         )
 
     def __del__(self):
-        """
-
-        :return:
-        """
         self.disconnect()
 
     def _create_handler(self):
-        """
-
-        :return:
-        """
         self._handler = paramiko.SSHClient()
         self._handler.load_system_host_keys()
         self._handler.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
     def _initialize_session(self, prompt, logger):
-        """
+        """Initialize session.
 
         :param str prompt:
         :param logging.Logger logger:
-        :return:
         """
         self._create_handler()
         try:
@@ -106,11 +96,10 @@ class SSHSession(ExpectSession, ConnectionParams):
         self._current_channel.settimeout(self._timeout)
 
     def _connect_actions(self, prompt, logger):
-        """
+        """Connect actions.
 
         :param str prompt:
         :param logging.Logger logger:
-        :return:
         """
         self.hardware_expect(
             None, expected_string=prompt, timeout=self._timeout, logger=logger
@@ -118,30 +107,24 @@ class SSHSession(ExpectSession, ConnectionParams):
         self._on_session_start(logger)
 
     def disconnect(self):
-        """Disconnect from device
-
-        :return:
-        """
-        # self._current_channel = None
+        """Disconnect from device."""
         if self._handler:
             self._handler.close()
         self._active = False
 
     def _send(self, command, logger):
-        """Send message to device
+        """Send message to device.
 
         :param str command:
         :param logging.Logger logger:
-        :return:
         """
         self._current_channel.send(command)
 
     def _receive(self, timeout, logger):
-        """Read session buffer
+        """Read session buffer.
 
         :param int timeout: time between retries
         :param logging.Logger logger:
-        :return:
         """
         # Set the channel timeout
         timeout = timeout if timeout else self._timeout
@@ -161,13 +144,15 @@ class SSHSession(ExpectSession, ConnectionParams):
     def upload_scp(
         self, file_stream, dest_pathname, file_size=None, dest_permissions="0601"
     ):
-        """
+        """Upload SCP.
 
-        :param file_stream: filelike object: open file, StringIO, or other filelike object to read data from
-        :param str dest_pathname: name of the file in the destination, with optional folder path prefix
-        :param int file_size: size of the file, mandatory unless you are sure SFTP is available, in which case pass 0
+        :param file_stream: filelike object: open file, StringIO, or other
+            filelike object to read data from
+        :param str dest_pathname: name of the file in the destination, with optional
+            folder path prefix
+        :param int file_size: size of the file, mandatory unless you are sure SFTP is
+            available, in which case pass 0
         :param str dest_permissions: permission string as octal digits, e.g. 0601
-        :return:
         """
         scp = SCPClient(self._handler.get_transport())
         scp.putfo(
@@ -181,13 +166,15 @@ class SSHSession(ExpectSession, ConnectionParams):
     def upload_sftp(
         self, file_stream, dest_pathname, file_size, dest_permissions="0601"
     ):
-        """
+        """Upload SFTP.
 
-        :param file_stream: filelike object: open file, StringIO, or other filelike object to read data from
-        :param str dest_pathname: name of the file in the destination, with optional folder path prefix
-        :param int file_size: size of the file, mandatory unless you are sure SFTP is available, in which case pass 0
+        :param file_stream: filelike object: open file, StringIO, or other
+            filelike object to read data from
+        :param str dest_pathname: name of the file in the destination,
+            with optional folder path prefix
+        :param int file_size: size of the file, mandatory unless you are sure SFTP is
+            available, in which case pass 0
         :param str dest_permissions: permission string as octal digits, e.g. 0601
-        :return:
         """
         sftp = paramiko.SFTPClient.from_transport(self._handler.get_transport())
         sftp.putfo(file_stream, dest_pathname)

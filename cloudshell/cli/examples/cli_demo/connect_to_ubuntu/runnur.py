@@ -8,7 +8,7 @@ from cloudshell.cli.session_pool_manager import SessionPoolManager
 
 
 class CliCommandMode(CommandMode):
-     PROMPT = r"$"
+    PROMPT = r"$"
     ENTER_COMMAND = ""
     EXIT_COMMAND = "exit"
 
@@ -45,6 +45,6 @@ if __name__ == "__main__":
 
     with cli.get_session(session, default_mode) as default_session:
         out = default_session.send_command("echo Cli Demo connected to Ubuntu Machine")
-        print(out)
+        print(out)  # noqa: T001
         fd = open("<src_file_path>")
         default_session.session.upload_scp(fd, "<dst_file_path>", "<file_size>", "0666")

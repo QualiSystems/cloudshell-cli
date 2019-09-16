@@ -37,7 +37,7 @@ class TestSessionPoolManager(TestCase):
         self._pool.maxsize = 4
         self._session_manager.existing_sessions_count.return_value = 0
         self._session_pool_manager._new_session = Mock()
-        session = self._session_pool_manager.get_session(
+        self._session_pool_manager.get_session(
             self._new_sessions, self._prompt, self._logger
         )
         self._session_pool_manager._get_from_pool.assert_called_once_with(
@@ -49,7 +49,7 @@ class TestSessionPoolManager(TestCase):
         self._pool.maxsize = 2
         self._session_manager.existing_sessions_count.return_value = 1
         self._session_pool_manager._new_session = Mock()
-        session = self._session_pool_manager.get_session(
+        self._session_pool_manager.get_session(
             self._new_sessions, self._prompt, self._logger
         )
         self._session_pool_manager._new_session.assert_called_once_with(
@@ -66,7 +66,7 @@ class TestSessionPoolManager(TestCase):
 
         exception = SessionPoolException
         with self.assertRaises(exception):
-            session = self._session_pool_manager.get_session(
+            self._session_pool_manager.get_session(
                 self._new_sessions, self._prompt, self._logger
             )
             self._condition.wait.assert_called_once_with(pool_timeout)
@@ -123,7 +123,7 @@ class TestSessionPoolManager(TestCase):
 
     def test__new_session_called(self):
         prompt = Mock()
-        session = self._session_pool_manager._new_session(
+        self._session_pool_manager._new_session(
             self._new_sessions, prompt, self._logger
         )
         self._session_manager.new_session.assert_called_once_with(

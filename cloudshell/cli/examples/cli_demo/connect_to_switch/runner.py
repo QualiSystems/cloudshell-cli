@@ -39,6 +39,6 @@ if __name__ == "__main__":
         out = session.send_command("echo checking switch")
         with session.enter_mode(cli_handler.config_mode) as config_session:
             out = config_session.send_command("echo checking switch")
-            print(out)
+            print(out)  # noqa: T001
             out = config_session.send_command("echo checking switch")
-            print(out)
+            print(out)  # noqa: T001

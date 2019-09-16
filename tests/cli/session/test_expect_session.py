@@ -272,7 +272,7 @@ class TestExpectSession(TestCase):
         normalize_buffer.side_effect = side_effect
         test_func = Mock()
         action_map = OrderedDict({fake_out: test_func})
-        result = self._instance.hardware_expect(
+        self._instance.hardware_expect(
             command, expected_string, self._logger, action_map=action_map
         )
         test_func.assert_called_once_with(self._instance, self._logger)
@@ -293,7 +293,7 @@ class TestExpectSession(TestCase):
         error_map = OrderedDict({expected_string: "test_error"})
         exception = CommandExecutionException
         with self.assertRaises(exception):
-            result = self._instance.hardware_expect(
+            self._instance.hardware_expect(
                 command, expected_string, self._logger, error_map=error_map
             )
 

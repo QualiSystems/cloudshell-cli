@@ -26,7 +26,7 @@ class TestConnectionParams(TestCase):
     def test_init_port_not_int(self):
         exception = ValueError
         with self.assertRaises(exception):
-            instance = ConnectionParamsTestImpl(
+            ConnectionParamsTestImpl(
                 self._hostname, port="port", on_session_start=self._on_session_start
             )
 

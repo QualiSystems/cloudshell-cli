@@ -4,21 +4,17 @@ from cloudshell.cli.session.expect_session import CommandExecutionException
 
 
 class SessionPoolContextManager(object):
-    """
-    Get and return session from pool and change mode if specified
-    """
+    """Get and return session from pool and change mode if specified."""
 
     IGNORED_EXCEPTIONS = (CommandExecutionException,)
 
     def __init__(self, session_pool, defined_sessions, command_mode, logger):
-        """
-        :param cloudshell.cli.service.session_pool_manager.SessionPoolManager session_pool:
-        :param defined_sessions:
-        :param command_mode:
-        :type command_mode: CommandMode
-        :param logger:
-        """
+        """Initialize Session pool context manager.
 
+        :param cloudshell.cli.service.session_pool_manager.SessionPoolManager session_pool:  # noqa: E501
+        :type command_mode: cli.service.command_mode.CommandMode
+        :type logger: logging.Logger
+        """
         self._session_pool = session_pool
         self._command_mode = command_mode
         self._logger = logger
@@ -30,13 +26,13 @@ class SessionPoolContextManager(object):
     def _initialize_cli_service(self, session, prompt):
         try:
             return CliService(session, self._command_mode, self._logger)
-        except:
+        except Exception:
             session.reconnect(prompt, self._logger)
             return CliService(session, self._command_mode, self._logger)
 
     def __enter__(self):
-        """
-        :return:
+        """Enter.
+
         :rtype: CliService
         """
         prompts_re = r"|".join(
