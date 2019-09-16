@@ -8,7 +8,14 @@ class CommandTemplateExecutor(object):
     Execute command template using cli service
     """
 
-    def __init__(self, cli_service, command_template, action_map=None, error_map=None, **optional_kwargs):
+    def __init__(
+        self,
+        cli_service,
+        command_template,
+        action_map=None,
+        error_map=None,
+        **optional_kwargs
+    ):
         """
         :param cli_service:
         :type cli_service: CliService
@@ -47,8 +54,12 @@ class CommandTemplateExecutor(object):
         :rtype: str
         """
         command = self._command_template.prepare_command(**command_kwargs)
-        return self._cli_service.send_command(command, action_map=self.action_map, error_map=self.error_map,
-                                              **self.optional_kwargs)
+        return self._cli_service.send_command(
+            command,
+            action_map=self.action_map,
+            error_map=self.error_map,
+            **self.optional_kwargs
+        )
 
     def update_action_map(self, action_map):
         self._action_map.update(action_map)

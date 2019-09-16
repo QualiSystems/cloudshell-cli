@@ -15,9 +15,19 @@ class CommandMode(Node):
 
     RELATIONS_DICT = {}
 
-    def __init__(self, prompt, enter_command=None, exit_command=None, enter_action_map=None, exit_action_map=None,
-                 enter_error_map=None, exit_error_map=None, parent_mode=None, enter_actions=None,
-                 use_exact_prompt=False):
+    def __init__(
+        self,
+        prompt,
+        enter_command=None,
+        exit_command=None,
+        enter_action_map=None,
+        exit_action_map=None,
+        enter_error_map=None,
+        exit_error_map=None,
+        parent_mode=None,
+        enter_actions=None,
+        use_exact_prompt=False,
+    ):
         """
             :param prompt: Prompt of this mode
             :type prompt: str
@@ -95,8 +105,12 @@ class CommandMode(Node):
         else:
             enter_command_list = self._enter_command
         for enter_command in enter_command_list:
-            cli_service.send_command(enter_command, expected_string=self.prompt,
-                                     action_map=self._enter_action_map, error_map=self._enter_error_map)
+            cli_service.send_command(
+                enter_command,
+                expected_string=self.prompt,
+                action_map=self._enter_action_map,
+                error_map=self._enter_error_map,
+            )
         cli_service.command_mode = self
         self.enter_actions(cli_service)
         self.prompt_actions(cli_service, logger)
@@ -113,8 +127,12 @@ class CommandMode(Node):
         else:
             exit_command_list = self._exit_command
         for exit_command in exit_command_list:
-            cli_service.send_command(exit_command, expected_string=self.parent_node.prompt,
-                                     action_map=self._exit_action_map, error_map=self._exit_error_map)
+            cli_service.send_command(
+                exit_command,
+                expected_string=self.parent_node.prompt,
+                action_map=self._exit_action_map,
+                error_map=self._exit_error_map,
+            )
         cli_service.command_mode = self.parent_node
 
     def enter_actions(self, cli_service):
@@ -134,7 +152,7 @@ class CommandMode(Node):
         """
         if self._use_exact_prompt:
             self._exact_prompt = self._initialize_exact_prompt(cli_service, logger)
-            logger.debug('Exact prompt: ' + self._exact_prompt)
+            logger.debug("Exact prompt: " + self._exact_prompt)
 
     def _initialize_exact_prompt(self, cli_service, logger):
         """
@@ -155,7 +173,9 @@ class CommandMode(Node):
         exact_prompt = re.escape(exact_prompt)
 
         if not re.search(exact_prompt, output, re.DOTALL):
-            raise Exception(self.__class__.__name__, 'Exact prompt is not matching the output')
+            raise Exception(
+                self.__class__.__name__, "Exact prompt is not matching the output"
+            )
 
         return exact_prompt
 

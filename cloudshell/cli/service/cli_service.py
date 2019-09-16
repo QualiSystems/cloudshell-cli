@@ -11,8 +11,16 @@ class CliService(object, metaclass=ABCMeta):
         self._logger = logger
 
     @abstractmethod
-    def send_command(self, command, expected_string=None, action_map=None, error_map=None, logger=None, *args,
-                     **kwargs):
+    def send_command(
+        self,
+        command,
+        expected_string=None,
+        action_map=None,
+        error_map=None,
+        logger=None,
+        *args,
+        **kwargs
+    ):
         pass
 
     @abstractmethod

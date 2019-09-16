@@ -35,14 +35,14 @@ class CommandTemplate:
 
     # ToDo: Needs to be reviewed
     def get_command(self, **kwargs):
-        action_map = (OrderedDict(kwargs.get('action_map', None) or OrderedDict()))
+        action_map = OrderedDict(kwargs.get("action_map", None) or OrderedDict())
         action_map.update(self._action_map)
         error_map = OrderedDict(self._error_map)
-        error_map.update(kwargs.get('error_map', None) or OrderedDict())
+        error_map.update(kwargs.get("error_map", None) or OrderedDict())
         return {
-            'command': self.prepare_command(**kwargs),
-            'action_map': action_map,
-            'error_map': error_map
+            "command": self.prepare_command(**kwargs),
+            "action_map": action_map,
+            "error_map": error_map,
         }
 
     def prepare_command(self, **kwargs):
@@ -53,8 +53,8 @@ class CommandTemplate:
                 cmd = re.sub(r"\[[^[]*?{{{key}}}.*?\]".format(key=key), r"", cmd)
 
         if not cmd:
-            raise Exception(self.__class__.__name__, 'Unable to prepare command')
+            raise Exception(self.__class__.__name__, "Unable to prepare command")
 
-        cmd = re.sub(r"\s+", " ", cmd).strip(' \t\n\r')
+        cmd = re.sub(r"\s+", " ", cmd).strip(" \t\n\r")
         result = re.sub(r"\[|\]", "", cmd).format(**kwargs)
         return result

@@ -5,7 +5,6 @@ from cloudshell.cli.service.command_mode_helper import CommandModeHelper
 
 
 class EnterCommandModeContextManager(object):
-
     def __init__(self, cli_service, command_mode, logger):
         """Context manager used to enter specific command mode using CommandMode relations
             in CommandMode.RELATIONS_DICT
@@ -34,13 +33,13 @@ class EnterCommandModeContextManager(object):
 
 
 class EnterDetachCommandModeContextManager(EnterCommandModeContextManager):
-
     def __init__(self, cli_service, command_mode, logger):
         """Context manager used to enter specific command mode without using CommandMode relations
             in CommandMode.RELATIONS_DICT"""
 
         super(EnterDetachCommandModeContextManager, self).__init__(
-            cli_service, command_mode, logger)
+            cli_service, command_mode, logger
+        )
 
         if command_mode.parent_node is None:
             command_mode.parent_node = self._previous_mode
@@ -80,7 +79,9 @@ class CliServiceImpl(CliService):
         """
         :type requested_command_mode: cloudshell.cli.command_mode.CommandMode
         """
-        self.command_mode = CommandModeHelper.determine_current_mode(self.session, requested_command_mode, self._logger)
+        self.command_mode = CommandModeHelper.determine_current_mode(
+            self.session, requested_command_mode, self._logger
+        )
         self.command_mode.enter_actions(self)
         self.command_mode.prompt_actions(self, self._logger)
         self._change_mode(requested_command_mode)
@@ -101,8 +102,17 @@ class CliServiceImpl(CliService):
 
         return context(self, command_mode, self._logger)
 
-    def send_command(self, command, expected_string=None, action_map=None, error_map=None, logger=None,
-                     remove_prompt=False, *args, **kwargs):
+    def send_command(
+        self,
+        command,
+        expected_string=None,
+        action_map=None,
+        error_map=None,
+        logger=None,
+        remove_prompt=False,
+        *args,
+        **kwargs
+    ):
         """
         Send command
         :param command:
@@ -123,10 +133,19 @@ class CliServiceImpl(CliService):
         if not logger:
             logger = self._logger
         self.session.logger = logger
-        output = self.session.hardware_expect(command, expected_string=expected_string, action_map=action_map,
-                                              error_map=error_map, logger=logger, *args, **kwargs)
+        output = self.session.hardware_expect(
+            command,
+            expected_string=expected_string,
+            action_map=action_map,
+            error_map=error_map,
+            logger=logger,
+            *args,
+            **kwargs
+        )
         if remove_prompt:
-            output = re.sub(r'^.*{}.*$'.format(expected_string), '', output, flags=re.MULTILINE)
+            output = re.sub(
+                r"^.*{}.*$".format(expected_string), "", output, flags=re.MULTILINE
+            )
         return output
 
     def _change_mode(self, requested_command_mode):
@@ -136,7 +155,9 @@ class CliServiceImpl(CliService):
         :type requested_command_mode: CommandMode
         """
         if requested_command_mode:
-            steps = CommandModeHelper.calculate_route_steps(self.command_mode, requested_command_mode)
+            steps = CommandModeHelper.calculate_route_steps(
+                self.command_mode, requested_command_mode
+            )
             list(map(lambda x: x(self, self._logger), steps))
 
     def reconnect(self, timeout=None):
@@ -145,6 +166,8 @@ class CliServiceImpl(CliService):
         :param timeout: Timeout for operation
         :return:
         """
-        prompts_re = r'|'.join(CommandModeHelper.defined_modes_by_prompt(self.command_mode).keys())
+        prompts_re = r"|".join(
+            CommandModeHelper.defined_modes_by_prompt(self.command_mode).keys()
+        )
         self.session.reconnect(prompts_re, self._logger, timeout)
         self._initialize(self.command_mode)

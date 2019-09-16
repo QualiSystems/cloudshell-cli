@@ -74,6 +74,8 @@ class NodeOperations(object):
         while True:
             if source_node_root_path[index] in dest_node_root_path:
                 dest_index = len(source_node_root_path) - index
-                return down_steps(source_node_root_path[:index]) + up_steps(dest_node_root_path[::-1][dest_index:])
+                return down_steps(source_node_root_path[:index]) + up_steps(
+                    dest_node_root_path[::-1][dest_index:]
+                )
             else:
                 index += 1

@@ -10,11 +10,13 @@ from cloudshell.cli.session.session_exceptions import (
 
 class TCPSession(ExpectSession, ConnectionParams):
 
-    SESSION_TYPE = 'TCP'
+    SESSION_TYPE = "TCP"
     BUFFER_SIZE = 1024
 
     def __init__(self, host, port, on_session_start=None, *args, **kwargs):
-        ConnectionParams.__init__(self, host=host, port=port, on_session_start=on_session_start)
+        ConnectionParams.__init__(
+            self, host=host, port=port, on_session_start=on_session_start
+        )
         ExpectSession.__init__(self, *args, **kwargs)
 
         self._buffer_size = self.BUFFER_SIZE
@@ -29,7 +31,7 @@ class TCPSession(ExpectSession, ConnectionParams):
         self._handler.settimeout(self._timeout)
 
     def probe_for_prompt(self, expected_string, logger):
-        return 'DUMMY_PROMPT'
+        return "DUMMY_PROMPT"
 
     def _connect_actions(self, prompt, logger):
         self._on_session_start(logger)
