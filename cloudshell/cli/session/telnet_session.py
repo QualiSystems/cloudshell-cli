@@ -4,7 +4,11 @@ from collections import OrderedDict
 
 from cloudshell.cli.session.connection_params import ConnectionParams
 from cloudshell.cli.session.expect_session import ExpectSession
-from cloudshell.cli.session.session_exceptions import SessionException, SessionReadTimeout, SessionReadEmptyData
+from cloudshell.cli.session.session_exceptions import (
+    SessionException,
+    SessionReadEmptyData,
+    SessionReadTimeout,
+)
 
 
 class TelnetSessionException(SessionException):

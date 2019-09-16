@@ -1,8 +1,12 @@
+from cloudshell.core.logger.qs_logger import get_qs_logger
+from cloudshell.shell.standards.core import (
+    ResourceCommandContext,
+    ResourceContextDetails,
+)
+from connect_to_switch.SwitchClihandler import SwitchCliHandler
+
 from cloudshell.cli.cli import CLI
 from cloudshell.cli.session_pool_manager import SessionPoolManager
-from cloudshell.core.logger.qs_logger import get_qs_logger
-from connect_to_switch.SwitchClihandler import SwitchCliHandler
-from cloudshell.shell.standards.core import ResourceCommandContext, ResourceContextDetails
 
 logger = get_qs_logger()
 
@@ -36,7 +40,3 @@ if __name__ == '__main__':
             print (out)
             out = config_session.send_command('echo checking switch')
             print (out)
-
-
-
-

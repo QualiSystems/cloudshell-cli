@@ -1,11 +1,13 @@
+import io
+
+import paramiko
+from cloudshell.core.logger.qs_logger import get_qs_logger
+
 from cloudshell.cli.cli import CLI
 from cloudshell.cli.command_mode import CommandMode
 from cloudshell.cli.command_mode_helper import CommandModeHelper
 from cloudshell.cli.session.ssh_session import SSHSession
 from cloudshell.cli.session_pool_manager import SessionPoolManager
-from cloudshell.core.logger.qs_logger import get_qs_logger
-import paramiko
-import io
 
 
 class CliCommandMode(CommandMode):
@@ -44,5 +46,3 @@ if __name__ == '__main__':
     with cli.get_session(session, default_mode) as default_session:
         out = default_session.send_command('echo Cli Demo connected to AWS Machine')
         print(out)
-
-

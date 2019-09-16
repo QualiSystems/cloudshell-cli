@@ -1,11 +1,12 @@
+import time
 from queue import Queue
 from threading import Condition
-import time
 
 from cloudshell.cli.service.cli_exception import CliException
+from cloudshell.cli.service.session_manager_impl import \
+    SessionManagerImpl as SessionManager
 from cloudshell.cli.service.session_pool import SessionPool
 from cloudshell.cli.session.session import Session
-from cloudshell.cli.service.session_manager_impl import SessionManagerImpl as SessionManager
 
 
 class SessionPoolException(CliException):

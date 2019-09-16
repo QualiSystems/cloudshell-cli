@@ -5,8 +5,14 @@ from collections import OrderedDict
 
 from cloudshell.cli.session.helper.normalize_buffer import normalize_buffer
 from cloudshell.cli.session.session import Session
-from cloudshell.cli.session.session_exceptions import SessionLoopDetectorException, SessionLoopLimitException, \
-    ExpectedSessionException, CommandExecutionException, SessionReadTimeout, SessionReadEmptyData
+from cloudshell.cli.session.session_exceptions import (
+    CommandExecutionException,
+    ExpectedSessionException,
+    SessionLoopDetectorException,
+    SessionLoopLimitException,
+    SessionReadEmptyData,
+    SessionReadTimeout,
+)
 
 
 class ExpectSession(Session, metaclass=ABCMeta):
