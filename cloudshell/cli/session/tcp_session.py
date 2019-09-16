@@ -37,30 +37,20 @@ class TCPSession(ExpectSession, ConnectionParams):
         self._on_session_start(logger)
 
     def disconnect(self):
-        """Disconnect from device/close the session
-
-        :return:
-        """
-
+        """Disconnect from device/close the session."""
         self._handler.close()
         self._active = False
 
     def _send(self, command, logger):
-        """Send message to the session
+        """Send message to the session.
 
         :param command: message/command to send
         :return:
         """
-
         self._handler.sendall(command)
 
     def _receive(self, timeout, logger):
-        """Read session buffer
-
-        :param timeout:
-        :return:
-        """
-
+        """Read session buffer."""
         timeout = timeout if timeout else self._timeout
         self._handler.settimeout(timeout)
 

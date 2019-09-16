@@ -3,7 +3,8 @@ from abc import ABCMeta, abstractmethod
 
 class CliService(object, metaclass=ABCMeta):
     def __init__(self, session, logger):
-        """
+        """Initialize CLI service.
+
         :type session: cloudshell.cli.session.session.Session
         :type logger: logging.Logger
         """

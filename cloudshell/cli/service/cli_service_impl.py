@@ -6,22 +6,25 @@ from cloudshell.cli.service.command_mode_helper import CommandModeHelper
 
 class EnterCommandModeContextManager(object):
     def __init__(self, cli_service, command_mode, logger):
-        """Context manager used to enter specific command mode using CommandMode relations
+        """Context manager used to enter specific command mode.
+
+         These command modes using CommandMode relations
             in CommandMode.RELATIONS_DICT
 
         :param CliServiceImpl cli_service:
         :param CommandMode command_mode:
         :param logging.Logger logger:
         """
-
         self._cli_service = cli_service
         self._command_mode = command_mode
         self._logger = logger
         self._previous_mode = cli_service.command_mode
 
     def __enter__(self):
-        """:rtype: CliServiceImpl"""
+        """Enter.
 
+        :rtype: CliServiceImpl
+        """
         self._cli_service._change_mode(self._command_mode)
         return self._cli_service
 
@@ -34,9 +37,11 @@ class EnterCommandModeContextManager(object):
 
 class EnterDetachCommandModeContextManager(EnterCommandModeContextManager):
     def __init__(self, cli_service, command_mode, logger):
-        """Context manager used to enter specific command mode without using CommandMode relations
-            in CommandMode.RELATIONS_DICT"""
+        """Context manager used to enter specific command mode.
 
+        These command modes works without using CommandMode relations
+        in CommandMode.RELATIONS_DICT
+        """
         super(EnterDetachCommandModeContextManager, self).__init__(
             cli_service, command_mode, logger
         )
@@ -45,8 +50,10 @@ class EnterDetachCommandModeContextManager(EnterCommandModeContextManager):
             command_mode.parent_node = self._previous_mode
 
     def __enter__(self):
-        """:rtype: CliServiceImpl"""
+        """Enter.
 
+        :rtype: CliServiceImpl
+        """
         self._command_mode.step_up(self._cli_service, self._logger)
         return self._cli_service
 
@@ -61,22 +68,15 @@ CommandModeContextManager = EnterDetachCommandModeContextManager  # Deprecated
 
 
 class CliServiceImpl(CliService):
-    """
-    Session wrapper, used to keep session mode and enter any child mode
-    """
+    """Session wrapper, used to keep session mode and enter any child mode."""
 
     def __init__(self, session, requested_command_mode, logger):
-        """
-
-        :param session:
-        :param requested_command_mode:
-        :param logger:
-        """
         super(CliServiceImpl, self).__init__(session, logger)
         self._initialize(requested_command_mode)
 
     def _initialize(self, requested_command_mode):
-        """
+        """Initialize.
+
         :type requested_command_mode: cloudshell.cli.command_mode.CommandMode
         """
         self.command_mode = CommandModeHelper.determine_current_mode(
@@ -87,14 +87,13 @@ class CliServiceImpl(CliService):
         self._change_mode(requested_command_mode)
 
     def enter_mode(self, command_mode):
-        """Enter specified command mode
+        """Enter specified command mode.
 
         :param command_mode:
         :type command_mode: CommandMode
         :return: context manager
         :rtype: EnterCommandModeContextManager|EnterDetachCommandModeContextManager
         """
-
         if command_mode.is_attached_command_mode():
             context = EnterCommandModeContextManager
         else:
@@ -113,13 +112,14 @@ class CliServiceImpl(CliService):
         *args,
         **kwargs
     ):
-        """
-        Send command
+        """Send command.
+
         :param command:
         :param expected_string:
         :param action_map:
-        :param error_map: expected error map with subclass of CommandExecutionException or str
-        :type error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]
+        :param error_map: expected error map with subclass of CommandExecutionException
+            or str
+        :type error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]  # noqa: E501
         :param logger:
         :param remove_prompt:
         :param args:
@@ -149,8 +149,8 @@ class CliServiceImpl(CliService):
         return output
 
     def _change_mode(self, requested_command_mode):
-        """
-        Change command mode
+        """Change command mode.
+
         :param requested_command_mode:
         :type requested_command_mode: CommandMode
         """
@@ -161,10 +161,9 @@ class CliServiceImpl(CliService):
             list(map(lambda x: x(self, self._logger), steps))
 
     def reconnect(self, timeout=None):
-        """
-        Reconnect session, keep current command mode
+        """Reconnect session, keep current command mode.
+
         :param timeout: Timeout for operation
-        :return:
         """
         prompts_re = r"|".join(
             CommandModeHelper.defined_modes_by_prompt(self.command_mode).keys()

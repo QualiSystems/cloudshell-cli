@@ -57,7 +57,7 @@ class TestNodeOperations(TestCase):
             [source_node, dest_node],
             [dest_node, source_node],
         ]
-        path = NodeOperations.calculate_route_steps(source_node, dest_node)
+        NodeOperations.calculate_route_steps(source_node, dest_node)
         path_to_the_root.assert_called_with(source_node)
 
     @patch("cloudshell.cli.service.node.NodeOperations.path_to_the_root")
@@ -68,5 +68,5 @@ class TestNodeOperations(TestCase):
             [source_node, dest_node],
             [dest_node, source_node],
         ]
-        path = NodeOperations.calculate_route_steps(source_node, dest_node)
+        NodeOperations.calculate_route_steps(source_node, dest_node)
         path_to_the_root.assert_called_with(dest_node)

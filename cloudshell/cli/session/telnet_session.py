@@ -44,10 +44,9 @@ class TelnetSession(ExpectSession, ConnectionParams):
         self._handler = None
 
     def __eq__(self, other):
-        """
-        :param other:
+        """Is equal.
+
         :type other: TelnetSession
-        :return:
         """
         return (
             ConnectionParams.__eq__(self, other)
@@ -87,31 +86,22 @@ class TelnetSession(ExpectSession, ConnectionParams):
         self._handler.get_socket().send(telnetlib.IAC + telnetlib.WILL + telnetlib.ECHO)
 
     def disconnect(self):
-        """Disconnect / close the session
-
-        :return:
-        """
+        """Disconnect / close the session."""
         if self._handler:
             self._handler.close()
         self._active = False
 
     def _send(self, command, logger):
-        """send message / command to device
+        """Send message / command to device.
 
         :param command: message / command to send
         :type command: str
-        :return:
         """
         byte_command = command.encode()
         self._handler.write(byte_command)
 
     def _receive(self, timeout, logger):
-        """read session buffer
-
-        :param timeout:
-        :return: output
-        """
-
+        """Read session buffer."""
         timeout = timeout if timeout else self._timeout
         self._handler.get_socket().settimeout(timeout)
 

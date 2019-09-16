@@ -5,21 +5,14 @@ from threading import Condition
 from cloudshell.cli.service.cli_exception import CliException
 from cloudshell.cli.service.session_manager_impl import SessionManagerImpl
 from cloudshell.cli.service.session_pool import SessionPool
-from cloudshell.cli.session.session import Session
 
 
 class SessionPoolException(CliException):
-    """
-    Session pool exception
-    """
-
-    pass
+    """Session pool exception."""
 
 
 class SessionPoolManager(SessionPool):
-    """
-    Implementation of session pool
-    """
+    """Implementation of session pool."""
 
     """Max count of sessions can be created"""
     MAX_POOL_SIZE = 1
@@ -33,7 +26,8 @@ class SessionPoolManager(SessionPool):
         pool_timeout=POOL_TIMEOUT,
         pool=None,
     ):
-        """
+        """Initialize Session pool manager.
+
         :param session_manager:
         :type session_manager: SessionManagerImpl
         :param max_pool_size:
@@ -49,15 +43,14 @@ class SessionPoolManager(SessionPool):
         self._pool = pool or Queue(self._max_pool_size)
 
     def get_session(self, defined_sessions, prompt, logger):
-        """
-        Return session object, takes it from pool or create new session
+        """Return session object, takes it from pool or create new session.
+
         :param collections.Iterable defined_sessions:
         :param prompt:
         :param logger:
         :return:
         :rtype: Session
         """
-
         call_time = time.time()
         with self._session_condition:
             session_obj = None
@@ -80,10 +73,10 @@ class SessionPoolManager(SessionPool):
             return session_obj
 
     def remove_session(self, session, logger):
-        """
-        Remove session from the pool
+        """Remove session from the pool.
+
         :param session:
-        :type session: Session
+        :type session: cloudshell.cli.session.session.Session
         :param logger:
         :type logger: Logger
         """
@@ -93,10 +86,10 @@ class SessionPoolManager(SessionPool):
             self._session_condition.notify()
 
     def return_session(self, session, logger):
-        """
-        Return session back to the pool
+        """Return session back to the pool.
+
         :param session:
-        :type session: Session
+        :type session: cloudshell.cli.session.session.Session
         :param logger:
         :type logger: Logger
         """
@@ -107,8 +100,8 @@ class SessionPoolManager(SessionPool):
             self._session_condition.notify()
 
     def _new_session(self, new_sessions, prompt, logger):
-        """
-        Create new session using session manager
+        """Create new session using session manager.
+
         :param new_sessions
         :param prompt:
         :param logger:
@@ -120,8 +113,8 @@ class SessionPoolManager(SessionPool):
         return session
 
     def _get_from_pool(self, new_sessions, prompt, logger):
-        """
-        Get session from the pool
+        """Get session from the pool.
+
         :param new_sessions
         :param prompt:
         :param logger:

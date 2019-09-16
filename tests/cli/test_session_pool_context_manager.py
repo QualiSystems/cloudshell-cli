@@ -54,7 +54,7 @@ class TestSessionPoolContextManager(TestCase):
         )
         session = Mock()
         self._session_pool_manager.get_session.return_value = session
-        with self._instance as cli_service:
+        with self._instance:
             pass
         command_mode_helper.defined_modes_by_prompt.assert_called_once_with(
             self._command_mode
@@ -77,7 +77,7 @@ class TestSessionPoolContextManager(TestCase):
         session = Mock()
         self._session_pool_manager.get_session.return_value = session
         with self.assertRaises(Exception):
-            with self._instance as cli_service:
+            with self._instance:
                 pass
         command_mode_helper.defined_modes_by_prompt.assert_called_once_with(
             self._command_mode
@@ -95,7 +95,7 @@ class TestSessionPoolContextManager(TestCase):
         self._instance._initialize_cli_service = Mock()
         session_value = Mock()
         self._session_pool_manager.get_session.return_value = session_value
-        with self._instance as session:
+        with self._instance:
             pass
 
         self._session_pool_manager.return_session.assert_called_once_with(
@@ -109,7 +109,7 @@ class TestSessionPoolContextManager(TestCase):
         self._session_pool_manager.get_session.return_value = session_value
         exception = Exception
         with self.assertRaises(exception):
-            with self._instance as session:
+            with self._instance:
                 raise exception(self.__class__.__name__, "test")
         self._session_pool_manager.remove_session.assert_called_once_with(
             session_value, self._logger
@@ -122,7 +122,7 @@ class TestSessionPoolContextManager(TestCase):
         self._session_pool_manager.get_session.return_value = session_value
         exception = CommandExecutionException
         with self.assertRaises(exception):
-            with self._instance as session:
+            with self._instance:
                 raise exception(self.__class__.__name__, "test")
         self._session_pool_manager.return_session.assert_called_once_with(
             session_value, self._logger
@@ -134,7 +134,7 @@ class TestSessionPoolContextManager(TestCase):
         session_value = Mock()
         session_value.active.return_value = False
         self._session_pool_manager.get_session.return_value = session_value
-        with self._instance as session:
+        with self._instance:
             pass
         self._session_pool_manager.remove_session.assert_called_once_with(
             session_value, self._logger

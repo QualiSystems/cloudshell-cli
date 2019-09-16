@@ -11,8 +11,8 @@ class SessionManagerImpl(SessionManager):
         self._existing_sessions = []
 
     def new_session(self, new_sessions, prompt, logger):
-        """
-        Create new session
+        """Create new session.
+
         :param new_sessions
         :type new_sessions: list
         :param prompt:
@@ -38,16 +38,15 @@ class SessionManagerImpl(SessionManager):
         )
 
     def existing_sessions_count(self):
-        """
-        Count of existing sessions
-        :return:
+        """Count of existing sessions.
+
         :rtype: int
         """
         return len(self._existing_sessions)
 
     def remove_session(self, session, logger):
-        """
-        Remove session
+        """Remove session.
+
         :param session:
         :param logger:
         """
@@ -56,15 +55,10 @@ class SessionManagerImpl(SessionManager):
             logger.debug("{} session was removed".format(session.session_type))
 
     def is_compatible(self, session, new_sessions, logger):
-        """
-        Compare session with new session parameters
-        :param session:
-        :type session: Session
-        :param new_sessions
-        :param logger:
-        :return:
-        """
+        """Compare session with new session parameters.
 
+        :type session: Session
+        """
         if not isinstance(new_sessions, list):
             new_sessions = [new_sessions]
 
