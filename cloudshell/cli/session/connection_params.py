@@ -1,11 +1,8 @@
 from abc import ABCMeta
 
 
-class ConnectionParams(object):
-    """
-    Session parameters
-    """
-    __metaclass__ = ABCMeta
+class ConnectionParams(object, metaclass=ABCMeta):
+    """Session parameters."""
 
     def __init__(self, host, port=None, on_session_start=None, pkey=None):
         self.host = host
@@ -15,7 +12,7 @@ class ConnectionParams(object):
             self.port = int(port)
 
         if host:
-            temp_host = host.split(':')
+            temp_host = host.split(":")
             self.host = temp_host[0]
             if not self.port and len(temp_host) > 1:
                 self.port = int(temp_host[1])
@@ -30,13 +27,14 @@ class ConnectionParams(object):
             self.on_session_start(self, logger)
 
     def __eq__(self, other):
-        """
-        :param other:
+        """Is equal.
+
         :type other: ConnectionParams
-        :return:
         :rtype: bool
         """
-        return self.__class__ == other.__class__ and \
-               self.host == other.host and \
-               self.port == other.port and \
-               self.pkey == other.pkey
+        return (
+            self.__class__ == other.__class__
+            and self.host == other.host
+            and self.port == other.port
+            and self.pkey == other.pkey
+        )

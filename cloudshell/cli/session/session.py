@@ -2,9 +2,7 @@ from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 
 
-class Session(object):
-    __metaclass__ = ABCMeta
-
+class Session(object, metaclass=ABCMeta):
     @abstractmethod
     def connect(self, prompt, logger):
         pass
@@ -26,9 +24,19 @@ class Session(object):
         pass
 
     @abstractmethod
-    def hardware_expect(self, command, expected_string, logger, action_map=OrderedDict(), error_map=OrderedDict(),
-                        timeout=None, retries=None, check_action_loop_detector=True, empty_loop_timeout=None,
-                        **optional_args):
+    def hardware_expect(
+        self,
+        command,
+        expected_string,
+        logger,
+        action_map=OrderedDict(),
+        error_map=OrderedDict(),
+        timeout=None,
+        retries=None,
+        check_action_loop_detector=True,
+        empty_loop_timeout=None,
+        **optional_args
+    ):
         pass
 
     @abstractmethod
