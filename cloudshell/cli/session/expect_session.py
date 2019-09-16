@@ -20,7 +20,7 @@ class ExpectSession(Session, metaclass=ABCMeta):
     Help to handle additional actions during send command
     """
 
-    SESSION_TYPE = 'EXPECT'
+    SESSION_TYPE = "EXPECT"
 
     MAX_LOOP_RETRIES = 20
     READ_TIMEOUT = 30
@@ -30,10 +30,17 @@ class ExpectSession(Session, metaclass=ABCMeta):
     LOOP_DETECTOR_MAX_COMBINATION_LENGTH = 4
     RECONNECT_TIMEOUT = 30
 
-    def __init__(self, timeout=READ_TIMEOUT, new_line='\r', max_loop_retries=MAX_LOOP_RETRIES,
-                 empty_loop_timeout=EMPTY_LOOP_TIMEOUT, loop_detector_max_action_loops=LOOP_DETECTOR_MAX_ACTION_LOOPS,
-                 loop_detector_max_combination_length=LOOP_DETECTOR_MAX_COMBINATION_LENGTH,
-                 clear_buffer_timeout=CLEAR_BUFFER_TIMEOUT, reconnect_timeout=RECONNECT_TIMEOUT):
+    def __init__(
+        self,
+        timeout=READ_TIMEOUT,
+        new_line="\r",
+        max_loop_retries=MAX_LOOP_RETRIES,
+        empty_loop_timeout=EMPTY_LOOP_TIMEOUT,
+        loop_detector_max_action_loops=LOOP_DETECTOR_MAX_ACTION_LOOPS,
+        loop_detector_max_combination_length=LOOP_DETECTOR_MAX_COMBINATION_LENGTH,
+        clear_buffer_timeout=CLEAR_BUFFER_TIMEOUT,
+        reconnect_timeout=RECONNECT_TIMEOUT,
+    ):
 
         """
 
@@ -53,7 +60,9 @@ class ExpectSession(Session, metaclass=ABCMeta):
         self._empty_loop_timeout = empty_loop_timeout
 
         self._loop_detector_max_action_loops = loop_detector_max_action_loops
-        self._loop_detector_max_combination_length = loop_detector_max_combination_length
+        self._loop_detector_max_combination_length = (
+            loop_detector_max_combination_length
+        )
         self._clear_buffer_timeout = clear_buffer_timeout
         self._reconnect_timeout = reconnect_timeout
 
@@ -94,7 +103,7 @@ class ExpectSession(Session, metaclass=ABCMeta):
         :param timeout:
         :return:
         """
-        out = ''
+        out = ""
         while True:
             try:
                 read_buffer = self._receive(timeout, logger)
@@ -140,7 +149,7 @@ class ExpectSession(Session, metaclass=ABCMeta):
         if not timeout:
             timeout = self._timeout
         start_time = time.time()
-        read_buffer = ''
+        read_buffer = ""
         while True:
             try:
                 read_buffer += self._receive(0.1, logger)
@@ -148,7 +157,9 @@ class ExpectSession(Session, metaclass=ABCMeta):
                 if read_buffer:
                     return read_buffer
                 elif time.time() - start_time > timeout:
-                    raise ExpectedSessionException(self.__class__.__name__, 'Socket closed by timeout')
+                    raise ExpectedSessionException(
+                        self.__class__.__name__, "Socket closed by timeout"
+                    )
 
     def _generate_command_pattern(self, command):
         """
@@ -157,7 +168,9 @@ class ExpectSession(Session, metaclass=ABCMeta):
         :return:
         """
         if command not in self._command_patterns:
-            self._command_patterns[command] = '\\s*' + re.sub(r'\\\s+', r'\\s+', re.escape(command)) + '\\s*'
+            self._command_patterns[command] = (
+                "\\s*" + re.sub(r"\\\s+", r"\\s+", re.escape(command)) + "\\s*"
+            )
         return self._command_patterns[command]
 
     def probe_for_prompt(self, expected_string, logger):
@@ -167,7 +180,7 @@ class ExpectSession(Session, metaclass=ABCMeta):
         :param logger:
         :return:
         """
-        return self.hardware_expect('', expected_string, logger)
+        return self.hardware_expect("", expected_string, logger)
 
     def match_prompt(self, prompt, match_string, logger):
         """
@@ -184,9 +197,20 @@ class ExpectSession(Session, metaclass=ABCMeta):
         else:
             return False
 
-    def hardware_expect(self, command, expected_string, logger, action_map=None, error_map=None,
-                        timeout=None, retries=None, check_action_loop_detector=True, empty_loop_timeout=None,
-                        remove_command_from_output=True, **optional_args):
+    def hardware_expect(
+        self,
+        command,
+        expected_string,
+        logger,
+        action_map=None,
+        error_map=None,
+        timeout=None,
+        retries=None,
+        check_action_loop_detector=True,
+        empty_loop_timeout=None,
+        remove_command_from_output=True,
+        **optional_args
+    ):
 
         """Get response form the device and compare it to action_map, error_map and expected_string patterns,
         perform actions specified in action_map if any, and return output.
@@ -218,21 +242,25 @@ class ExpectSession(Session, metaclass=ABCMeta):
         if command is not None:
             self._clear_buffer(self._clear_buffer_timeout, logger)
 
-            logger.debug('Command: {}'.format(command))
+            logger.debug("Command: {}".format(command))
             self.send_line(command, logger)
 
         if not expected_string:
-            raise ExpectedSessionException(self.__class__.__name__, 'List of expected messages can\'t be empty!')
+            raise ExpectedSessionException(
+                self.__class__.__name__, "List of expected messages can't be empty!"
+            )
 
         # Loop until one of the expressions is matched or MAX_RETRIES
         # nothing is expected (usually used for exit)
         output_list = list()
-        output_str = ''
+        output_str = ""
         retries_count = 0
         is_correct_exit = False
 
-        action_loop_detector = ActionLoopDetector(self._loop_detector_max_action_loops,
-                                                  self._loop_detector_max_combination_length)
+        action_loop_detector = ActionLoopDetector(
+            self._loop_detector_max_action_loops,
+            self._loop_detector_max_combination_length,
+        )
         while retries == 0 or retries_count < retries:
 
             # try:
@@ -251,7 +279,9 @@ class ExpectSession(Session, metaclass=ABCMeta):
                 if command and remove_command_from_output:
                     command_pattern = self._generate_command_pattern(command)
                     if re.search(command_pattern, output_str, flags=re.MULTILINE):
-                        output_str = re.sub(command_pattern, '', output_str, count=1, flags=re.MULTILINE)
+                        output_str = re.sub(
+                            command_pattern, "", output_str, count=1, flags=re.MULTILINE
+                        )
                         remove_command_from_output = False
                 retries_count = 0
             else:
@@ -271,22 +301,26 @@ class ExpectSession(Session, metaclass=ABCMeta):
 
                     if check_action_loop_detector:
                         if action_loop_detector.loops_detected(action_key):
-                            logger.error('Loops detected')
-                            raise SessionLoopDetectorException(self.__class__.__name__,
-                                                               'Expected actions loops detected')
-                    logger.debug('Action key: {}'.format(action_key))
+                            logger.error("Loops detected")
+                            raise SessionLoopDetectorException(
+                                self.__class__.__name__,
+                                "Expected actions loops detected",
+                            )
+                    logger.debug("Action key: {}".format(action_key))
                     action_map[action_key](self, logger)
-                    output_str = ''
+                    output_str = ""
                     break
 
             if is_correct_exit:
                 break
 
         if not is_correct_exit:
-            raise SessionLoopLimitException(self.__class__.__name__,
-                                            'Session Loop limit exceeded, {} loops'.format(retries_count))
+            raise SessionLoopLimitException(
+                self.__class__.__name__,
+                "Session Loop limit exceeded, {} loops".format(retries_count),
+            )
 
-        result_output = ''.join(output_list)
+        result_output = "".join(output_list)
 
         for error_pattern, error in error_map.items():
             result_match = re.search(error_pattern, result_output, re.DOTALL)
@@ -295,7 +329,9 @@ class ExpectSession(Session, metaclass=ABCMeta):
                 if isinstance(error, CommandExecutionException):
                     raise error
                 else:
-                    raise CommandExecutionException('Session returned \'{}\''.format(error))
+                    raise CommandExecutionException(
+                        "Session returned '{}'".format(error)
+                    )
 
         # Read buffer to the end. Useful when expected_string isn't last in buffer
         result_output += self._clear_buffer(self._clear_buffer_timeout, logger)
@@ -310,7 +346,7 @@ class ExpectSession(Session, metaclass=ABCMeta):
         :param timeout:
         :return:
         """
-        logger.debug('Reconnect')
+        logger.debug("Reconnect")
         timeout = timeout or self._reconnect_timeout
 
         call_time = time.time()
@@ -320,8 +356,10 @@ class ExpectSession(Session, metaclass=ABCMeta):
                 return self.connect(prompt, logger)
             except Exception as e:
                 logger.debug(e)
-        raise ExpectedSessionException(self.__class__.__name__,
-                                       'Reconnect unsuccessful, timeout exceeded, see logs for more details')
+        raise ExpectedSessionException(
+            self.__class__.__name__,
+            "Reconnect unsuccessful, timeout exceeded, see logs for more details",
+        )
 
 
 class ActionLoopDetector(object):
@@ -376,10 +414,12 @@ class ActionLoopDetector(object):
         :return:
         """
         reversed_history = self._action_history[::-1]
-        combinations = [reversed_history[x:x + combination_length] for x in
-                        range(0, len(reversed_history), combination_length)][:self._max_action_loops]
+        combinations = [
+            reversed_history[x : x + combination_length]
+            for x in range(0, len(reversed_history), combination_length)
+        ][: self._max_action_loops]
         is_loops_exist = True
-        for x, y in [combinations[x:x + 2] for x in range(0, len(combinations) - 1)]:
+        for x, y in [combinations[x : x + 2] for x in range(0, len(combinations) - 1)]:
             if x != y:
                 is_loops_exist = False
                 break

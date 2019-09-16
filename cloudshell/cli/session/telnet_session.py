@@ -16,15 +16,26 @@ class TelnetSessionException(SessionException):
 
 
 class TelnetSession(ExpectSession, ConnectionParams):
-    SESSION_TYPE = 'TELNET'
+    SESSION_TYPE = "TELNET"
 
-    AUTHENTICATION_ERROR_PATTERN = '%.*($|\n)'
+    AUTHENTICATION_ERROR_PATTERN = "%.*($|\n)"
 
-    def __init__(self, host, username, password, port=None, on_session_start=None, *args, **kwargs):
-        ConnectionParams.__init__(self, host, port=port, on_session_start=on_session_start)
+    def __init__(
+        self,
+        host,
+        username,
+        password,
+        port=None,
+        on_session_start=None,
+        *args,
+        **kwargs
+    ):
+        ConnectionParams.__init__(
+            self, host, port=port, on_session_start=on_session_start
+        )
         ExpectSession.__init__(self, *args, **kwargs)
 
-        if hasattr(self, 'port') and self.port is None:
+        if hasattr(self, "port") and self.port is None:
             self.port = 23
 
         self.username = username
@@ -38,19 +49,30 @@ class TelnetSession(ExpectSession, ConnectionParams):
         :type other: TelnetSession
         :return:
         """
-        return ConnectionParams.__eq__(self,
-                                       other) and self.username == other.username and self.password == other.password
+        return (
+            ConnectionParams.__eq__(self, other)
+            and self.username == other.username
+            and self.password == other.password
+        )
 
     def __del__(self):
         self.disconnect()
 
     def _connect_actions(self, prompt, logger):
         action_map = OrderedDict()
-        action_map['[Ll]ogin:|[Uu]ser:|[Uu]sername:'] = lambda session, logger: session.send_line(session.username,
-                                                                                                  logger)
-        action_map['[Pp]assword:'] = lambda session, logger: session.send_line(session.password, logger)
-        self.hardware_expect(None, expected_string=prompt, timeout=self._timeout, logger=logger,
-                                   action_map=action_map)
+        action_map[
+            "[Ll]ogin:|[Uu]ser:|[Uu]sername:"
+        ] = lambda session, logger: session.send_line(session.username, logger)
+        action_map["[Pp]assword:"] = lambda session, logger: session.send_line(
+            session.password, logger
+        )
+        self.hardware_expect(
+            None,
+            expected_string=prompt,
+            timeout=self._timeout,
+            logger=logger,
+            action_map=action_map,
+        )
         self._on_session_start(logger)
 
     def _initialize_session(self, prompt, logger):
@@ -58,7 +80,9 @@ class TelnetSession(ExpectSession, ConnectionParams):
 
         self._handler.open(self.host, int(self.port), self._timeout)
         if self._handler.get_socket() is None:
-            raise TelnetSessionException(self.__class__.__name__, "Failed to open telnet connection.")
+            raise TelnetSessionException(
+                self.__class__.__name__, "Failed to open telnet connection."
+            )
 
         self._handler.get_socket().send(telnetlib.IAC + telnetlib.WILL + telnetlib.ECHO)
 

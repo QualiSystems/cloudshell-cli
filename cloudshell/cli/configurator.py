@@ -73,14 +73,21 @@ class CLIServiceConfigurator(object):
     @property
     @functools.lru_cache()
     def _session_kwargs(self):
-        return {'host': self._resource_address,
-                'username': self._username,
-                'password': self._password,
-                'port': self._port,
-                'on_session_start': self._on_session_start}
+        return {
+            "host": self._resource_address,
+            "username": self._username,
+            "password": self._password,
+            "port": self._port,
+            "on_session_start": self._on_session_start,
+        }
 
     def _defined_sessions(self):
-        return [sess(**self._session_kwargs) for sess in self._session_dict.get(self._cli_type.lower(), self._registered_sessions)]
+        return [
+            sess(**self._session_kwargs)
+            for sess in self._session_dict.get(
+                self._cli_type.lower(), self._registered_sessions
+            )
+        ]
 
     def get_cli_service(self, command_mode):
         """Use cli.get_session to open CLI connection and switch into required mode
@@ -89,7 +96,9 @@ class CLIServiceConfigurator(object):
         :return: created session in provided mode
         :rtype: cloudshell.cli.service.session_pool_context_manager.SessionPoolContextManager
         """
-        return self._cli.get_session(self._defined_sessions(), command_mode, self._logger)
+        return self._cli.get_session(
+            self._defined_sessions(), command_mode, self._logger
+        )
 
 
 class AbstractModeConfigurator(ABC, CLIServiceConfigurator):

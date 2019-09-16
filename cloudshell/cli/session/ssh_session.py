@@ -17,11 +17,23 @@ class SSHSessionException(SessionException):
 
 
 class SSHSession(ExpectSession, ConnectionParams):
-    SESSION_TYPE = 'SSH'
+    SESSION_TYPE = "SSH"
     BUFFER_SIZE = 512
 
-    def __init__(self, host, username, password, port=None, on_session_start=None, pkey=None, *args, **kwargs):
-        ConnectionParams.__init__(self, host, port=port, on_session_start=on_session_start, pkey=pkey)
+    def __init__(
+        self,
+        host,
+        username,
+        password,
+        port=None,
+        on_session_start=None,
+        pkey=None,
+        *args,
+        **kwargs,
+    ):
+        ConnectionParams.__init__(
+            self, host, port=port, on_session_start=on_session_start, pkey=pkey
+        )
         ExpectSession.__init__(self, *args, **kwargs)
 
         if self.port is None:
@@ -41,10 +53,14 @@ class SSHSession(ExpectSession, ConnectionParams):
         :param SSHSession other:
         :return:
         """
-        return all([ConnectionParams.__eq__(self, other),
-                    self.username == other.username,
-                    self.password == other.password,
-                    self.pkey == other.pkey])
+        return all(
+            [
+                ConnectionParams.__eq__(self, other),
+                self.username == other.username,
+                self.password == other.password,
+                self.pkey == other.pkey,
+            ]
+        )
 
     def __del__(self):
         """
@@ -71,8 +87,17 @@ class SSHSession(ExpectSession, ConnectionParams):
         """
         self._create_handler()
         try:
-            self._handler.connect(self.host, self.port, self.username, self.password, timeout=self._timeout,
-                                  banner_timeout=30, allow_agent=False, look_for_keys=False, pkey=self.pkey)
+            self._handler.connect(
+                self.host,
+                self.port,
+                self.username,
+                self.password,
+                timeout=self._timeout,
+                banner_timeout=30,
+                allow_agent=False,
+                look_for_keys=False,
+                pkey=self.pkey,
+            )
         except Exception as e:
             logger.exception("Failed to initialize session:")
             raise SSHSessionException(f"Failed to open connection to device: {e}")
@@ -87,7 +112,9 @@ class SSHSession(ExpectSession, ConnectionParams):
         :param logging.Logger logger:
         :return:
         """
-        self.hardware_expect(None, expected_string=prompt, timeout=self._timeout, logger=logger)
+        self.hardware_expect(
+            None, expected_string=prompt, timeout=self._timeout, logger=logger
+        )
         self._on_session_start(logger)
 
     def disconnect(self):
@@ -131,7 +158,9 @@ class SSHSession(ExpectSession, ConnectionParams):
 
         return data
 
-    def upload_scp(self, file_stream, dest_pathname, file_size=None, dest_permissions='0601'):
+    def upload_scp(
+        self, file_stream, dest_pathname, file_size=None, dest_permissions="0601"
+    ):
         """
 
         :param file_stream: filelike object: open file, StringIO, or other filelike object to read data from
@@ -141,10 +170,17 @@ class SSHSession(ExpectSession, ConnectionParams):
         :return:
         """
         scp = SCPClient(self._handler.get_transport())
-        scp.putfo(fl=file_stream, remote_path=dest_pathname, mode=dest_permissions, size=file_size)
+        scp.putfo(
+            fl=file_stream,
+            remote_path=dest_pathname,
+            mode=dest_permissions,
+            size=file_size,
+        )
         scp.close()
 
-    def upload_sftp(self, file_stream, dest_pathname, file_size, dest_permissions='0601'):
+    def upload_sftp(
+        self, file_stream, dest_pathname, file_size, dest_permissions="0601"
+    ):
         """
 
         :param file_stream: filelike object: open file, StringIO, or other filelike object to read data from

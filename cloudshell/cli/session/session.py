@@ -24,9 +24,19 @@ class Session(object, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def hardware_expect(self, command, expected_string, logger, action_map=OrderedDict(), error_map=OrderedDict(),
-                        timeout=None, retries=None, check_action_loop_detector=True, empty_loop_timeout=None,
-                        **optional_args):
+    def hardware_expect(
+        self,
+        command,
+        expected_string,
+        logger,
+        action_map=OrderedDict(),
+        error_map=OrderedDict(),
+        timeout=None,
+        retries=None,
+        check_action_loop_detector=True,
+        empty_loop_timeout=None,
+        **optional_args
+    ):
         pass
 
     @abstractmethod

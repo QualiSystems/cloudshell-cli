@@ -21,12 +21,14 @@ class CommandModeHelper(NodeOperations):
         """
 
         defined_modes = CommandModeHelper.defined_modes_by_prompt(command_mode)
-        prompts_re = r'|'.join(defined_modes.keys())
+        prompts_re = r"|".join(defined_modes.keys())
         try:
             result = session.probe_for_prompt(expected_string=prompts_re, logger=logger)
         except Exception:
             logger.exception("Cannot determine current command mode:")
-            raise CommandModeException("Cannot determine current command mode, see logs for more details")
+            raise CommandModeException(
+                "Cannot determine current command mode, see logs for more details"
+            )
 
         for prompt, mode in defined_modes.items():
             if session.match_prompt(prompt, result, logger):
@@ -41,7 +43,10 @@ class CommandModeHelper(NodeOperations):
         """
 
         def _get_child_nodes(command_node):
-            return reduce(lambda x, y: x + _get_child_nodes(y), [command_node.child_nodes] + command_node.child_nodes)
+            return reduce(
+                lambda x, y: x + _get_child_nodes(y),
+                [command_node.child_nodes] + command_node.child_nodes,
+            )
 
         node = command_mode
         while node.parent_node:
@@ -73,7 +78,9 @@ class CommandModeHelper(NodeOperations):
                 instance_dict[mode_type] = mode_instance
                 mode_instance.add_parent_mode(instance)
                 instance_dict[mode_type] = mode_instance
-                instance_dict.update(_create_child_modes(mode_instance, child_dict[mode_type]))
+                instance_dict.update(
+                    _create_child_modes(mode_instance, child_dict[mode_type])
+                )
             return instance_dict
 
         return _create_child_modes(None, CommandMode.RELATIONS_DICT)

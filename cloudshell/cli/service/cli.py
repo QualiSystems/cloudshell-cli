@@ -23,4 +23,6 @@ class CLI(object):
 
         if not logger:
             logger = logging.getLogger("cloudshell_cli")
-        return SessionPoolContextManager(self._session_pool, defined_sessions, command_mode, logger)
+        return SessionPoolContextManager(
+            self._session_pool, defined_sessions, command_mode, logger
+        )

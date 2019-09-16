@@ -14,7 +14,7 @@ class ConnectionParams(object, metaclass=ABCMeta):
             self.port = int(port)
 
         if host:
-            temp_host = host.split(':')
+            temp_host = host.split(":")
             self.host = temp_host[0]
             if not self.port and len(temp_host) > 1:
                 self.port = int(temp_host[1])
@@ -35,7 +35,9 @@ class ConnectionParams(object, metaclass=ABCMeta):
         :return:
         :rtype: bool
         """
-        return self.__class__ == other.__class__ and \
-               self.host == other.host and \
-               self.port == other.port and \
-               self.pkey == other.pkey
+        return (
+            self.__class__ == other.__class__
+            and self.host == other.host
+            and self.port == other.port
+            and self.pkey == other.pkey
+        )
