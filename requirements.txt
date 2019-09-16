@@ -1,2 +1,2 @@
-paramiko>=2.4,<2.5
+paramiko>=2.6,<2.7
 scp>=0.13,<1
