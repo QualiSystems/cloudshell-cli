@@ -61,7 +61,7 @@ class TestNodeOperations(TestCase):
         path_to_the_root.assert_called_with(source_node)
 
     @patch("cloudshell.cli.service.node.NodeOperations.path_to_the_root")
-    def test_calculate_route_steps_source_node_root_path_call(self, path_to_the_root):
+    def test_calculate_route_steps_dest_node_root_path_call(self, path_to_the_root):
         source_node = Mock()
         dest_node = Mock()
         path_to_the_root.side_effect = [
