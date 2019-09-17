@@ -1,6 +1,5 @@
 from logging import Logger
 from unittest import TestCase
-from unittest.mock import MagicMock, Mock, create_autospec, patch
 
 from cloudshell.cli.service.cli_service_impl import (
     CliServiceImpl,
@@ -8,6 +7,11 @@ from cloudshell.cli.service.cli_service_impl import (
     EnterDetachCommandModeContextManager,
 )
 from cloudshell.cli.service.command_mode import CommandMode
+
+try:
+    from unittest.mock import MagicMock, Mock, create_autospec, patch
+except ImportError:
+    from mock import MagicMock, Mock, create_autospec, patch
 
 
 class TestEnterCommandModeContextManager(TestCase):
@@ -30,7 +34,12 @@ class TestEnterCommandModeContextManager(TestCase):
             "_logger",
             "_previous_mode",
         ]
-        self.assertEqual(mandatory_attributes, list(self._instance.__dict__.keys()))
+        try:
+            assert_called_equal = self.assertCountEqual
+        except AttributeError:
+            assert_called_equal = self.assertItemsEqual
+
+        assert_called_equal(mandatory_attributes, list(self._instance.__dict__.keys()))
 
     def test_enter_call_change_mode(self):
         cli_service = self._instance.__enter__()
@@ -75,7 +84,12 @@ class TestEnterDetachCommandModeContextManager(TestCase):
             "_logger",
             "_previous_mode",
         ]
-        self.assertEqual(mandatory_attributes, list(self._instance.__dict__.keys()))
+        try:
+            assert_called_equal = self.assertCountEqual
+        except AttributeError:
+            assert_called_equal = self.assertItemsEqual
+
+        assert_called_equal(mandatory_attributes, list(self._instance.__dict__.keys()))
 
     def test_enter_call_step_up(self):
         cli_service = self._instance.__enter__()

@@ -29,7 +29,7 @@ class SSHSession(ExpectSession, ConnectionParams):
         on_session_start=None,
         pkey=None,
         *args,
-        **kwargs,
+        **kwargs
     ):
         ConnectionParams.__init__(
             self, host, port=port, on_session_start=on_session_start, pkey=pkey
@@ -90,7 +90,9 @@ class SSHSession(ExpectSession, ConnectionParams):
             )
         except Exception as e:
             logger.exception("Failed to initialize session:")
-            raise SSHSessionException(f"Failed to open connection to device: {e}")
+            raise SSHSessionException(
+                "Failed to open connection to device: {}".format(e)
+            )
 
         self._current_channel = self._handler.invoke_shell()
         self._current_channel.settimeout(self._timeout)

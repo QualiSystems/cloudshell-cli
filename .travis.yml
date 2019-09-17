@@ -1,16 +1,27 @@
 language: python
-python: 3.7
 
 jobs:
   include:
     - if: branch = master
+      python: 2.7
+      env: TOXENV=py27-master
+      after_success: codecov
+    - if: branch = master
+      python: 3.7
       env: TOXENV=py37-master
       after_success: codecov
     - if: branch != master
+      python: 2.7
+      env: TOXENV=py27-dev
+      after_success: codecov
+    - if: branch != master
+      python: 3.7
       env: TOXENV=py37-dev
       after_success: codecov
     - env: TOXENV=build
+      python: 2.7
     - env: TOXENV=pre-commit
+      python: 3.7
 
 install:
   - pip install tox
