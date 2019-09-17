@@ -1,7 +1,11 @@
 from unittest import TestCase
-from unittest.mock import Mock, patch
 
 from cloudshell.cli.session.telnet_session import TelnetSession
+
+try:
+    from unittest.mock import Mock, patch
+except ImportError:
+    from mock import Mock, patch
 
 
 class TestTelnetSession(TestCase):

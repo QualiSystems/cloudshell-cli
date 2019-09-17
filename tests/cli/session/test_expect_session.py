@@ -1,6 +1,5 @@
 from collections import OrderedDict
 from unittest import TestCase
-from unittest.mock import MagicMock, Mock, call, patch
 
 from cloudshell.cli.session.expect_session import ActionLoopDetector, ExpectSession
 from cloudshell.cli.session.session_exceptions import (
@@ -9,6 +8,11 @@ from cloudshell.cli.session.session_exceptions import (
     SessionLoopLimitException,
     SessionReadTimeout,
 )
+
+try:
+    from unittest.mock import MagicMock, Mock, call, patch
+except ImportError:
+    from mock import MagicMock, Mock, call, patch
 
 
 class TestExpectSessionException(Exception):

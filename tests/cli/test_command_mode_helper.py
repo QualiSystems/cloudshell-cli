@@ -1,8 +1,12 @@
 from unittest import TestCase
-from unittest.mock import Mock, patch
 
 from cloudshell.cli.service.command_mode import CommandModeException
 from cloudshell.cli.service.command_mode_helper import CommandModeHelper
+
+try:
+    from unittest.mock import Mock, patch
+except ImportError:
+    from mock import Mock, patch
 
 
 class TestCommandModeHelper(TestCase):

@@ -1,10 +1,14 @@
 from unittest import TestCase
-from unittest.mock import Mock
 
 from cloudshell.cli.service.session_manager_impl import (
     SessionManagerException,
     SessionManagerImpl,
 )
+
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock
 
 
 class TestSessionManager(TestCase):

@@ -1,7 +1,9 @@
 from abc import ABCMeta, abstractmethod
 
+ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 
-class Node(object, metaclass=ABCMeta):
+
+class Node(ABC):
     """Node."""
 
     def __init__(self):

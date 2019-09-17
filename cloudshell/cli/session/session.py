@@ -1,8 +1,10 @@
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 
+ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 
-class Session(object, metaclass=ABCMeta):
+
+class Session(ABC):
     @abstractmethod
     def connect(self, prompt, logger):
         pass

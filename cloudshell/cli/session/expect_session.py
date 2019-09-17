@@ -14,8 +14,10 @@ from cloudshell.cli.session.session_exceptions import (
     SessionReadTimeout,
 )
 
+ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 
-class ExpectSession(Session, metaclass=ABCMeta):
+
+class ExpectSession(Session, ABC):
     """Help to handle additional actions during send command."""
 
     SESSION_TYPE = "EXPECT"

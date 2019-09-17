@@ -1,7 +1,9 @@
 from abc import ABCMeta, abstractmethod
 
+ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 
-class SessionManager(object, metaclass=ABCMeta):
+
+class SessionManager(ABC):
     @abstractmethod
     def new_session(self, new_sessions, prompt, logger):
         """Create new session with specific session type defined in sessions_params."""

@@ -1,7 +1,9 @@
 from abc import ABCMeta
 
+ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 
-class ConnectionParams(object, metaclass=ABCMeta):
+
+class ConnectionParams(ABC):
     """Session parameters."""
 
     def __init__(self, host, port=None, on_session_start=None, pkey=None):
