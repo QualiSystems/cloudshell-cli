@@ -1,12 +1,19 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import functools
-from abc import ABC, abstractmethod
+import sys
+from abc import ABCMeta, abstractmethod
 
 from cloudshell.cli.service.cli import CLI
 from cloudshell.cli.session.ssh_session import SSHSession
 from cloudshell.cli.session.telnet_session import TelnetSession
 
+ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
+
+if sys.version_info >= (3, 0):
+    from functools import lru_cache
+else:
+    from functools32 import lru_cache
 
 class CLIServiceConfigurator(object):
     REGISTERED_SESSIONS = (SSHSession, TelnetSession)
@@ -29,7 +36,7 @@ class CLIServiceConfigurator(object):
         return self._resource_config.user
 
     @property
-    @functools.lru_cache()
+    @lru_cache()
     def _password(self):
         return self._resource_config.password
 
@@ -49,7 +56,7 @@ class CLIServiceConfigurator(object):
         return self._resource_config.cli_connection_type
 
     @property
-    @functools.lru_cache()
+    @lru_cache()
     def _session_dict(self):
         return {sess.SESSION_TYPE.lower(): [sess] for sess in self._registered_sessions}
 
@@ -61,7 +68,7 @@ class CLIServiceConfigurator(object):
         pass
 
     @property
-    @functools.lru_cache()
+    @lru_cache()
     def _session_kwargs(self):
         return {
             "host": self._resource_address,

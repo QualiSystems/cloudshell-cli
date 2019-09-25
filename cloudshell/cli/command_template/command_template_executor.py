@@ -5,12 +5,12 @@ class CommandTemplateExecutor(object):
     """Execute command template using cli service."""
 
     def __init__(
-        self,
-        cli_service,
-        command_template,
-        action_map=None,
-        error_map=None,
-        **optional_kwargs
+            self,
+            cli_service,
+            command_template,
+            action_map=None,
+            error_map=None,
+            **optional_kwargs
     ):
         """Initialize Command template executor.
 
@@ -31,11 +31,15 @@ class CommandTemplateExecutor(object):
     @property
     def action_map(self):
         """Return updated action."""
-        return dict(**self._action_map, **self._command_template.action_map)
+        action_map = self._action_map.copy()
+        action_map.update(self._command_template.action_map)
+        return action_map
 
     @property
     def error_map(self):
-        return dict(**self._error_map, **self._command_template.error_map)
+        error_map = self._error_map.copy()
+        error_map.update(self._command_template.error_map)
+        return error_map
 
     @property
     def optional_kwargs(self):
