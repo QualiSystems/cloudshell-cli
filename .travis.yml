@@ -1,19 +1,30 @@
 language: python
-python:
-    - "2.7"
+
+jobs:
+  include:
+    - if: branch = master
+      python: 2.7
+      env: TOXENV=py27-master
+      after_success: codecov
+    - if: branch = master
+      python: 3.7
+      env: TOXENV=py37-master
+      after_success: codecov
+    - if: branch != master
+      python: 2.7
+      env: TOXENV=py27-dev
+      after_success: codecov
+    - if: branch != master
+      python: 3.7
+      env: TOXENV=py37-dev
+      after_success: codecov
+    - env: TOXENV=build
+      python: 2.7
+    - env: TOXENV=pre-commit
+      python: 3.7
 
 install:
-    - 'if [ ${TRAVIS_BRANCH} \!= "master" ] && [ -f dev_requirements.txt ]; then
-        pip install --extra-index-url https://testpypi.python.org/pypi -r dev_requirements.txt;
-        python setup.py develop --no-deps;
-      else
-        python setup.py install;
-      fi'
-    - pip install -r test_requirements.txt
-    - pip install coveralls
+  - pip install tox
+  - pip install codecov
 
-script:
-    - nosetests --with-coverage --cover-package=cloudshell.cli tests
-
-after_success:
-    - coveralls
+script: tox

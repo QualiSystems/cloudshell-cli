@@ -1,9 +1,8 @@
 # cloudshell-cli
-[![Build status](https://travis-ci.org/QualiSystems/cloudshell-cli.svg?branch=master)](https://travis-ci.org/QualiSystems/cloudshell-cli)
-[![Coverage Status](https://coveralls.io/repos/github/QualiSystems/cloudshell-cli/badge.svg?branch=master)](https://coveralls.io/github/QualiSystems/cloudshell-cli?branch=master)
+[![Build status](https://travis-ci.org/QualiSystems/cloudshell-cli.svg?branch=dev)](https://travis-ci.org/QualiSystems/cloudshell-cli)
+[![codecov](https://codecov.io/gh/QualiSystems/cloudshell-cli/branch/dev/graph/badge.svg)](https://codecov.io/gh/QualiSystems/cloudshell-cli)
 [![PyPI version](https://badge.fury.io/py/cloudshell-cli.svg)](https://badge.fury.io/py/cloudshell-cli)
-[![Dependency Status](https://dependencyci.com/github/QualiSystems/cloudshell-cli/badge)](https://dependencyci.com/github/QualiSystems/cloudshell-cli)
-[![Stories in Ready](https://badge.waffle.io/QualiSystems/cloudshell-cli.svg?label=ready&title=Ready)](http://waffle.io/QualiSystems/cloudshell-cli)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 
 <p align="center">
 <img src="https://github.com/QualiSystems/devguide_source/raw/master/logo.png"></img>
@@ -140,3 +139,5 @@ class DefaultActions(object):
 
 With the DefaultActions class we define all the commands we need to initiate the console on the session. For example on a switch a default action can be "set cli screen-length 0" to print all in once to the screen.
 actions function is the functon that invokes TODO
+
+We use tox and pre-commit for testing. [Services description](https://github.com/QualiSystems/cloudshell-package-repo-template#description-of-services)

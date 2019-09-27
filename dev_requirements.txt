@@ -1,0 +1,5 @@
+pre-commit
+tox
+tox-factor
+-r test_requirements.txt
+--extra-index-url https://test.pypi.org/simple -r requirements.txt
