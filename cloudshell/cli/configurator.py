@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import functools
 import sys
 from abc import ABCMeta, abstractmethod
 
@@ -14,6 +13,7 @@ if sys.version_info >= (3, 0):
     from functools import lru_cache
 else:
     from functools32 import lru_cache
+
 
 class CLIServiceConfigurator(object):
     REGISTERED_SESSIONS = (SSHSession, TelnetSession)
