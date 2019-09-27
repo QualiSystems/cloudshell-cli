@@ -5,12 +5,12 @@ class CommandTemplateExecutor(object):
     """Execute command template using cli service."""
 
     def __init__(
-            self,
-            cli_service,
-            command_template,
-            action_map=None,
-            error_map=None,
-            **optional_kwargs
+        self,
+        cli_service,
+        command_template,
+        action_map=None,
+        error_map=None,
+        **optional_kwargs
     ):
         """Initialize Command template executor.
 
