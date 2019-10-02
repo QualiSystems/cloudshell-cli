@@ -1,6 +1,6 @@
 # cloudshell-cli
-[![Build status](https://travis-ci.org/QualiSystems/cloudshell-cli.svg?branch=dev)](https://travis-ci.org/QualiSystems/cloudshell-cli)
-[![codecov](https://codecov.io/gh/QualiSystems/cloudshell-cli/branch/dev/graph/badge.svg)](https://codecov.io/gh/QualiSystems/cloudshell-cli)
+[![Build status](https://travis-ci.org/QualiSystems/cloudshell-cli.svg?branch=master)](https://travis-ci.org/QualiSystems/cloudshell-cli)
+[![codecov](https://codecov.io/gh/QualiSystems/cloudshell-cli/branch/master/graph/badge.svg)](https://codecov.io/gh/QualiSystems/cloudshell-cli)
 [![PyPI version](https://badge.fury.io/py/cloudshell-cli.svg)](https://badge.fury.io/py/cloudshell-cli)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 
