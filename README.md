@@ -122,6 +122,27 @@ with cli.get_session(session_types, mode) as cli_service:
 
 ```
 
+**Example - Providing different communication protocols**
+
+In the previous example, we assumed the device works over SSH. However, you can specify multiple communication protocols (for example, SSH and Telnet). In such a case, CloudShell will attempt connection with each provided protocol until it finds the one that works.
+
+```python
+from cloudshell.cli.cli import CLI
+from cloudshell.cli.session.ssh_session import SSHSession
+from cloudshell.cli.session.telnet_session import TelnetSession
+from cloudshell.cli.command_mode import CommandMode
+
+
+cli = CLI()
+mode = CommandMode(r'my_prompt_regex') # for example r'%\s*$'
+
+session_types = [SSHSession(host='ip_address',username='user_name',password='password')]
+
+with cli.get_session(session_types, mode) as cli_service:
+    out = cli_service.send_command('show interfaces')
+    print(out)
+
+```
 **Example - Using multiple command modes**
 
 To illustrate this point, the following example will execute a `show interfaces` in config_mode and then `show version` in enable_mode.
