@@ -43,7 +43,7 @@ Cloudshell CLI is highly modular and implements many programming interfaces.
 
 ### Session
 
-**Session** is a service that initializes the session by declaring the session parameters, and handles communication with the device. Depending on the communication protocol, you will need to either use **SSHSession** or **TelnetSession**. 
+**Session** is a service that initializes the session by declaring the session parameters and handles communication with the device. Depending on the communication protocol, you will need to either use **SSHSession** or **TelnetSession**. 
 
 _**Note:** Session initialization only creates the object, not the connection to the device. The session will be stored in the session pool and used by the cli service to communicate with the device._ 
 
