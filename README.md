@@ -99,7 +99,7 @@ config_mode = CommandMode('*#', enter_command="configure terminal", exit_command
 ```
 
 ### CLI service
-**cli service** is the service that manages the sessions and command modes, which allows us to send commands to the device and switch between the modes automatically. For example, if we have multiple command modes, cli service is able to move back and forth between these modes following the hierarchy defined by the `parent_mode` parameter of each commmand mode.  
+**cli service** is the service that manages the sessions and command modes and allows us to send commands to the device and switch between the modes automatically. For example, if we have multiple command modes, cli service is able to move back and forth between these modes following the hierarchy defined by the `parent_mode` parameter of each commmand mode.  
 
 **Example - Executing 'show interfaces'**
 
