@@ -103,7 +103,7 @@ config_mode = CommandMode('*#', enter_command="configure terminal", exit_command
 ```
 
 ### CLI service
-**cli service** is the service that manages the sessions and command modes and allows us to send commands to the device and switch between the modes automatically. For example, if we have multiple command modes, cli service is able to move back and forth between these modes following the hierarchy defined by the `parent_mode` parameter of each commmand mode.  
+**cli service** is the service that manages the sessions and command modes and allows us to send commands to the device and switch between the modes automatically. For example, if we have multiple command modes, cli service is able to move back and forth between these modes following the hierarchy defined by the `parent_mode` parameter of each commmand mode.
 
 **Example - Executing 'show interfaces'**
 
@@ -229,7 +229,39 @@ with cli.get_session(sessions, enable_mode) as cli_service:
     
 ```
 
+### Action and error maps
+
+In this chapter, we will learn how to set predefined actions to specific cli prompts and responses. For example, what to do in the event of a yes/no prompt or when receiving an "inavlid command" error. 
+
+* **Error map**: Dictionary where the key is the regex pattern of the expected prompt or cli response and the value is the exception message we want to raise. For example, `{r"Invalid command": "Failed to execute command"}`
+* **Action map**: Dictionary where the key is the regex pattern of the expected prompt or cli response and the value is the function to be performed. For Example, `{r"y/n": lambda session, logger: session.send_line("y", logger)}`
+
+**Example: **
+
+```python
+from cloudshell.cli.cli import CLI
+from cloudshell.cli.session.ssh_session import SSHSession
+from cloudshell.cli.session.telnet_session import TelnetSession
+from cloudshell.cli.command_mode import CommandMode
 
 
+hostname = "192.168.1.1"
+username = "admin"
+password = "admin"
 
+enable_mode = CommandMode('*>')
+
+sessions = [SSHSession(hostname, username, password), TelnetSession(hostname, username, password)]
+
+cli = CLI()
+
+my_action_map = {r"--More--": lambda session, logger: session.send_line("", logger),  
+                 # "session.send_line(command, logger)" sends command and "Enter" key line break
+                 r"\(yes/no/abort\)": lambda session, logger: session.send_line("abort", logger),
+                }
+my_error_map = {r"^[Ii]nvalid [Cc]ommand": "My error message",
+               }
+with cli.get_session(sessions, enable_mode) as cli_service:
+    output = cli_service.send_command('show version', action_map=my_action_map, error_map=my_error_map)
+```
 
