@@ -236,7 +236,7 @@ In this chapter, we will learn how to set predefined actions to specific cli pro
 * **Error map**: Dictionary where the key is the regex pattern of the expected prompt or cli response and the value is the exception message we want to raise. For example, `{r"Invalid command": "Failed to execute command"}`
 * **Action map**: Dictionary where the key is the regex pattern of the expected prompt or cli response and the value is the function to be performed. For Example, `{r"y/n": lambda session, logger: session.send_line("y", logger)}`
 
-**Example: **
+**Example:**
 
 ```python
 from cloudshell.cli.cli import CLI
