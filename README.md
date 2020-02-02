@@ -17,7 +17,9 @@ The cloudshell-cli open source Python package provides an easy-to-use interface 
 
 CloudShell CLI offers the following key features (For details, see (Usage)[#usage]): 
 * Multi-protocol communication, including **SSH** and **Telnet**.
-* **Session pool**: CloudShell CLI uses a session pool to store and manage sessions safely between multiple threads. The session pool size and timeout period are customizable parameters. 
+* **Session pool**: CloudShell CLI uses a session pool to store and manage sessions safely between multiple threads using the [Python queue module](https://docs.python.org/3.7/library/queue.html). The maximum session pool size and timeout period are customizable parameters:
+  * Maximum session pool size (`max_pool_size`) determines the maximum number of concurrent sessions in the session pool (default is 1).
+  * Timeout period (`pool_timeout`) determines the maximum time a thread can wait for a session (default is 100 seconds).
 * **cli service** allows CloudShell CLI to switch between the device's CLI modes.
 
 ## Installation
@@ -39,13 +41,13 @@ We welcome community ideas and contributions, so if you have any feedback or wou
 
 ## Usage
 
-Cloudshell CLI is highly modular and implements many programming interfaces. 
+CloudShell CLI is highly modular and implements many programming interfaces. 
 
 ### Session
 
-**Session** is a service that initializes the session by declaring the session parameters and handles communication with the device. Depending on the communication protocol, you will need to either use **SSHSession** or **TelnetSession**. 
+**Session** is a service that initializes the session by declaring the session parameters and handles communication with the device. Depending on the communication protocol, you will need to either use **SSHSession** or **TelnetSession**.
 
-_**Note:** Session initialization only creates the object, not the connection to the device. The session will be stored in the session pool and used by the cli service to communicate with the device._ 
+_**Note:** Creating a session object does not create a connection to the device. This is done by `SessionPoolManager` as part of the CLI's `get_session` command. Once the connection is established, the new session is stored and managed by the `SessionPoolManager`._ 
 
 To initialize the session, we need to pass the  parameters:
 - **IP address**
