@@ -120,7 +120,8 @@ mode = CommandMode(r'my_prompt_regex') # for example r'%\s*$'
 
 session_types = [SSHSession(host='ip_address',username='user_name',password='password')]
 
-# extract a session from the pool, send the command and return the session to the pool upon completing the "with" block:
+# extract a session from the pool, send the command and return the session to the pool upon completing the "with"
+# block:
 with cli.get_session(session_types, mode) as cli_service:
     out = cli_service.send_command('show interfaces')
     print(out)
@@ -172,19 +173,21 @@ sessions = [SSHSession(hostname, username, password), TelnetSession(hostname, us
 cli = CLI()
 
 #----------------------------------------------------------
-# extract a session from the pool, switch to config mode, send the command, and return the session to the pool when "with" block 
-# finished:
+# extract a session from the pool, switch to config mode, send the command, and return the session to the pool
+# when "with" block finished:
 with cli.get_session(sessions, config_mode) as cli_service:
     output = cli_service.send_command('show interfaces')
 
-# extract the session, switch to enable mode, send the command and return the session to the pool after the "with" block:
+# extract the session, switch to enable mode, send the command and return the session to the pool after the
+# "with" block:
 with cli.get_session(sessions, enable_mode) as cli_service:
     output = cli_service.send_command('show version')
 #----------------------------------------------------------
 # OR switch between the modes by enter_mode command:
 #----------------------------------------------------------
-# extract the session, switch to enable mode, send the command, enter config mode (2nd "with" block), send commands, upon completing the 
-# 2nd "with" block, return to the previous mode (enable mode) and return the session to the pool:
+# extract the session, switch to enable mode, send the command, enter config mode (2nd "with" block),
+# send commands, upon completing the 2nd "with" block, return to the previous mode (enable mode) and 
+# return the session to the pool:
 with cli.get_session(sessions, enable_mode) as cli_service:
     output = cli_service.send_command('show version')
     with cli_service.enter_mode(config_mode) as config_cli_service:
