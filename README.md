@@ -21,6 +21,8 @@ CloudShell CLI offers the following key features (For details, see (Usage)[#usag
   * Maximum session pool size (`max_pool_size`) determines the maximum number of concurrent sessions in the session pool (default is 1).
   * Timeout period (`pool_timeout`) determines the maximum time a thread can wait for a session (default is 100 seconds).
 * **cli service** allows CloudShell CLI to switch between the device's CLI modes.
+<br>*CloudShell CLI uses the `with` statement to reserve the session and move between the modes, as illustrated in the examples below.*
+
 
 ## Installation
 ```bash
@@ -118,6 +120,7 @@ mode = CommandMode(r'my_prompt_regex') # for example r'%\s*$'
 
 session_types = [SSHSession(host='ip_address',username='user_name',password='password')]
 
+# extract a session from the pool, send the command and return the session to the pool upon completing the "with" block:
 with cli.get_session(session_types, mode) as cli_service:
     out = cli_service.send_command('show interfaces')
     print(out)
@@ -169,16 +172,19 @@ sessions = [SSHSession(hostname, username, password), TelnetSession(hostname, us
 cli = CLI()
 
 #----------------------------------------------------------
-# switch to config mode and send the command:
+# extract a session from the pool, switch to config mode, send the command, and return the session to the pool when "with" block 
+# finished:
 with cli.get_session(sessions, config_mode) as cli_service:
     output = cli_service.send_command('show interfaces')
 
-# switch to enable mode and send the command:
+# extract the session, switch to enable mode, send the command and return the session to the pool after the "with" block:
 with cli.get_session(sessions, enable_mode) as cli_service:
     output = cli_service.send_command('show version')
 #----------------------------------------------------------
 # OR switch between the modes by enter_mode command:
 #----------------------------------------------------------
+# extract the session, switch to enable mode, send the command, enter config mode (2nd "with" block), send commands, upon completing the 
+# 2nd "with" block, return to the previous mode (enable mode) and return the session to the pool:
 with cli.get_session(sessions, enable_mode) as cli_service:
     output = cli_service.send_command('show version')
     with cli_service.enter_mode(config_mode) as config_cli_service:
@@ -220,7 +226,7 @@ with cli.get_session(sessions, enable_mode) as cli_service:
     
 ```
 
-As is the case with Python, switching back to the previous command mode closes the current `with` statement (config_mode in our case), so returning to config_mode would require specifying another `with` statement with the proper indentation.
+
 
 
 
