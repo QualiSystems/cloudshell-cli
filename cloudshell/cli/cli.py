@@ -6,7 +6,7 @@ from cloudshell.cli.service.cli import CLI
 warnings.warn(
     "CLI module moved from cloudshell.cli.cli to cloudshell.cli.service.cli. "
     "Use import cloudshell.cli.service.cli.",
-    category=DeprecationWarning,
+    DeprecationWarning,
     stacklevel=2,
 )
 warnings.simplefilter("default", DeprecationWarning)
