@@ -16,9 +16,9 @@ class SendCommandWithRetries(object):
         cli_configurator,
         command_mode,
         logger,
-        recreate_retries=None,
-        reconnect_retries=None,
-        reconnect_timeout=None,
+        recreate_retries=MAX_RECREATE_RETRIES,
+        reconnect_retries=MAX_RECONNECT_RETRIES,
+        reconnect_timeout=RECONNECT_TIMEOUT,
     ):
         """
         Init method.
@@ -33,12 +33,17 @@ class SendCommandWithRetries(object):
         self.cli_configurator = cli_configurator
         self.command_mode = command_mode
         self._logger = logger
-        self._recreate_retries = recreate_retries or self.MAX_RECREATE_RETRIES
-        self._reconnect_retries = reconnect_retries or self.MAX_RECONNECT_RETRIES
-        self._reconnect_timeout = reconnect_timeout or self.RECONNECT_TIMEOUT
+        self._recreate_retries = recreate_retries
+        self._reconnect_retries = reconnect_retries
+        self._reconnect_timeout = reconnect_timeout
 
     def _send_command_with_reconnect(self, cli_service, *args, **kwargs):
-        """Send command with reconnect retries."""
+        """Send command with reconnect retries.
+
+        :param cloudshell.cli.service.cli_service.CliService cli_service:
+        :param args:
+        :param kwargs:
+        """
         retry = 0
         while True:
             try:
@@ -59,7 +64,9 @@ class SendCommandWithRetries(object):
                 with self.cli_configurator.get_cli_service(
                     self.command_mode
                 ) as cli_service:
-                    self._send_command_with_reconnect(cli_service, *args, **kwargs)
+                    return self._send_command_with_reconnect(
+                        cli_service, *args, **kwargs
+                    )
             except Exception:
                 self._logger.exception("Recreate retry {}".format(retry))
                 retry += 1
