@@ -84,7 +84,7 @@ _**Note:** You're welcome to check the CommandMode docstring for additional para
 
 **Example - Declaring a single command mode:**
 ```python
-from cloudshell.cli.command_mode import CommandMode
+from cloudshell.cli.service.command_mode import CommandMode
 
 
 mode = CommandMode(prompt='*#')
@@ -94,7 +94,7 @@ mode = CommandMode(prompt='*#')
 **Example - Declaring two command modes and the hierarchy using `parent_mode`):**
 
 ```python
-from cloudshell.cli.command_mode import CommandMode
+from cloudshell.cli.service.command_mode import CommandMode
 
 
 enable_mode = CommandMode('*>')
@@ -110,9 +110,9 @@ config_mode = CommandMode('*#', enter_command="configure terminal", exit_command
 Now that we've learned how to define the session and declare the command modes, we can start using them by creating a CLI object and passing the defined session and command modes.
 
 ```python
-from cloudshell.cli.cli import CLI
+from cloudshell.cli.service.cli import CLI
 from cloudshell.cli.session.ssh_session import SSHSession
-from cloudshell.cli.command_mode import CommandMode
+from cloudshell.cli.service.command_mode import CommandMode
 
 
 cli = CLI()
@@ -133,10 +133,10 @@ with cli.get_session(session_types, mode) as cli_service:
 In the previous example, we assumed the device works over SSH. However, you can specify multiple communication protocols (for example, SSH and Telnet). In such a case, CloudShell will attempt connection with each provided protocol until it finds the one that works.
 
 ```python
-from cloudshell.cli.cli import CLI
+from cloudshell.cli.service.cli import CLI
 from cloudshell.cli.session.ssh_session import SSHSession
 from cloudshell.cli.session.telnet_session import TelnetSession
-from cloudshell.cli.command_mode import CommandMode
+from cloudshell.cli.service.command_mode import CommandMode
 
 
 cli = CLI()
@@ -155,10 +155,10 @@ To illustrate this point, the following example will execute a `show interfaces`
 First, CloudShell CLI will get a session to the device from the session pool (which will create a new one if empty). The cli service will use the session to access the device and detect the current mode (let's assume it's **enable_mode**). Then, it will automatically switch to config_mode by executing the `enter_command` parameter, as specified in the **config_mode**'s definition.
 
 ```python
-from cloudshell.cli.cli import CLI
+from cloudshell.cli.service.cli import CLI
 from cloudshell.cli.session.ssh_session import SSHSession
 from cloudshell.cli.session.telnet_session import TelnetSession
-from cloudshell.cli.command_mode import CommandMode
+from cloudshell.cli.service.command_mode import CommandMode
 
 
 hostname = "192.168.1.1"
@@ -202,10 +202,10 @@ with cli.get_session(sessions, enable_mode) as cli_service:
 In the previous example, we learned how to switch from enable_mode to config_mode and send commands in each. Now let's say you're in config_mode and want to return to enable_mode. To do so, simply return to the enable_mode block's indentation and specify your command. 
 
 ```python
-from cloudshell.cli.cli import CLI
+from cloudshell.cli.service.cli import CLI
 from cloudshell.cli.session.ssh_session import SSHSession
 from cloudshell.cli.session.telnet_session import TelnetSession
-from cloudshell.cli.command_mode import CommandMode
+from cloudshell.cli.service.command_mode import CommandMode
 
 
 hostname = "192.168.1.1"
@@ -239,10 +239,10 @@ In this chapter, we will learn how to set predefined actions to specific cli pro
 **Example:**
 
 ```python
-from cloudshell.cli.cli import CLI
+from cloudshell.cli.service.cli import CLI
 from cloudshell.cli.session.ssh_session import SSHSession
 from cloudshell.cli.session.telnet_session import TelnetSession
-from cloudshell.cli.command_mode import CommandMode
+from cloudshell.cli.service.command_mode import CommandMode
 
 
 hostname = "192.168.1.1"
