@@ -82,7 +82,7 @@ class CLIServiceConfigurator(object):
         return [
             sess(**self._session_kwargs)
             for sess in self._session_dict.get(
-                self._cli_type.lower(), self._session_dict.values()
+                self._cli_type.lower(), sum(self._session_dict.values(), [])
             )
         ]
 
