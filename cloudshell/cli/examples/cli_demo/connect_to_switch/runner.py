@@ -1,9 +1,10 @@
+from connect_to_switch.SwitchClihandler import SwitchCliHandler
+
 from cloudshell.core.logger.qs_logger import get_qs_logger
 from cloudshell.shell.standards.core import (
     ResourceCommandContext,
     ResourceContextDetails,
 )
-from connect_to_switch.SwitchClihandler import SwitchCliHandler
 
 from cloudshell.cli.cli import CLI
 from cloudshell.cli.session_pool_manager import SessionPoolManager
