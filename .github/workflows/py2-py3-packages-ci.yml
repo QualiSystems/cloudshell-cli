@@ -32,7 +32,14 @@ jobs:
         run: |
           python_version="${{ matrix.python-version }}"
           py_version="${python_version/./}"
-          branch=(`[[ 'refs/head/master' == ${{ github.ref }} ]] && echo 'master' || echo 'dev'`)
+          target_branch=${{ github.base_ref || github.ref }}
+          target_branch=(`[[ ${target_branch::10} == 'refs/heads' ]] && echo ${target_branch:11} || echo $target_branch`)
+          echo "target_branch =" $target_branch
+          is_master=(`[[ $target_branch == 'master' ]] && echo 'true' || echo 'false'`)
+          is_tag=${{ startsWith(github.ref, 'refs/tags') }}
+          echo "is_master =" $is_master
+          echo "is_tag =" $is_tag
+          branch=(`[[ $is_master == 'true' || $is_tag == 'true' ]] && echo 'master' || echo 'dev'`)
           TOXENV="py$py_version-$branch"
           echo $TOXENV
           echo "TOXENV=$TOXENV" >> $GITHUB_ENV
