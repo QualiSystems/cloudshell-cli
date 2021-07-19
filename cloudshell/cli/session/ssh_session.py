@@ -24,6 +24,7 @@ class SSHSession(ExpectSession, ConnectionParams):
         port=None,
         on_session_start=None,
         pkey=None,
+        pkey_passphrase=None,
         *args,
         **kwargs
     ):
@@ -38,6 +39,7 @@ class SSHSession(ExpectSession, ConnectionParams):
         self.username = username
         self.password = password
         self.pkey = pkey
+        self.pkey_passphrase = pkey_passphrase
 
         self._handler = None
         self._current_channel = None
@@ -54,6 +56,7 @@ class SSHSession(ExpectSession, ConnectionParams):
                 self.username == other.username,
                 self.password == other.password,
                 self.pkey == other.pkey,
+                self.pkey_passphrase == other.pkey_passphrase,
             ]
         )
 
@@ -82,7 +85,7 @@ class SSHSession(ExpectSession, ConnectionParams):
                 banner_timeout=30,
                 allow_agent=False,
                 look_for_keys=False,
-                pkey=self._get_pkey_object(self.pkey, None, logger),
+                pkey=self._get_pkey_object(self.pkey, self.pkey_passphrase, logger),
             )
         except Exception as e:
             logger.exception("Failed to initialize session:")
