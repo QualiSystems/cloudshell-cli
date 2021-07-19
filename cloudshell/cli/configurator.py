@@ -2,7 +2,13 @@
 # -*- coding: utf-8 -*-
 import sys
 from abc import ABCMeta, abstractmethod
+from collections import defaultdict
 
+from cloudshell.cli.factory.session_factory import (
+    CloudInfoAccessKeySessionFactory,
+    GenericSessionFactory,
+    SessionFactory,
+)
 from cloudshell.cli.service.cli import CLI
 from cloudshell.cli.session.ssh_session import SSHSession
 from cloudshell.cli.session.telnet_session import TelnetSession
@@ -16,39 +22,30 @@ else:
 
 
 class CLIServiceConfigurator(object):
-    REGISTERED_SESSIONS = (SSHSession, TelnetSession)
+    REGISTERED_SESSIONS = (CloudInfoAccessKeySessionFactory(SSHSession), TelnetSession)
+    """Using factories instead of """
 
-    def __init__(self, resource_config, logger, cli=None, registered_sessions=None):
+    def __init__(
+        self,
+        resource_config,
+        logger,
+        cli=None,
+        registered_sessions=None,
+        reservation_context=None,
+    ):
         """Initialize CLI service configurator.
 
         :param cloudshell.shell.standards.resource_config_generic_models.GenericCLIConfig resource_config:  # noqa: E501
         :param logging.Logger logger:
         :param cloudshell.cli.service.cli.CLI cli:
         :param registered_sessions: Session types and order
+        :param cloudshell.shell.core.driver_context.ReservationContextDetails reservation_context:
         """
         self._cli = cli or CLI()
         self._resource_config = resource_config
         self._logger = logger
         self._registered_sessions = registered_sessions or self.REGISTERED_SESSIONS
-
-    @property
-    def _username(self):
-        return self._resource_config.user
-
-    @property
-    @lru_cache()
-    def _password(self):
-        return self._resource_config.password
-
-    @property
-    def _resource_address(self):
-        """Resource IP."""
-        return self._resource_config.address
-
-    @property
-    def _port(self):
-        """Connection port property, to open socket on."""
-        return self._resource_config.cli_tcp_port
+        self._reservation_context = reservation_context
 
     @property
     def _cli_type(self):
@@ -58,29 +55,21 @@ class CLIServiceConfigurator(object):
     @property
     @lru_cache()
     def _session_dict(self):
-        return {sess.SESSION_TYPE.lower(): [sess] for sess in self._registered_sessions}
+        session_dict = defaultdict(list)
+        for sess in self._registered_sessions:
+            session_dict[sess.SESSION_TYPE.lower()].append(sess)
+        return session_dict
 
-    def _on_session_start(self, session, logger):
-        """Perform some default commands when session just opened.
-
-        Like 'no logging console'
-        """
-        pass
-
-    @property
-    @lru_cache()
-    def _session_kwargs(self):
-        return {
-            "host": self._resource_address,
-            "username": self._username,
-            "password": self._password,
-            "port": self._port,
-            "on_session_start": self._on_session_start,
-        }
+    def initialize_session(self, session):
+        if not isinstance(session, SessionFactory):
+            session = GenericSessionFactory(session)
+        return session.init_session(
+            self._resource_config, self._logger, self._reservation_context
+        )
 
     def _defined_sessions(self):
         return [
-            sess(**self._session_kwargs)
+            self.initialize_session(sess)
             for sess in self._session_dict.get(
                 self._cli_type.lower(), self._registered_sessions
             )
