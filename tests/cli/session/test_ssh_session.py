@@ -443,9 +443,6 @@ class TestSshSession(TestCase):
             )
         )
 
-        pkey = paramiko.RSAKey.from_private_key(
-            StringIO(KEY_WITH_PASSPHRASE), password=KEY_PASSPHRASE
-        )
         self.assertFalse(
             self._instance.__eq__(
                 SSHSession(
@@ -454,23 +451,22 @@ class TestSshSession(TestCase):
                     "",
                     port=self._port,
                     on_session_start=self._on_session_start,
-                    pkey=pkey,
+                    pkey=KEY_WITH_PASSPHRASE,
+                    pkey_passphrase=KEY_PASSPHRASE,
                 )
             )
         )
 
     @patch("cloudshell.cli.session.ssh_session.ExpectSession")
     def test_eq_rsa(self, expect_session):
-        pkey = paramiko.RSAKey.from_private_key(
-            StringIO(KEY_WITH_PASSPHRASE), password=KEY_PASSPHRASE
-        )
         self._instance = SSHSession(
             self._hostname,
             self._username,
             self._password,
             port=self._port,
             on_session_start=self._on_session_start,
-            pkey=pkey,
+            pkey=KEY_WITH_PASSPHRASE,
+            pkey_passphrase=KEY_PASSPHRASE,
         )
 
         self.assertTrue(
@@ -481,7 +477,8 @@ class TestSshSession(TestCase):
                     self._password,
                     port=self._port,
                     on_session_start=self._on_session_start,
-                    pkey=pkey,
+                    pkey=KEY_WITH_PASSPHRASE,
+                    pkey_passphrase=KEY_PASSPHRASE,
                 )
             )
         )
@@ -640,16 +637,13 @@ class TestSshSession(TestCase):
             "",
             port=server.port,
             on_session_start=self._on_session_start,
-            pkey=pkey,
+            pkey=KEY_WITH_PASSPHRASE,
+            pkey_passphrase=KEY_PASSPHRASE,
         )
         self._instance.connect(">", logger=Mock())
         self._instance.hardware_expect("dummy command", ">", Mock())
 
     def test_rsa_failure(self):
-        pkey = paramiko.RSAKey.from_private_key(
-            StringIO(KEY_WITH_PASSPHRASE), password=KEY_PASSPHRASE
-        )
-
         server = SSHServer(user2key={})
 
         with self.assertRaises(SSHSessionException):
@@ -659,7 +653,8 @@ class TestSshSession(TestCase):
                 "",
                 port=server.port,
                 on_session_start=self._on_session_start,
-                pkey=pkey,
+                pkey=KEY_WITH_PASSPHRASE,
+                pkey_passphrase=KEY_PASSPHRASE,
             )
             self._instance.connect(">", logger=Mock())
             self._instance.hardware_expect("dummy command", ">", Mock())
