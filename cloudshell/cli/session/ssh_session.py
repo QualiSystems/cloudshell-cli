@@ -1,4 +1,5 @@
 import socket
+from io import StringIO
 
 import paramiko
 from scp import SCPClient
@@ -86,7 +87,7 @@ class SSHSession(ExpectSession, ConnectionParams):
                 banner_timeout=30,
                 allow_agent=False,
                 look_for_keys=False,
-                pkey=self.pkey,
+                pkey=self._get_pkey_object(self.pkey, None, logger),
             )
         except Exception as e:
             logger.exception("Failed to initialize session:")
@@ -182,3 +183,15 @@ class SSHSession(ExpectSession, ConnectionParams):
         sftp.putfo(file_stream, dest_pathname)
         sftp.chmod(dest_pathname, int(dest_permissions, base=8))
         sftp.close()
+
+    @staticmethod
+    def _get_pkey_object(key_material, passphrase, logger):
+        """Try to detect private key type and return paramiko.PKey object."""
+        for cls in [paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey]:
+            try:
+                key = cls.from_private_key(StringIO(key_material), password=passphrase)
+            except paramiko.ssh_exception.SSHException as e:
+                # Invalid key, try other key type
+                logger.warning(e)
+            else:
+                return key
