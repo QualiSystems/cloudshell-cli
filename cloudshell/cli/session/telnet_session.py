@@ -4,24 +4,39 @@ import telnetlib
 from cloudshell.cli.service.action_map import Action
 from cloudshell.cli.service.action_map import ActionMap
 from cloudshell.cli.session.connection_params import ConnectionParams
-from cloudshell.cli.session.session import AbstractSession
-from cloudshell.cli.session.session_exceptions import SessionException, SessionReadTimeout, SessionReadEmptyData
+from cloudshell.cli.session.expect_session import ExpectSession
+from cloudshell.cli.session.session_exceptions import (
+    SessionException,
+    SessionReadEmptyData,
+    SessionReadTimeout,
+)
 
 
 class TelnetSessionException(SessionException):
     pass
 
 
-class TelnetSession(AbstractSession, ConnectionParams):
-    SESSION_TYPE = 'TELNET'
+class TelnetSession(ExpectSession, ConnectionParams):
+    SESSION_TYPE = "TELNET"
 
-    AUTHENTICATION_ERROR_PATTERN = '%.*($|\n)'
+    AUTHENTICATION_ERROR_PATTERN = "%.*($|\n)"
 
-    def __init__(self, host, username, password, port=None, on_session_start=None, *args, **kwargs):
-        ConnectionParams.__init__(self, host, port=port, on_session_start=on_session_start)
-        AbstractSession.__init__(self, *args, **kwargs)
+    def __init__(
+        self,
+        host,
+        username,
+        password,
+        port=None,
+        on_session_start=None,
+        *args,
+        **kwargs
+    ):
+        ConnectionParams.__init__(
+            self, host, port=port, on_session_start=on_session_start
+        )
+        ExpectSession.__init__(self, *args, **kwargs)
 
-        if hasattr(self, 'port') and self.port is None:
+        if hasattr(self, "port") and self.port is None:
             self.port = 23
 
         self.username = username
@@ -30,24 +45,20 @@ class TelnetSession(AbstractSession, ConnectionParams):
         self._handler = None
 
     def __eq__(self, other):
-        """
-        :param other:
+        """Is equal.
+
         :type other: TelnetSession
-        :return:
         """
-        return ConnectionParams.__eq__(self,
-                                       other) and self.username == other.username and self.password == other.password
+        return (
+            ConnectionParams.__eq__(self, other)
+            and self.username == other.username
+            and self.password == other.password
+        )
 
     def __del__(self):
         self.disconnect()
 
     def _connect_actions(self, prompt, logger):
-        """
-
-        :param str prompt:
-        :param logging.Logger logger:
-        :return:
-        """
         action_map = ActionMap(actions=[Action(pattern="[Ll]ogin:|[Uu]ser:|[Uu]sername:",
                                                callback=lambda session, logger:
                                                session.send_line(session.username, logger)),
@@ -63,36 +74,29 @@ class TelnetSession(AbstractSession, ConnectionParams):
 
         self._handler.open(self.host, int(self.port), self._timeout)
         if self._handler.get_socket() is None:
-            raise TelnetSessionException(self.__class__.__name__, "Failed to open telnet connection.")
+            raise TelnetSessionException(
+                self.__class__.__name__, "Failed to open telnet connection."
+            )
 
         self._handler.get_socket().send(telnetlib.IAC + telnetlib.WILL + telnetlib.ECHO)
 
     def disconnect(self):
-        """Disconnect / close the session
-
-        :return:
-        """
+        """Disconnect / close the session."""
         if self._handler:
             self._handler.close()
-        self.active = False
+        self._active = False
 
     def _send(self, command, logger):
-        """send message / command to device
+        """Send message / command to device.
 
         :param command: message / command to send
         :type command: str
-        :return:
         """
         byte_command = command.encode()
         self._handler.write(byte_command)
 
     def _receive(self, timeout, logger):
-        """read session buffer
-
-        :param timeout:
-        :return: output
-        """
-
+        """Read session buffer."""
         timeout = timeout if timeout else self._timeout
         self._handler.get_socket().settimeout(timeout)
 

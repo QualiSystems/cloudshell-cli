@@ -3,10 +3,17 @@ from cloudshell.cli.service.error_map import ErrorMap
 
 
 class CommandTemplateExecutor(object):
-    """Execute command template using cli service"""
+    """Execute command template using cli service."""
 
-    def __init__(self, cli_service, command_template, action_map=None, error_map=None, **optional_kwargs):
-        """
+    def __init__(
+        self,
+        cli_service,
+        command_template,
+        action_map=None,
+        error_map=None,
+        **optional_kwargs
+    ):
+        """Initialize Command template executor.
 
         :param cloudshell.cli.service.cli_service.CliService cli_service:
         :param cloudshell.cli.command_template.command_template.CommandTemplate command_template:
@@ -26,7 +33,7 @@ class CommandTemplateExecutor(object):
         self._optional_kwargs = optional_kwargs
 
     def execute_command(self, **command_kwargs):
-        """
+        """Execute command.
 
         :param dict command_kwargs:
         :return: Command output

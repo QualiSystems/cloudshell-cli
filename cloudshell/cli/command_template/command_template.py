@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import re
 
 from cloudshell.cli.service.action_map import ActionMap
@@ -6,11 +7,12 @@ from cloudshell.cli.service.error_map import ErrorMap
 
 class CommandTemplate:
     def __init__(self, command, action_map=None, error_map=None):
-        """
+        """Command Template.
 
-        :param str command:
-        :param cloudshell.cli.service.action_map.ActionMap action_map:
-        :param cloudshell.cli.service.error_map.ErrorMap error_map:
+        :type command: str
+        :type action_map: dict
+        :param error_map: expected error map with subclass of CommandExecutionException or str
+        :type error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]
         """
         self._command = command
         self._action_map = action_map or ActionMap()
@@ -18,7 +20,7 @@ class CommandTemplate:
 
     @property
     def action_map(self):
-        """
+        """Property for action map.
 
         :rtype: cloudshell.cli.service.action_map.ActionMap
         """
@@ -26,7 +28,7 @@ class CommandTemplate:
 
     @property
     def error_map(self):
-        """
+        """Property for error map.
 
         :rtype: cloudshell.cli.service.error_map.ErrorMap
         """
@@ -34,11 +36,7 @@ class CommandTemplate:
 
     # ToDo: Needs to be reviewed
     def get_command(self, **kwargs):
-        """
-
-        :param dict kwargs:
-        :rtype: dict
-        """
+        # todo: verify action map creation
         action_map = kwargs.get('action_map') or ActionMap()
         action_map.extend(self.action_map)
 
@@ -52,11 +50,6 @@ class CommandTemplate:
         }
 
     def prepare_command(self, **kwargs):
-        """
-
-        :param dict kwargs:
-        :rtype: str
-        """
         cmd = self._command
         keys = re.findall(r"{(\w+)}", self._command)
         for key in keys:
@@ -66,6 +59,6 @@ class CommandTemplate:
         if not cmd:
             raise Exception("Unable to prepare command")
 
-        cmd = re.sub(r"\s+", " ", cmd).strip(' \t\n\r')
+        cmd = re.sub(r"\s+", " ", cmd).strip(" \t\n\r")
         result = re.sub(r"\[|\]", "", cmd).format(**kwargs)
         return result

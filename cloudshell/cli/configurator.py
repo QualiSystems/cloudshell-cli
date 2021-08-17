@@ -1,101 +1,95 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import functools
-from abc import ABC, abstractmethod
+import sys
+from abc import ABCMeta, abstractmethod
+from collections import defaultdict
 
+from cloudshell.cli.factory.session_factory import (
+    CloudInfoAccessKeySessionFactory,
+    GenericSessionFactory,
+    SessionFactory,
+)
 from cloudshell.cli.service.cli import CLI
 from cloudshell.cli.session.ssh_session import SSHSession
 from cloudshell.cli.session.telnet_session import TelnetSession
 
+ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
+
+if sys.version_info >= (3, 0):
+    from functools import lru_cache
+else:
+    from functools32 import lru_cache
+
 
 class CLIServiceConfigurator(object):
-    REGISTERED_SESSIONS = (SSHSession, TelnetSession)
+    REGISTERED_SESSIONS = (CloudInfoAccessKeySessionFactory(SSHSession), TelnetSession)
+    """Using factories instead of """
 
-    def __init__(self, resource_config, logger, cli=None, registered_sessions=None):
-        """
-        :param cloudshell.shell.standards.resource_config_generic_models.GenericCLIConfig resource_config:
+    def __init__(
+        self,
+        resource_config,
+        logger,
+        cli=None,
+        registered_sessions=None,
+        reservation_context=None,
+    ):
+        """Initialize CLI service configurator.
+
+        :param cloudshell.shell.standards.resource_config_generic_models.GenericCLIConfig resource_config:  # noqa: E501
         :param logging.Logger logger:
         :param cloudshell.cli.service.cli.CLI cli:
         :param registered_sessions: Session types and order
+        :param cloudshell.shell.core.driver_context.ReservationContextDetails reservation_context:
         """
         self._cli = cli or CLI()
         self._resource_config = resource_config
         self._logger = logger
         self._registered_sessions = registered_sessions or self.REGISTERED_SESSIONS
-
-    @property
-    def _username(self):
-        return self._resource_config.user
-
-    @property
-    @functools.lru_cache()
-    def _password(self):
-        return self._resource_config.password
-
-    @property
-    def _resource_address(self):
-        """Resource IP
-
-        :return:
-        """
-        return self._resource_config.address
-
-    @property
-    def _port(self):
-        """Connection port property, to open socket on
-
-        :return:
-        """
-        return self._resource_config.cli_tcp_port
+        self._reservation_context = reservation_context
 
     @property
     def _cli_type(self):
-        """Connection type property [ssh|telnet|console|auto]
-
-        :return:
-        """
+        """Connection type property [ssh|telnet|console|auto]."""
         return self._resource_config.cli_connection_type
 
     @property
-    @functools.lru_cache()
+    @lru_cache()
     def _session_dict(self):
-        return {sess.SESSION_TYPE.lower(): [sess] for sess in self._registered_sessions}
+        session_dict = defaultdict(list)
+        for sess in self._registered_sessions:
+            session_dict[sess.SESSION_TYPE.lower()].append(sess)
+        return session_dict
 
-    def _on_session_start(self, session, logger):
-        """Perform some default commands when session just opened (like 'no logging console')
-
-        :param session:
-        :param logger:
-        :return:
-        """
-        pass
-
-    @property
-    @functools.lru_cache()
-    def _session_kwargs(self):
-        return {'host': self._resource_address,
-                'username': self._username,
-                'password': self._password,
-                'port': self._port,
-                'on_session_start': self._on_session_start}
+    def initialize_session(self, session):
+        if not isinstance(session, SessionFactory):
+            session = GenericSessionFactory(session)
+        return session.init_session(
+            self._resource_config, self._logger, self._reservation_context
+        )
 
     def _defined_sessions(self):
-        return [sess(**self._session_kwargs) for sess in self._session_dict.get(self._cli_type.lower(), self._registered_sessions)]
+        return [
+            self.initialize_session(sess)
+            for sess in self._session_dict.get(
+                self._cli_type.lower(), sum(self._session_dict.values(), [])
+            )
+        ]
 
     def get_cli_service(self, command_mode):
-        """Use cli.get_session to open CLI connection and switch into required mode
+        """Use cli.get_session to open CLI connection and switch into required mode.
 
-        :param CommandMode command_mode: operation mode, can be default_mode/enable_mode/config_mode/etc.
+        :param CommandMode command_mode: operation mode, can be
+            default_mode/enable_mode/config_mode/etc.
         :return: created session in provided mode
-        :rtype: cloudshell.cli.service.session_pool_context_manager.SessionPoolContextManager
+        :rtype: cloudshell.cli.service.session_pool_context_manager.SessionPoolContextManager  # noqa: E501
         """
-        return self._cli.get_session(self._defined_sessions(), command_mode, self._logger)
+        return self._cli.get_session(
+            self._defined_sessions(), command_mode, self._logger
+        )
 
 
 class AbstractModeConfigurator(ABC, CLIServiceConfigurator):
-    """
-    Used by shells to run enable/config command
-    """
+    """Used by shells to run enable/config command."""
 
     @property
     @abstractmethod

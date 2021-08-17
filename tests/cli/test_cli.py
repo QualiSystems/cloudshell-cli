@@ -1,17 +1,19 @@
-# from unittest import TestCase
-#
-# # from mock import MagicMock as Mock
-# import mock
-# from cloudshell.cli.service.cli import CLI
-#
-#
-# class TestCli(TestCase):
-#     def setUp(self):
-#         self._cli = CLI(mock.MagicMock())
-#
-#     @mock.patch('cloudshell.cli.service.session_pool_context_manager.SessionPoolContextManager')
-#     def test_create_instance(self, context_manager):
-#         with self._cli.get_session(mock.Mock(), mock.Mock(), mock.Mock()) as session:
-#             pass
-#
-#         context_manager.assert_called_once()
+import unittest
+import warnings
+
+
+class TestImportCliDeprecated(unittest.TestCase):
+    def test_deprecated_import(self):
+        with warnings.catch_warnings(record=True) as w:
+            # Cause all warnings to always be triggered.
+            warnings.simplefilter("always")
+            # Trigger a warning.
+            from cloudshell.cli.cli import CLI  # noqa: F401
+
+            # verify
+            self.assertEqual(1, len(w))
+            self.assertEqual(DeprecationWarning, w[-1].category)
+            self.assertIn(
+                "module moved from cloudshell.cli.cli to cloudshell.cli.service.cli",
+                str(w[-1].message),
+            )
