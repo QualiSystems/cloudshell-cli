@@ -78,6 +78,7 @@ class SSHSession(ExpectSession, ConnectionParams):
 
         :param str prompt:
         :param logging.Logger logger:
+        :return:
         """
         self._create_handler()
         try:
@@ -106,6 +107,7 @@ class SSHSession(ExpectSession, ConnectionParams):
 
         :param str prompt:
         :param logging.Logger logger:
+        :return:
         """
         self.hardware_expect(
             None, expected_string=prompt, timeout=self._timeout, logger=logger

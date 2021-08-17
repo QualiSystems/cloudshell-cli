@@ -137,7 +137,7 @@ class TestSessionPoolContextManager(TestCase):
     def test_exit_remove_session_on_inactive(self, command_mode_helper):
         self._instance._initialize_cli_service = Mock()
         session_value = Mock()
-        session_value.active.return_value = False
+        session_value.active = False
         self._session_pool_manager.get_session.return_value = session_value
         with self._instance:
             pass

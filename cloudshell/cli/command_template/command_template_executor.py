@@ -4,7 +4,6 @@ from cloudshell.cli.service.error_map import ErrorMap
 
 class CommandTemplateExecutor(object):
     """Execute command template using cli service."""
-    """Execute command template using cli service"""
 
     def __init__(
         self,
@@ -22,7 +21,6 @@ class CommandTemplateExecutor(object):
         :param cloudshell.cli.service.error_map.ErrorMap error_map:
         :return:
         """
-
         self._cli_service = cli_service
         self._command_template = command_template
 

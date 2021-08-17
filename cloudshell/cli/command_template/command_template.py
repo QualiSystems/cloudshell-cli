@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import re
 
 from cloudshell.cli.service.action_map import ActionMap
@@ -9,8 +10,9 @@ class CommandTemplate:
         """Command Template.
 
         :type command: str
-        :param cloudshell.cli.service.action_map.ActionMap action_map:
-        :param cloudshell.cli.service.error_map.ErrorMap error_map:
+        :type action_map: dict
+        :param error_map: expected error map with subclass of CommandExecutionException or str
+        :type error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]
         """
         self._command = command
         self._action_map = action_map or ActionMap()
@@ -55,7 +57,7 @@ class CommandTemplate:
                 cmd = re.sub(r"\[[^[]*?{{{key}}}.*?\]".format(key=key), r"", cmd)
 
         if not cmd:
-            raise Exception(self.__class__.__name__, 'Unable to prepare command')
+            raise Exception("Unable to prepare command")
 
         cmd = re.sub(r"\s+", " ", cmd).strip(" \t\n\r")
         result = re.sub(r"\[|\]", "", cmd).format(**kwargs)
