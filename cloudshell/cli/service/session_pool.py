@@ -6,9 +6,9 @@ ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 class SessionPool(ABC):
     @abstractmethod
     def get_session(self, new_sessions, prompt, logger):
-        """Get session from pool.
-
-        :rtype: cloudshell.cli.session.session.Session
+        """
+        Get session from pool
+        :rtype Session
         """
         pass
 

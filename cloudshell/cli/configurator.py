@@ -71,7 +71,7 @@ class CLIServiceConfigurator(object):
         return [
             self.initialize_session(sess)
             for sess in self._session_dict.get(
-                self._cli_type.lower(), self._registered_sessions
+                self._cli_type.lower(), sum(self._session_dict.values(), [])
             )
         ]
 
