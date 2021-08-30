@@ -1,12 +1,12 @@
 import re
 import time
 
-from cloudshell.cli.service.action_map import ActionMap
-from cloudshell.cli.service.error_map import ErrorMap
-from cloudshell.cli.service.action_map import ActionLoopDetector
-from cloudshell.cli.session.helper.normalize_buffer import normalize_buffer
-from cloudshell.cli.session.session_exceptions import SessionLoopLimitException, ExpectedSessionException, \
-    CommandExecutionException, SessionReadTimeout, SessionReadEmptyData
+from cloudshell.cli.session.advanced_session.actions.action_map import ActionMap
+from cloudshell.cli.session.advanced_session.actions.error_map import ErrorMap
+from cloudshell.cli.session.advanced_session.actions.action_map import ActionLoopDetector
+from cloudshell.cli.session.advanced_session.helper.reader_helper import normalize_buffer
+from cloudshell.cli.session.core.exceptions import SessionLoopLimitException
+
 
 # option 1: save state in Command object
 # option 2: save state ib this class

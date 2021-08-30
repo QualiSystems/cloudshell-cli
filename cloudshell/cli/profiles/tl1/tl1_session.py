@@ -1,8 +1,8 @@
 import re
 import socket
 
-from cloudshell.cli.session.connection_params import ConnectionParams
-from cloudshell.cli.session.tcp_session import TCPSession
+from cloudshell.cli.session.core.model.connection_params import ConnectionParams
+from cloudshell.cli.profiles.tcp.tcp_session import TCPSession
 
 
 class TL1Session(TCPSession):

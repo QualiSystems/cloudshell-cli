@@ -1,8 +1,7 @@
-from collections import OrderedDict
 import re
 
-from cloudshell.cli.service.action_map import ActionMap
-from cloudshell.cli.service.error_map import ErrorMap
+from cloudshell.cli.session.advanced_session.actions.action_map import ActionMap
+from cloudshell.cli.session.advanced_session.actions.error_map import ErrorMap
 
 
 class CommandTemplate:

@@ -1,11 +1,11 @@
 import socket
 import telnetlib
 
-from cloudshell.cli.service.action_map import Action
-from cloudshell.cli.service.action_map import ActionMap
-from cloudshell.cli.session.connection_params import ConnectionParams
-from cloudshell.cli.session.expect_session import ExpectSession
-from cloudshell.cli.session.session_exceptions import (
+from cloudshell.cli.session.advanced_session.actions.action_map import Action
+from cloudshell.cli.session.advanced_session.actions.action_map import ActionMap
+from cloudshell.cli.session.core.model.connection_params import ConnectionParams
+from cloudshell.cli.session.tricky_session.expect_session import ExpectSession
+from cloudshell.cli.session.core.exceptions import (
     SessionException,
     SessionReadEmptyData,
     SessionReadTimeout,
@@ -14,7 +14,6 @@ from cloudshell.cli.session.session_exceptions import (
 
 class TelnetSessionException(SessionException):
     pass
-
 
 class TelnetSession(ExpectSession, ConnectionParams):
     SESSION_TYPE = "TELNET"

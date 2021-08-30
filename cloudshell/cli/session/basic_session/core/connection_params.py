@@ -6,23 +6,22 @@ ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 class ConnectionParams(ABC):
     """Session parameters."""
 
-    def __init__(self, host, port=None, on_session_start=None, pkey=None):
-        self.host = host
+    def __init__(self, hostname, port=None, on_session_start=None):
+        self.hostname = hostname
         self.port = None
 
         if port and int(port) != 0:
             self.port = int(port)
 
-        if host:
-            temp_host = host.split(":")
-            self.host = temp_host[0]
+        if hostname:
+            temp_host = hostname.split(":")
+            self.hostname = temp_host[0]
             if not self.port and len(temp_host) > 1:
                 self.port = int(temp_host[1])
         else:
-            self.host = host
+            self.hostname = hostname
 
         self.on_session_start = on_session_start
-        self.pkey = pkey
 
     def _on_session_start(self, logger):
         if self.on_session_start and callable(self.on_session_start):
@@ -35,8 +34,7 @@ class ConnectionParams(ABC):
         :rtype: bool
         """
         return (
-            self.__class__ == other.__class__
-            and self.host == other.host
-            and self.port == other.port
-            and self.pkey == other.pkey
+                self.__class__ == other.__class__
+                and self.hostname == other.hostname
+                and self.port == other.port
         )

@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from cloudshell.cli.session.telnet_session import TelnetSession
+from cloudshell.cli.profiles.telnet.telnet_session import TelnetSession
 
 try:
     from unittest.mock import Mock, patch

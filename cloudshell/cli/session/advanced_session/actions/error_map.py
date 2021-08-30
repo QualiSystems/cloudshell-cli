@@ -1,7 +1,7 @@
 from collections import OrderedDict
 import re
 
-from cloudshell.cli.session.session_exceptions import CommandExecutionException
+from cloudshell.cli.session.core.exceptions import CommandExecutionException
 
 
 class Error:

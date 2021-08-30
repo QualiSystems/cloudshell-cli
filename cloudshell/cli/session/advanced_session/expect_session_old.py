@@ -2,13 +2,13 @@ import re
 import time
 from abc import ABCMeta, abstractmethod
 
-from cloudshell.cli.service.action_map import ActionMap
-from cloudshell.cli.service.error_map import ErrorMap
-from cloudshell.cli.service.action_map import ActionLoopDetector
-from cloudshell.cli.session.helper.normalize_buffer import normalize_buffer
-from cloudshell.cli.session.session import Session
-from cloudshell.cli.session.session_exceptions import SessionLoopLimitException, \
-    ExpectedSessionException, CommandExecutionException, SessionReadTimeout, SessionReadEmptyData
+from cloudshell.cli.session.advanced_session.actions.action_map import ActionMap
+from cloudshell.cli.session.advanced_session.actions.error_map import ErrorMap
+from cloudshell.cli.session.advanced_session.actions.action_map import ActionLoopDetector
+from cloudshell.cli.session.advanced_session.helper.reader_helper import normalize_buffer
+from cloudshell.cli.session.core.model import Session
+from cloudshell.cli.session.core.exceptions import SessionLoopLimitException, \
+    ExpectedSessionException, SessionReadTimeout, SessionReadEmptyData
 
 ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 

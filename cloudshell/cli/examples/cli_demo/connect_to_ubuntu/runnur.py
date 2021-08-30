@@ -3,7 +3,7 @@ from cloudshell.core.logger.qs_logger import get_qs_logger
 from cloudshell.cli.cli import CLI
 from cloudshell.cli.command_mode import CommandMode
 from cloudshell.cli.command_mode_helper import CommandModeHelper
-from cloudshell.cli.session.ssh_session import SSHSession
+from cloudshell.cli.profiles import SSHSession
 from cloudshell.cli.session_pool_manager import SessionPoolManager
 
 

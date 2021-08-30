@@ -1,6 +1,6 @@
 from cloudshell.cli.service.cli_service_impl import CliServiceImpl as CliService
 from cloudshell.cli.service.command_mode_helper import CommandModeHelper
-from cloudshell.cli.session.expect_session import CommandExecutionException
+from cloudshell.cli.session.tricky_session.expect_session import CommandExecutionException
 
 
 class SessionPoolContextManager(object):

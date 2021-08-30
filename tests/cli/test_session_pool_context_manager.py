@@ -3,7 +3,7 @@ from unittest import TestCase
 from cloudshell.cli.service.session_pool_context_manager import (
     SessionPoolContextManager,
 )
-from cloudshell.cli.session.session_exceptions import CommandExecutionException
+from cloudshell.cli.session.core.exceptions import CommandExecutionException
 
 try:
     from unittest.mock import MagicMock as Mock

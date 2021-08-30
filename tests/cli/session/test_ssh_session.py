@@ -8,7 +8,7 @@ from unittest import TestCase
 import paramiko
 from paramiko import RSAKey
 
-from cloudshell.cli.session.ssh_session import SSHSession, SSHSessionException
+from cloudshell.cli.profiles import SSHSession, SSHSessionException
 
 try:
     from unittest.mock import Mock, patch

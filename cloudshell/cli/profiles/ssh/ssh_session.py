@@ -1,48 +1,45 @@
+import logging
 import socket
 from io import StringIO
 
 import paramiko
 from scp import SCPClient
 
-from cloudshell.cli.session.connection_params import ConnectionParams
-from cloudshell.cli.session.expect_session import ExpectSession
-from cloudshell.cli.session.session_exceptions import (
-    SessionException,
-    SessionReadEmptyData,
-    SessionReadTimeout,
-)
+from cloudshell.cli.session.basic_session.core.connection_params import ConnectionParams
+from cloudshell.cli.session.basic_session.core.session import BasicSession
+from cloudshell.cli.session.basic_session.exceptions import SessionException, SessionReadTimeout, SessionReadEmptyData
 
 
 class SSHSessionException(SessionException):
     pass
 
 
-class SSHSession(ExpectSession, ConnectionParams):
+logger = logging.getLogger(__name__)
+
+
+class SSHSession(BasicSession, ConnectionParams):
     SESSION_TYPE = "SSH"
     BUFFER_SIZE = 512
+    CONNECT_TIMEOUT = 30
 
     def __init__(
-        self,
-        host,
-        username,
-        password,
-        port=None,
-        on_session_start=None,
-        pkey=None,
-        pkey_passphrase=None,
-        *args,
-        **kwargs
+            self,
+            hostname,
+            username,
+            password,
+            port=None,
+            on_session_start=None,
+            pkey=None,
+            pkey_passphrase=None,
+            session_config=None
     ):
         ConnectionParams.__init__(
-            self, host, port=port, on_session_start=on_session_start, pkey=pkey
+            self, hostname=hostname, port=port or 22, on_session_start=on_session_start
         )
-        ExpectSession.__init__(self, *args, **kwargs)
-
-        if self.port is None:
-            self.port = 22
-
+        BasicSession.__init__(self, session_config)
         self.username = username
         self.password = password
+
         self.pkey = pkey
         self.pkey_passphrase = pkey_passphrase
 
@@ -73,25 +70,25 @@ class SSHSession(ExpectSession, ConnectionParams):
         self._handler.load_system_host_keys()
         self._handler.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-    def _initialize_session(self, prompt, logger):
+    def connect(self, timeout=None):
         """Initialize session.
 
-        :param str prompt:
-        :param logging.Logger logger:
+        :param int timeout:
         :return:
         """
+        connect_timeout = timeout or self.CONNECT_TIMEOUT
         self._create_handler()
         try:
             self._handler.connect(
-                self.host,
+                self.hostname,
                 self.port,
                 self.username,
                 self.password,
-                timeout=self._timeout,
+                timeout=connect_timeout,
                 banner_timeout=30,
                 allow_agent=False,
                 look_for_keys=False,
-                pkey=self._get_pkey_object(self.pkey, self.pkey_passphrase, logger),
+                pkey=self._get_pkey_object(self.pkey, self.pkey_passphrase),
             )
         except Exception as e:
             logger.exception("Failed to initialize session:")
@@ -100,40 +97,46 @@ class SSHSession(ExpectSession, ConnectionParams):
             )
 
         self._current_channel = self._handler.invoke_shell()
-        self._current_channel.settimeout(self._timeout)
+        self._current_channel.settimeout(connect_timeout)
+        super(SSHSession, self).connect()
 
-    def _connect_actions(self, prompt, logger):
-        """Connect actions.
-
-        :param str prompt:
-        :param logging.Logger logger:
-        :return:
-        """
-        self.hardware_expect(
-            None, expected_string=prompt, timeout=self._timeout, logger=logger
-        )
-        self._on_session_start(logger)
+    # def _connect_actions(self, prompt, logger):
+    #     """Connect actions.
+    #
+    #     :param str prompt:
+    #     :param logging.Logger logger:
+    #     :return:
+    #     """
+    #     self.hardware_expect(
+    #         None, expected_string=prompt, timeout=self._timeout, logger=logger
+    #     )
+    #     self._on_session_start(logger)
 
     def disconnect(self):
         """Disconnect from device."""
         if self._handler:
             self._handler.close()
-        self._active = False
+        super(SSHSession, self).disconnect()
 
-    def _send(self, command, logger):
+    def send(self, command):
         """Send message to device.
 
         :param str command:
-        :param logging.Logger logger:
         """
+        if not self.get_connected():
+            raise SessionException("Session is not connected")
+
         self._current_channel.send(command)
 
-    def _receive(self, timeout, logger):
+    def receive(self, timeout):
         """Read session buffer.
 
         :param int timeout: time between retries
-        :param logging.Logger logger:
         """
+
+        if not self.get_connected():
+            raise SessionException("Session is not connected")
+
         # Set the channel timeout
         timeout = timeout if timeout else self._timeout
         self._current_channel.settimeout(timeout)
@@ -150,7 +153,7 @@ class SSHSession(ExpectSession, ConnectionParams):
         return data
 
     def upload_scp(
-        self, file_stream, dest_pathname, file_size=None, dest_permissions="0601"
+            self, file_stream, dest_pathname, file_size=None, dest_permissions="0601"
     ):
         """Upload SCP.
 
@@ -172,7 +175,7 @@ class SSHSession(ExpectSession, ConnectionParams):
         scp.close()
 
     def upload_sftp(
-        self, file_stream, dest_pathname, file_size, dest_permissions="0601"
+            self, file_stream, dest_pathname, file_size, dest_permissions="0601"
     ):
         """Upload SFTP.
 
@@ -190,7 +193,7 @@ class SSHSession(ExpectSession, ConnectionParams):
         sftp.close()
 
     @staticmethod
-    def _get_pkey_object(key_material, passphrase, logger):
+    def _get_pkey_object(key_material, passphrase):
         """Try to detect private key type and return paramiko.PKey object."""
         for cls in [paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey]:
             try:

@@ -1,9 +1,9 @@
 import unittest
 from unittest import mock
 
-from cloudshell.cli.service.error_map import Error
-from cloudshell.cli.service.error_map import ErrorMap
-from cloudshell.cli.session.session_exceptions import CommandExecutionException
+from cloudshell.cli.session.advanced_session.actions.error_map import Error
+from cloudshell.cli.session.advanced_session.actions.error_map import ErrorMap
+from cloudshell.cli.session.core.exceptions import CommandExecutionException
 
 
 class TestError(unittest.TestCase):

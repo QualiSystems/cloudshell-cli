@@ -1,8 +1,8 @@
 import unittest
 from unittest import mock
 
-from cloudshell.cli.service.action_map import Action
-from cloudshell.cli.service.action_map import ActionMap
+from cloudshell.cli.session.advanced_session.actions.action_map import Action
+from cloudshell.cli.session.advanced_session.actions.action_map import ActionMap
 
 
 class TestAction(unittest.TestCase):

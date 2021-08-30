@@ -10,8 +10,8 @@ from cloudshell.cli.factory.session_factory import (
     SessionFactory,
 )
 from cloudshell.cli.service.cli import CLI
-from cloudshell.cli.session.ssh_session import SSHSession
-from cloudshell.cli.session.telnet_session import TelnetSession
+from cloudshell.cli.profiles import SSHSession
+from cloudshell.cli.profiles.telnet.telnet_session import TelnetSession
 
 ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 

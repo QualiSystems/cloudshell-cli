@@ -1,7 +1,7 @@
 import re
 import socket
 
-from cloudshell.cli.session.tcp_session import TCPSession
+from cloudshell.cli.profiles.tcp.tcp_session import TCPSession
 
 
 class SCPISession(TCPSession):

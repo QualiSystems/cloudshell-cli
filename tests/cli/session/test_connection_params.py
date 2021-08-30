@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from cloudshell.cli.session.connection_params import ConnectionParams
+from cloudshell.cli.session.core.model import ConnectionParams
 
 try:
     from unittest.mock import Mock

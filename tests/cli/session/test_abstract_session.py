@@ -1,11 +1,11 @@
 from unittest import TestCase
 
-from cloudshell.cli.service.action_map import Action
-from cloudshell.cli.service.action_map import ActionMap
-from cloudshell.cli.service.error_map import Error
-from cloudshell.cli.service.error_map import ErrorMap
-from cloudshell.cli.session.expect_session import ActionLoopDetector, ExpectSession
-from cloudshell.cli.session.session_exceptions import (
+from cloudshell.cli.session.advanced_session.actions.action_map import Action
+from cloudshell.cli.session.advanced_session.actions.action_map import ActionMap
+from cloudshell.cli.session.advanced_session.actions.error_map import Error
+from cloudshell.cli.session.advanced_session.actions.error_map import ErrorMap
+from cloudshell.cli.session.tricky_session.expect_session import ActionLoopDetector, ExpectSession
+from cloudshell.cli.session.core.exceptions import (
     CommandExecutionException,
     ExpectedSessionException,
     SessionLoopLimitException,
