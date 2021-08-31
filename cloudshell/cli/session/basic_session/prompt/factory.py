@@ -1,5 +1,5 @@
 import re
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 from cloudshell.cli.session.basic_session.exceptions import PromCannotBeDefinedException
 from cloudshell.cli.session.basic_session.helper.send_receive import clear_buffer, send_line, receive_all
 from cloudshell.cli.session.basic_session.prompt.prompt import BasicPrompt

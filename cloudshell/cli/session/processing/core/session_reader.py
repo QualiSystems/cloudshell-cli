@@ -1,8 +1,8 @@
 import time
 from typing import TYPE_CHECKING
 
-from cloudshell.cli.session.advanced_session.exceptions import SessionLoopLimitException
-from cloudshell.cli.session.advanced_session.helper.reader_helper import normalize_buffer
+from cloudshell.cli.session.processing.exceptions import SessionLoopLimitException
+from cloudshell.cli.session.processing.helper.reader_helper import normalize_buffer
 from cloudshell.cli.session.basic_session.helper.send_receive import receive_all
 
 if TYPE_CHECKING:
@@ -10,31 +10,29 @@ if TYPE_CHECKING:
     from cloudshell.cli.session.basic_session.core.session import BasicSession
 
 
-class SessionBuffer(object):
+class OutputBuffer(object):
     def __init__(self):
         self._read_iterations = [""]
+        self._actions_dict = dict()
         self.command_removed = False
 
-    def _validate(self, data: str):
+    def _validate(self, data: str) -> str:
         return normalize_buffer(data)
 
-    def append_last(self, data: str):
+    def append_last(self, data: str) -> None:
         self._read_iterations[-1] += self._validate(data)
 
-    def get_last(self):
+    def get_last(self) -> str:
         return self._read_iterations[-1]
 
-    def replace_last(self, data: str):
+    def replace_last(self, data: str) -> None:
         self._read_iterations[-1] = data
 
-    def next_bunch(self):
+    def next_bunch(self) -> None:
         self._read_iterations.append("")
 
-    def get_value(self):
+    def get_value(self) -> str:
         return "".join(self._read_iterations)
-
-    # def set_value(self, data):
-    #     self.data = data
 
 
 class Reader(object):

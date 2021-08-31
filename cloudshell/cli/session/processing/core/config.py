@@ -1,4 +1,4 @@
-class AdvancedSessionConfig(object):
+class ProcessingConfig(object):
     LOOP_DETECTOR_MAX_ACTION_LOOPS = 3
     LOOP_DETECTOR_MAX_COMBINATION_LENGTH = 4
     RECONNECT_TIMEOUT = 30

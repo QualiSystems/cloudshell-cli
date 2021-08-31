@@ -1,7 +1,7 @@
 from collections import OrderedDict
 import re
 
-from cloudshell.cli.session.advanced_session.exceptions import SessionLoopDetectorException
+from cloudshell.cli.session.processing.exceptions import SessionLoopDetectorException
 
 
 class Action:
