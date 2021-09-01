@@ -49,11 +49,10 @@ class ActionProcessor(AbstractActionProcessor):
         )
 
     def _get_action_loop_detector(self) -> ActionLoopDetector:
-        if self._processing_config.loop_detector:
-            return ActionLoopDetector(
-                self._processing_config.loop_detector_max_action_loops,
-                self._processing_config.loop_detector_max_combination_length
-            )
+        return ActionLoopDetector(
+            self._processing_config.loop_detector_max_action_loops,
+            self._processing_config.loop_detector_max_combination_length
+        )
 
     def send(self, command: str) -> None:
         if command is not None:
@@ -62,7 +61,10 @@ class ActionProcessor(AbstractActionProcessor):
             self.logger.debug("Command: {}".format(command))
             send_line(self.session, command)
 
-    def expect(self, prompt: "AbstractPrompt", command: str, action_map: ActionMap) -> str:
+    def expect(self, prompt: "AbstractPrompt", command: str, action_map: ActionMap, detect_loops=None) -> str:
+
+        if not self.session.get_active():
+            raise SessionProcessingException("Session is not active")
 
         if not prompt:
             raise SessionProcessingException("Prompt is not defined")
@@ -70,31 +72,34 @@ class ActionProcessor(AbstractActionProcessor):
         if not action_map:
             action_map = ActionMap()
 
-            buffer = OutputBuffer()
+        buffer = OutputBuffer()
 
-            is_correct_exit = False
+        is_correct_exit = False
 
+        action_loop_detector = None
+
+        if detect_loops:
             action_loop_detector = self._get_action_loop_detector()
 
-            for data in self._get_reader().read_iterator():
-                buffer.append_last(data)
-                if self._processing_config.remove_command:
-                    remove_command(buffer, command)
-                if prompt.match(buffer.get_last()):
-                    is_correct_exit = True
+        for data in self._get_reader().read_iterator():
+            buffer.append_last(data)
+            if self._processing_config.remove_command:
+                remove_command(buffer, command)
+            if prompt.match(buffer.get_last()):
+                is_correct_exit = True
 
-                try:
-                    if action_map.process(session=self,
-                                          logger=self.logger,
-                                          output=buffer.get_last(),
-                                          action_loop_detector=action_loop_detector):
-                        buffer.next_bunch()
-                except (ActionsReturnData,):
-                    # Normal exit
-                    is_correct_exit = True
+            try:
+                if action_map.process(session=self.session,
+                                      logger=self.logger,
+                                      output=buffer.get_last(),
+                                      action_loop_detector=action_loop_detector):
+                    buffer.next_bunch()
+            except (ActionsReturnData,):
+                # Normal exit
+                is_correct_exit = True
 
-                if is_correct_exit:
-                    return buffer.get_value()
+            if is_correct_exit:
+                return buffer.get_value()
 
     def send_command(self, command: "Command") -> str:
         if self._processing_config.use_exact_prompt:

@@ -128,7 +128,7 @@ class SSHSession(BasicSession, ConnectionParams):
 
         self._current_channel.send(command)
 
-    def receive(self, timeout):
+    def receive(self, timeout=None):
         """Read session buffer.
 
         :param int timeout: time between retries
@@ -138,7 +138,7 @@ class SSHSession(BasicSession, ConnectionParams):
             raise SessionException("Session is not connected")
 
         # Set the channel timeout
-        timeout = timeout if timeout else self._timeout
+        timeout = timeout if timeout else self.config.timeout
         self._current_channel.settimeout(timeout)
 
         try:
@@ -149,6 +149,7 @@ class SSHSession(BasicSession, ConnectionParams):
 
         if not data:
             raise SessionReadEmptyData()
+        super(SSHSession, self).receive()
 
         return data
 

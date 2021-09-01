@@ -1,7 +1,7 @@
 from cloudshell.cli.profiles.ssh.ssh_session import SSHSession
-from cloudshell.cli.session.advanced_session.core.advanced_session import AdvancedSession
-from cloudshell.cli.session.advanced_session.core.entities import Command
 from cloudshell.cli.session.basic_session.core.session_factory import AbstractSessionFactory
+from cloudshell.cli.session.processing.core.action_processor import ActionProcessor
+from cloudshell.cli.session.processing.core.entities import Command
 
 
 class SSHSessionFactory(AbstractSessionFactory):
@@ -19,5 +19,5 @@ class SSHSessionFactory(AbstractSessionFactory):
 
     def _connect_actions(self, session, logger):
         session.connect()
-        advanced_session = AdvancedSession(session, logger)
+        advanced_session = ActionProcessor(session, logger)
         advanced_session.send_command(Command(""))

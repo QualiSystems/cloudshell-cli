@@ -1,7 +1,7 @@
 from collections import OrderedDict
 import re
 
-from cloudshell.cli.session.processing.exceptions import SessionLoopDetectorException
+from cloudshell.cli.session.processing.actions.exceptions import SessionLoopDetectorException
 
 
 class Action:
@@ -21,10 +21,9 @@ class Action:
         """
 
         :param cloudshell.cli.session.expect_session.ExpectSession session:
-        :param logging.Logger logger:
         :return:
         """
-        return self.callback(session, logger)
+        return self.callback(session)
 
     def __repr__(self):
         """

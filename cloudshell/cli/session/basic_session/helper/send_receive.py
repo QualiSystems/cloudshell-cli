@@ -41,3 +41,9 @@ def clear_buffer(session: "BasicSession", timeout: Optional[int] = None) -> str:
         else:
             break
     return out
+
+
+def check_active(session: "BasicSession", timeout: int = 1) -> bool:
+    send_line(session, "")
+    data = receive_all(session, timeout)
+    return bool(data)
