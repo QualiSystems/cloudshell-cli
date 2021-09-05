@@ -5,13 +5,13 @@ from cloudshell.cli.session.basic_session.helper.send_receive import clear_buffe
 from cloudshell.cli.session.basic_session.prompt.prompt import BasicPrompt
 
 if TYPE_CHECKING:
-    from cloudshell.cli.session.basic_session.core.session import BasicSession
+    from cloudshell.cli.session.basic_session.core.session import AbstractSession
 
 
 class BasicPromptFactory(object):
 
     @staticmethod
-    def create_prompt(session: "BasicSession", command: str):
+    def create_prompt(session: "AbstractSession", command: str):
         clear_buffer(session)
         send_line(session, command or "")
         data = receive_all(session, 2)

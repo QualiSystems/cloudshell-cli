@@ -5,7 +5,7 @@ from cloudshell.cli.session.processing.actions.exceptions import SessionLoopDete
 
 
 class Action:
-    def __init__(self, pattern, callback, execute_once=False):
+    def __init__(self, pattern, exception, callback, execute_once=False):
         """
 
         :param str pattern:
@@ -119,6 +119,10 @@ class ActionMap:
                 return True
 
         return False
+
+    def process_exception(self, session, logger, output, exception, action_loop_detector=None):
+        pass
+
 
     def __add__(self, other):
         """

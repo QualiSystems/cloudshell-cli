@@ -6,7 +6,7 @@ import paramiko
 from scp import SCPClient
 
 from cloudshell.cli.session.basic_session.core.connection_params import ConnectionParams
-from cloudshell.cli.session.basic_session.core.session import BasicSession
+from cloudshell.cli.session.basic_session.core.session import AbstractSession
 from cloudshell.cli.session.basic_session.exceptions import SessionException, SessionReadTimeout, SessionReadEmptyData
 
 
@@ -17,7 +17,7 @@ class SSHSessionException(SessionException):
 logger = logging.getLogger(__name__)
 
 
-class SSHSession(BasicSession, ConnectionParams):
+class SSHSession(AbstractSession, ConnectionParams):
     SESSION_TYPE = "SSH"
     BUFFER_SIZE = 512
     CONNECT_TIMEOUT = 30
@@ -36,7 +36,7 @@ class SSHSession(BasicSession, ConnectionParams):
         ConnectionParams.__init__(
             self, hostname=hostname, port=port or 22, on_session_start=on_session_start
         )
-        BasicSession.__init__(self, session_config)
+        AbstractSession.__init__(self, session_config)
         self.username = username
         self.password = password
 

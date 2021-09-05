@@ -1,5 +1,5 @@
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from cloudshell.cli.session.processing.exceptions import SessionLoopLimitException
 from cloudshell.cli.session.processing.helper.reader_helper import normalize_buffer
@@ -7,13 +7,12 @@ from cloudshell.cli.session.basic_session.helper.send_receive import receive_all
 
 if TYPE_CHECKING:
     from logging import Logger
-    from cloudshell.cli.session.basic_session.core.session import BasicSession
+    from cloudshell.cli.session.basic_session.core.session import AbstractSession
 
 
-class OutputBuffer(object):
+class ResponseBuffer(object):
     def __init__(self):
         self._read_iterations = [""]
-        self._actions_dict = dict()
         self.command_removed = False
 
     def _validate(self, data: str) -> str:
@@ -34,9 +33,12 @@ class OutputBuffer(object):
     def get_value(self) -> str:
         return "".join(self._read_iterations)
 
+    def __str__(self):
+        return self.get_value()
+
 
 class Reader(object):
-    def __init__(self, logger: "Logger", session: "BasicSession"):
+    def __init__(self, logger: "Logger", session: "AbstractSession"):
         self.session = session
         self.logger = logger
 

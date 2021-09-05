@@ -4,15 +4,15 @@ from typing import TYPE_CHECKING, Optional
 from cloudshell.cli.session.basic_session.exceptions import SessionReadTimeout, SessionReadEmptyData, SessionException
 
 if TYPE_CHECKING:
-    from cloudshell.cli.session.basic_session.core.session import BasicSession
+    from cloudshell.cli.session.basic_session.core.session import AbstractSession
 
 
-def send_line(session: "BasicSession", command: str, new_line: str = "\r") -> None:
+def send_line(session: "AbstractSession", command: str, new_line: str = "\r") -> None:
     """Add new line to the end of command string and send."""
     session.send(command + new_line)
 
 
-def receive_all(session: "BasicSession", timeout: int = 30) -> str:
+def receive_all(session: "AbstractSession", timeout: int = 30) -> str:
     """Read as much as possible before catch SessionTimeoutException."""
     start_time = time.time()
     read_buffer = ""
@@ -26,7 +26,7 @@ def receive_all(session: "BasicSession", timeout: int = 30) -> str:
                 raise SessionException("Socket closed by timeout")
 
 
-def clear_buffer(session: "BasicSession", timeout: Optional[int] = None) -> str:
+def clear_buffer(session: "AbstractSession", timeout: Optional[int] = None) -> str:
     """Clear buffer."""
     out = ""
     if not timeout:
@@ -43,7 +43,7 @@ def clear_buffer(session: "BasicSession", timeout: Optional[int] = None) -> str:
     return out
 
 
-def check_active(session: "BasicSession", timeout: int = 1) -> bool:
+def check_active(session: "AbstractSession", timeout: int = 1) -> bool:
     send_line(session, "")
     data = receive_all(session, timeout)
     return bool(data)
