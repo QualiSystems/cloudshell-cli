@@ -76,7 +76,7 @@ class SSHSession(Session, ConnectionParams):
         :param int timeout:
         :return:
         """
-        connect_timeout = timeout or self.CONNECT_TIMEOUT
+        connect_timeout = timeout or self.config.timeout
         self._create_handler()
         try:
             self._handler.connect(

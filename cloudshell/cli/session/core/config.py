@@ -1,25 +1,24 @@
 from cloudshell.cli.session.prompt.factory import BasicPromptFactory
 
 
-class SessionConfig(object):
-    MAX_LOOP_RETRIES = 20
-    READ_TIMEOUT = 30
-    EMPTY_LOOP_TIMEOUT = 0.5
-    CLEAR_BUFFER_TIMEOUT = 0.1
-    ACTIVE_TIMEOUT = 60
+class Config:
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
 
-    def __init__(self, timeout=READ_TIMEOUT,
-                 new_line="\r",
-                 max_loop_retries=MAX_LOOP_RETRIES,
-                 empty_loop_timeout=EMPTY_LOOP_TIMEOUT,
-                 clear_buffer_timeout=CLEAR_BUFFER_TIMEOUT,
-                 active_timeout=ACTIVE_TIMEOUT
-                 ):
-        self.new_line = new_line
-        self.timeout = timeout
-        self.max_loop_retries = max_loop_retries
-        self.empty_loop_timeout = empty_loop_timeout
-        self.clear_buffer_timeout = clear_buffer_timeout
-        # self.default_prompt = BasicPrompt
-        self.prompt_factory = BasicPromptFactory
-        self.active_timeout = active_timeout
+
+class DefaultValue(object):
+    def __init__(self, value):
+        self.value = value
+
+    def __get__(self, instance: Config, owner):
+        return self.value
+
+
+class SessionConfig(Config):
+    new_line: str = DefaultValue("\r")
+    timeout: int = DefaultValue(30)
+    max_loop_retries: int = DefaultValue(20)
+    empty_loop_timeout: float = DefaultValue(0.5)
+    clear_buffer_timeout: float = DefaultValue(0.1)
+    prompt_factory = DefaultValue(BasicPromptFactory)
+    active_timeout = DefaultValue(60)
