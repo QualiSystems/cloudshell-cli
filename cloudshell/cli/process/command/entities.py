@@ -1,13 +1,14 @@
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from cloudshell.cli.session.basic_session.prompt.prompt import AbstractPrompt
-    from cloudshell.cli.session.processing.actions.action_map import ActionMap
-    from cloudshell.cli.session.processing.core.reader import ResponseBuffer
+    from cloudshell.cli.session.prompt.prompt import AbstractPrompt
+    from cloudshell.cli.process.actions.action_map import ActionMap
+    from cloudshell.cli.process.command.reader import ResponseBuffer
 
 
 class Command(object):
-    def __init__(self, command: str, prompt: Optional["AbstractPrompt"] = None,
+    def __init__(self, command: str,
+                 prompt: Optional["AbstractPrompt"] = None,
                  action_map: Optional["ActionMap"] = None,
                  detect_loops: bool = True,
                  read_timeout: Optional[int] = None,

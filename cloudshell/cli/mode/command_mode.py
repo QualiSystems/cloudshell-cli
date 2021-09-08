@@ -3,7 +3,7 @@ import re
 from cloudshell.cli.session.advanced_session.actions.action_map import ActionMap
 from cloudshell.cli.session.advanced_session.actions.error_map import ErrorMap
 from cloudshell.cli.service.cli_exception import CliException
-from cloudshell.cli.service.node import Node
+from cloudshell.cli.mode.node import Node
 
 
 class CommandModeException(CliException):

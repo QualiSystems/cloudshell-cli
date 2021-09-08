@@ -1,14 +1,15 @@
+import logging
 import time
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
-from cloudshell.cli.session.processing.exceptions import SessionLoopLimitException
-from cloudshell.cli.session.processing.helper.reader_helper import normalize_buffer
-from cloudshell.cli.session.basic_session.helper.send_receive import receive_all
+from cloudshell.cli.process.exceptions import SessionLoopLimitException
+from cloudshell.cli.process.helper.reader_helper import normalize_buffer
+from cloudshell.cli.session.helper.send_receive import receive_all
 
 if TYPE_CHECKING:
-    from logging import Logger
-    from cloudshell.cli.session.basic_session.core.session import AbstractSession
+    from cloudshell.cli.session.core.session import Session
 
+logger = logging.getLogger(__name__)
 
 class ResponseBuffer(object):
     def __init__(self):
@@ -38,9 +39,8 @@ class ResponseBuffer(object):
 
 
 class Reader(object):
-    def __init__(self, logger: "Logger", session: "AbstractSession"):
+    def __init__(self, session: "Session"):
         self.session = session
-        self.logger = logger
 
     def read_iterator(self):
         retries_count = 0
@@ -49,7 +49,7 @@ class Reader(object):
             data = receive_all(self.session, self.session.config.timeout)
             if data:
                 data = normalize_buffer(data)
-                self.logger.debug(data)
+                logger.debug(data)
                 yield data
                 retries_count = 0
             else:

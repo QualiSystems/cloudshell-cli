@@ -1,12 +1,12 @@
 from logging import Logger
 from unittest import TestCase
 
-from cloudshell.cli.service.cli_service_impl import (
+from cloudshell.cli.mode import (
     CliServiceImpl,
     EnterCommandModeContextManager,
     EnterDetachCommandModeContextManager,
 )
-from cloudshell.cli.service.command_mode import CommandMode
+from cloudshell.cli.mode import CommandMode
 
 try:
     from unittest.mock import MagicMock, Mock, create_autospec, patch

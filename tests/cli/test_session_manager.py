@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from cloudshell.cli.service.session_manager_impl import (
+from cloudshell.cli.manage.session_manager_impl import (
     SessionManagerException,
     SessionManagerImpl,
 )

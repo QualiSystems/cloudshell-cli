@@ -1,8 +1,8 @@
 from collections import OrderedDict
 from functools import reduce
 
-from cloudshell.cli.service.command_mode import CommandMode, CommandModeException
-from cloudshell.cli.service.node import NodeOperations
+from cloudshell.cli.mode.command_mode import CommandMode, CommandModeException
+from cloudshell.cli.mode.node import NodeOperations
 
 
 class CommandModeHelper(NodeOperations):

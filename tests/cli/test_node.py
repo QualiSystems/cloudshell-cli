@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from cloudshell.cli.service.node import Node, NodeOperations
+from cloudshell.cli.mode import Node, NodeOperations
 
 try:
     from unittest.mock import Mock, patch

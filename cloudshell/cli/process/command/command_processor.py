@@ -1,72 +1,54 @@
-from abc import ABCMeta, abstractmethod
+import logging
 from functools import lru_cache
 from threading import RLock
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Iterator
 
-from cloudshell.cli.session.basic_session.helper.send_receive import clear_buffer, send_line
-from cloudshell.cli.session.processing.actions.action_map import ActionMap
-from cloudshell.cli.session.processing.actions.exceptions import ActionsReturnData
-from cloudshell.cli.session.processing.actions.validators.action_loop_detector import ActionLoopDetector
-from cloudshell.cli.session.processing.core.config import ProcessingConfig
-from cloudshell.cli.session.processing.core.reader import Reader, ResponseBuffer
-from cloudshell.cli.session.processing.exceptions import SessionProcessingException
-from cloudshell.cli.session.processing.helper.reader_helper import remove_command
-
-ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
+from cloudshell.cli.session.helper.send_receive import clear_buffer, send_line
+from cloudshell.cli.process.actions.action_map import ActionMap
+from cloudshell.cli.process.actions.exceptions import ActionsReturnData
+from cloudshell.cli.process.command.entities import CommandResponse
+from cloudshell.cli.process.actions.validators.action_loop_detector import ActionLoopDetector
+from cloudshell.cli.process.command.config import ProcessingConfig
+from cloudshell.cli.process.command.reader import Reader, ResponseBuffer
+from cloudshell.cli.process.exceptions import SessionProcessingException
+from cloudshell.cli.process.helper.reader_helper import remove_command
 
 if TYPE_CHECKING:
-    from logging import Logger
-    from cloudshell.cli.session.processing.core.entities import Command, CommandResponse
-    from cloudshell.cli.session.basic_session.core.session import AbstractSession
-    from cloudshell.cli.session.basic_session.prompt.prompt import AbstractPrompt
+    from cloudshell.cli.process.command.entities import Command
+    from cloudshell.cli.session.core.session import Session
+    from cloudshell.cli.session.prompt.prompt import Prompt
+
+logger = logging.getLogger(__name__)
 
 
-class AbstractCommandProcessor(ABC):
+class CommandProcessor(object):
 
-    @abstractmethod
-    def send(self, command: "Command") -> None:
-        raise NotImplementedError
-
-    @abstractmethod
-    def expect(self, command: "Command", prompt: "AbstractPrompt") -> "CommandResponse":
-        raise NotImplementedError
-
-    def send_command(self, command: "Command") -> "CommandResponse":
-        raise NotImplementedError
-
-    def switch_prompt(self, command: "Command") -> "AbstractPrompt":
-        raise NotImplementedError
-
-
-class CommandProcessor(AbstractCommandProcessor):
-
-    def __init__(self, session: "AbstractSession", logger: "Logger", processing_config: ProcessingConfig = None):
+    def __init__(self, session: "Session", processing_config: ProcessingConfig = None):
         self.session = session
-        self.logger = logger
-        self._processing_config = processing_config or ProcessingConfig()
+        self._config = processing_config or ProcessingConfig()
         self.lock = RLock()
 
+    @property
     @lru_cache()
-    def _session_reader(self) -> Reader:
+    def _session_read_iterator(self) -> Iterator[str]:
         return Reader(
-            logger=self.logger,
             session=self.session
-        )
+        ).read_iterator()
 
     def _get_action_loop_detector(self) -> ActionLoopDetector:
         return ActionLoopDetector(
-            self._processing_config.loop_detector_max_action_loops,
-            self._processing_config.loop_detector_max_combination_length
+            self._config.loop_detector_max_action_loops,
+            self._config.loop_detector_max_combination_length
         )
 
     def send(self, command: "Command") -> None:
         if command.clear_buffer:
             clear_buffer(self.session, self.session.config.clear_buffer_timeout)
 
-        self.logger.debug("Command: {}".format(command))
+        logger.debug("Command: {}".format(command))
         send_line(self.session, command.command)
 
-    def expect(self, command: "Command", prompt: Optional["AbstractPrompt"] = None) -> "CommandResponse":
+    def expect(self, command: "Command", prompt: Optional["Prompt"] = None) -> "CommandResponse":
 
         prompt = prompt or command.prompt
 
@@ -86,10 +68,10 @@ class CommandProcessor(AbstractCommandProcessor):
 
         while True:
             try:
-                buffer.append_last(next(self._session_reader().read_iterator()))
+                buffer.append_last(next(self._session_read_iterator))
             except Exception as e:
                 if action_map.process_exception(session=self.session,
-                                                logger=self.logger,
+                                                logger=logger,
                                                 output=buffer.get_last(),
                                                 action_loop_detector=action_loop_detector,
                                                 exception=e):
@@ -98,7 +80,7 @@ class CommandProcessor(AbstractCommandProcessor):
                 else:
                     raise e
 
-            if self._processing_config.remove_command:
+            if self._config.remove_command:
                 remove_command(buffer, command.command)
 
             if prompt.match(buffer.get_last()):
@@ -106,7 +88,7 @@ class CommandProcessor(AbstractCommandProcessor):
 
             try:
                 if action_map.process(session=self.session,
-                                      logger=self.logger,
+                                      logger=logger,
                                       output=buffer.get_last(),
                                       action_loop_detector=action_loop_detector):
                     buffer.next_bunch()
@@ -119,7 +101,7 @@ class CommandProcessor(AbstractCommandProcessor):
 
     def _reconcile_prompt(self, command: "Command"):
         """Reconcile command prompt, if present, with session prompt"""
-        if self._processing_config.use_exact_prompt:
+        if self._config.use_exact_prompt:
             if command.prompt and command.prompt != self.session.get_prompt():
                 raise SessionProcessingException("Command prompt is not matched with the session prompt")
             prompt = self.session.get_prompt()
@@ -137,7 +119,7 @@ class CommandProcessor(AbstractCommandProcessor):
             self.send(command)
             return self.expect(command, prompt)
 
-    def switch_prompt(self, command: "Command") -> "AbstractPrompt":
+    def switch_prompt(self, command: "Command") -> "Prompt":
         with self.lock:
             if not self.session.get_active():
                 raise SessionProcessingException("Session is not active")
@@ -156,10 +138,10 @@ class CommandProcessor(AbstractCommandProcessor):
 
             while True:
                 try:
-                    buffer.append_last(next(self._session_reader().read_iterator()))
+                    buffer.append_last(next(self._session_read_iterator))
                 except Exception as e:
                     if action_map.process_exception(session=self.session,
-                                                    logger=self.logger,
+                                                    logger=logger,
                                                     output=buffer.get_last(),
                                                     action_loop_detector=action_loop_detector,
                                                     exception=e):
@@ -167,7 +149,7 @@ class CommandProcessor(AbstractCommandProcessor):
                         continue
 
                 if action_map.process(session=self.session,
-                                      logger=self.logger,
+                                      logger=logger,
                                       output=buffer.get_last(),
                                       action_loop_detector=action_loop_detector):
                     buffer.next_bunch()

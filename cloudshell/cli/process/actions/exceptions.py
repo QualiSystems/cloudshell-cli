@@ -1,4 +1,4 @@
-from cloudshell.cli.session.processing.exceptions import SessionProcessingException
+from cloudshell.cli.process.exceptions import SessionProcessingException
 
 
 class ActionsException(SessionProcessingException):

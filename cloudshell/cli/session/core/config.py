@@ -1,5 +1,4 @@
-from cloudshell.cli.session.basic_session.prompt.factory import BasicPromptFactory
-from cloudshell.cli.session.basic_session.prompt.prompt import BasicPrompt
+from cloudshell.cli.session.prompt.factory import BasicPromptFactory
 
 
 class SessionConfig(object):

@@ -82,9 +82,9 @@ nexus(config)#
 _**Note:** You're welcome to check the CommandMode docstring for additional parameters._
 
 **Example - Declaring a single command mode:**
-```python
-from cloudshell.cli.service.command_mode import CommandMode
 
+```python
+from cloudshell.cli.mode import CommandMode
 
 mode = CommandMode(prompt='*#')
 
@@ -93,8 +93,7 @@ mode = CommandMode(prompt='*#')
 **Example - Declaring two command modes and the hierarchy using `parent_mode`):**
 
 ```python
-from cloudshell.cli.service.command_mode import CommandMode
-
+from cloudshell.cli.mode import CommandMode
 
 enable_mode = CommandMode('*>')
 config_mode = CommandMode('*#', enter_command="configure terminal", exit_command="exit", parent_mode=enable_mode)
@@ -111,7 +110,7 @@ Now that we've learned how to define the session and declare the command modes, 
 ```python
 from cloudshell.cli.service.cli import CLI
 from cloudshell.cli.profiles import SSHSession
-from cloudshell.cli.service.command_mode import CommandMode
+from cloudshell.cli.mode import CommandMode
 
 cli = CLI()
 mode = CommandMode(r'my_prompt_regex')  # for example r'%\s*$'
@@ -134,7 +133,7 @@ In the previous example, we assumed the device works over SSH. However, you can 
 from cloudshell.cli.service.cli import CLI
 from cloudshell.cli.profiles import SSHSession
 from cloudshell.cli.profiles.telnet.telnet_session import TelnetSession
-from cloudshell.cli.service.command_mode import CommandMode
+from cloudshell.cli.mode import CommandMode
 
 cli = CLI()
 mode = CommandMode(r'my_prompt_regex')  # for example r'%\s*$'
@@ -155,7 +154,7 @@ First, CloudShell CLI will get a session to the device from the session pool (wh
 from cloudshell.cli.service.cli import CLI
 from cloudshell.cli.profiles import SSHSession
 from cloudshell.cli.profiles.telnet.telnet_session import TelnetSession
-from cloudshell.cli.service.command_mode import CommandMode
+from cloudshell.cli.mode import CommandMode
 
 hostname = "192.168.1.1"
 username = "admin"
@@ -201,7 +200,7 @@ In the previous example, we learned how to switch from enable_mode to config_mod
 from cloudshell.cli.service.cli import CLI
 from cloudshell.cli.profiles import SSHSession
 from cloudshell.cli.profiles.telnet.telnet_session import TelnetSession
-from cloudshell.cli.service.command_mode import CommandMode
+from cloudshell.cli.mode import CommandMode
 
 hostname = "192.168.1.1"
 username = "admin"
@@ -237,7 +236,7 @@ In this chapter, we will learn how to set predefined actions to specific cli pro
 from cloudshell.cli.service.cli import CLI
 from cloudshell.cli.profiles import SSHSession
 from cloudshell.cli.profiles.telnet.telnet_session import TelnetSession
-from cloudshell.cli.service.command_mode import CommandMode
+from cloudshell.cli.mode import CommandMode
 
 hostname = "192.168.1.1"
 username = "admin"

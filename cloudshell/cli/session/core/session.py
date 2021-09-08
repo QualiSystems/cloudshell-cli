@@ -3,18 +3,18 @@ import time
 from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Optional
 
-from cloudshell.cli.session.basic_session.core.session_config import SessionConfig
-from cloudshell.cli.session.basic_session.helper.send_receive import check_active
+from cloudshell.cli.session.core.config import SessionConfig
+from cloudshell.cli.session.helper.send_receive import check_active
 
 if TYPE_CHECKING:
-    from cloudshell.cli.session.basic_session.prompt.prompt import AbstractPrompt
+    from cloudshell.cli.session.prompt.prompt import AbstractPrompt
 
 ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 
 logger = logging.getLogger(__name__)
 
 
-class AbstractSession(ABC):
+class Session(ABC):
     """Session model.
 
     Session is used for manage connection, keep connection state and send/receive data.
@@ -53,7 +53,7 @@ class AbstractSession(ABC):
             self._prompt = self.probe_for_prompt(command)
         return self._prompt
 
-    def probe_for_prompt(self, command: str = None) -> AbstractPrompt:
+    def probe_for_prompt(self, command: str = None) -> "AbstractPrompt":
         return self.config.prompt_factory.create_prompt(self, command)
 
     def discard_current_prompt(self) -> None:
