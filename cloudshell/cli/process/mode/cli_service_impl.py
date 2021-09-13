@@ -1,7 +1,7 @@
 import re
 
-from cloudshell.cli.mode.cli_service import CliService
-from cloudshell.cli.mode.command_mode_helper import CommandModeHelper
+from cloudshell.cli.process.mode.cli_service import CliService
+from cloudshell.cli.process.mode.command_mode_helper import CommandModeHelper
 
 
 class EnterCommandModeContextManager(object):

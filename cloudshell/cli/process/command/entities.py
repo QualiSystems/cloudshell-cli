@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from cloudshell.cli.session.prompt.prompt import AbstractPrompt
-    from cloudshell.cli.process.actions.action_map import ActionMap
+    from cloudshell.cli.process.command.actions.action_map import ActionMap
     from cloudshell.cli.process.command.reader import ResponseBuffer
 
 

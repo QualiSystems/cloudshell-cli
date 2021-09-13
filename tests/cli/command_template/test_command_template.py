@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from cloudshell.cli.process.command_template import CommandTemplate
+from cloudshell.cli.process.command.template import CommandTemplate
 
 
 class TestCommandModeContextManager(TestCase):

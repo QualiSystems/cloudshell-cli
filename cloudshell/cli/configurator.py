@@ -4,12 +4,12 @@ import sys
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 
-from cloudshell.cli.factory.session_factory import (
+from cloudshell.cli._factory.session_factory import (
     CloudInfoAccessKeySessionFactory,
     GenericSessionFactory,
     SessionFactory,
 )
-from cloudshell.cli.service.cli import CLI
+from cloudshell.cli._service.cli import CLI
 from cloudshell.cli.profiles import SSHSession
 from cloudshell.cli.profiles.telnet.telnet_session import TelnetSession
 

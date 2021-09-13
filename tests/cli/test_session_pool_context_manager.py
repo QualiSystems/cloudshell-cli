@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from cloudshell.cli.mode import (
+from cloudshell.cli.process.mode import (
     SessionPoolContextManager,
 )
 from cloudshell.cli.session.core.exceptions import CommandExecutionException

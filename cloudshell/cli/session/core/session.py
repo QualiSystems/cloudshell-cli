@@ -7,7 +7,7 @@ from cloudshell.cli.session.core.config import SessionConfig
 from cloudshell.cli.session.helper.send_receive import check_active
 
 if TYPE_CHECKING:
-    from cloudshell.cli.session.prompt.prompt import AbstractPrompt
+    from cloudshell.cli.session.prompt.prompt import Prompt
 
 ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 
@@ -46,17 +46,17 @@ class Session(ABC):
 
     def disconnect(self) -> None:
         self.__connected = False
-        logger.debug("Session is DISCONNECTED")
+        logger.debug(f"Session {self.get_session_type()} is DISCONNECTED")
 
-    def get_prompt(self, command: str = None) -> "AbstractPrompt":
+    def get_prompt(self, command: Optional[str] = None) -> "Prompt":
         if not self._prompt:
             self._prompt = self.probe_for_prompt(command)
         return self._prompt
 
-    def probe_for_prompt(self, command: str = None) -> "AbstractPrompt":
+    def probe_for_prompt(self, command: Optional[str] = None) -> "Prompt":
         return self.config.prompt_factory.create_prompt(self, command)
 
-    def discard_current_prompt(self) -> None:
+    def discard_prompt(self) -> None:
         self._prompt = None
 
     def set_active(self) -> None:

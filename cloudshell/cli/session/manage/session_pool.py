@@ -4,8 +4,9 @@ from queue import Queue, Empty
 from threading import Condition
 from typing import Optional, List, TYPE_CHECKING
 
-from cloudshell.cli.manage.exception import SessionPoolException
-from cloudshell.cli.manage.session_manager import SessionManager
+from cloudshell.cli.session.manage.exception import SessionPoolException
+from cloudshell.cli.session.manage.reconnect import reconnect
+from cloudshell.cli.session.manage.session_manager import SessionManager
 
 if TYPE_CHECKING:
     from cloudshell.cli.session.core.factory import AbstractSessionFactory
@@ -46,8 +47,10 @@ class SessionPoolManager(object):
             session_obj = None
             while session_obj is None:
                 session_obj = self._get_from_pool(factories)
+                if session_obj:
+                    continue
 
-                if not session_obj and self._session_manager.sessions_count() < self._pool.maxsize:
+                elif not self._session_manager.full():
                     session_obj = self._create_session(factories, prompt)
                 else:
                     self._session_condition.wait(self._pool_timeout)
@@ -70,7 +73,8 @@ class SessionPoolManager(object):
         """Return session back to the pool."""
         logger.debug("Return session to the pool")
         with self._session_condition:
-            self._pool.put(session)
+            if session.get_active():
+                self._pool.put(session)
             self._session_condition.notify()
 
     def _create_session(self, factories: List["AbstractSessionFactory"],
@@ -89,7 +93,11 @@ class SessionPoolManager(object):
             except Empty:
                 return
 
-            if self._session_manager.is_compatible(session, factories) and session.get_active():
+            if session and self._session_manager.is_compatible(session, factories):
+                if not session.get_active():
+                    try:
+                        reconnect(session)
+                    except Exception:
+                        self.remove_session(session)
+                        return
                 return session
-
-            self.remove_session(session)

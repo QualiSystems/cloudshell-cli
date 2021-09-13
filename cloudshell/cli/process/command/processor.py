@@ -3,15 +3,15 @@ from functools import lru_cache
 from threading import RLock
 from typing import TYPE_CHECKING, Optional, Iterator
 
+from cloudshell.cli.process.command.helper.reader_helper import remove_command
 from cloudshell.cli.session.helper.send_receive import clear_buffer, send_line
-from cloudshell.cli.process.actions.action_map import ActionMap
-from cloudshell.cli.process.actions.exceptions import ActionsReturnData
+from cloudshell.cli.process.command.actions.action_map import ActionMap
+from cloudshell.cli.process.command.actions.exception import ActionsReturnData
 from cloudshell.cli.process.command.entities import CommandResponse
-from cloudshell.cli.process.actions.validators.action_loop_detector import ActionLoopDetector
+from cloudshell.cli.process.command.actions.validators.action_loop_detector import ActionLoopDetector
 from cloudshell.cli.process.command.config import ProcessingConfig
 from cloudshell.cli.process.command.reader import Reader, ResponseBuffer
-from cloudshell.cli.process.exceptions import SessionProcessingException
-from cloudshell.cli.process.helper.reader_helper import remove_command
+from cloudshell.cli.process.command.exception import SessionProcessingException
 
 if TYPE_CHECKING:
     from cloudshell.cli.process.command.entities import Command
@@ -23,9 +23,14 @@ logger = logging.getLogger(__name__)
 
 class CommandProcessor(object):
 
-    def __init__(self, session: "Session", processing_config: ProcessingConfig = None):
+    def __init__(self, session: "Session", processing_config: Optional[ProcessingConfig] = None):
         self.session = session
-        self._config = processing_config or ProcessingConfig()
+        if processing_config:
+            self._config = processing_config
+        elif isinstance(session.config, ProcessingConfig):
+            self._config = session.config
+        else:
+            self._config = ProcessingConfig()
         self.lock = RLock()
 
     @property
@@ -126,7 +131,6 @@ class CommandProcessor(object):
 
             self.send(command)
 
-            prompt = command.prompt
             action_map = command.action_map or ActionMap()
             buffer = ResponseBuffer()
             action_loop_detector = None
@@ -134,7 +138,7 @@ class CommandProcessor(object):
             if command.detect_loops:
                 action_loop_detector = self._get_action_loop_detector()
 
-            self.session.discard_current_prompt()
+            self.session.discard_prompt()
 
             while True:
                 try:
@@ -155,11 +159,8 @@ class CommandProcessor(object):
                     buffer.next_bunch()
                     continue
 
-                if prompt:
-                    if prompt.match(buffer.get_last()):
-                        return self.session.get_prompt()
-                    continue
+                new_prompt = self.session.get_prompt()
+                if new_prompt:
+                    return new_prompt
 
-                prompt = self.session.get_prompt()
-                if prompt:
-                    return prompt
+                continue

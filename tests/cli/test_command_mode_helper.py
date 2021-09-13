@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from cloudshell.cli.mode import CommandModeException
-from cloudshell.cli.mode import CommandModeHelper
+from cloudshell.cli.process.mode import CommandModeException
+from cloudshell.cli.process.mode import CommandModeHelper
 
 try:
     from unittest.mock import Mock, patch

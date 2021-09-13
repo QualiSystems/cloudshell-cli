@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from cloudshell.cli.manage.session_pool_manager import (
+from cloudshell.cli.session.manage import (
     SessionPoolException,
     SessionPoolManager,
 )

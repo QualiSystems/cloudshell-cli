@@ -2,10 +2,10 @@ import re
 
 
 class Prompt(object):
-    def __init__(self, prompt_pattern, source_data=None):
-        self.prom_pattern = prompt_pattern
+    def __init__(self, pattern, source_data=None):
+        self.pattern = pattern
         self.source_data = source_data
-        self._compiled_pattern = re.compile(re.escape(prompt_pattern), re.DOTALL)
+        self._compiled_pattern = re.compile(self.pattern, re.DOTALL)
 
     def __eq__(self, other: "Prompt"):
         if self.source_data:
@@ -13,7 +13,7 @@ class Prompt(object):
         return self.match(str(other)) or other.match(str(self))
 
     def __str__(self):
-        return self.prom_pattern
+        return self.pattern
 
     def __repr__(self):
         return self.__str__()

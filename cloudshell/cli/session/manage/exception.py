@@ -1,4 +1,4 @@
-from cloudshell.cli.session.exception import SessionException
+from cloudshell.cli.session.core.exception import SessionException
 
 
 class SessionManagerException(SessionException):

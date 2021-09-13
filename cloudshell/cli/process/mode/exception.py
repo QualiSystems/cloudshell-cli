@@ -1,0 +1,2 @@
+class CommandModeException(Exception):
+    pass

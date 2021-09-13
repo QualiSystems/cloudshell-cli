@@ -84,7 +84,7 @@ _**Note:** You're welcome to check the CommandMode docstring for additional para
 **Example - Declaring a single command mode:**
 
 ```python
-from cloudshell.cli.mode import CommandMode
+from cloudshell.cli.process.mode import CommandMode
 
 mode = CommandMode(prompt='*#')
 
@@ -93,7 +93,7 @@ mode = CommandMode(prompt='*#')
 **Example - Declaring two command modes and the hierarchy using `parent_mode`):**
 
 ```python
-from cloudshell.cli.mode import CommandMode
+from cloudshell.cli.process.mode import CommandMode
 
 enable_mode = CommandMode('*>')
 config_mode = CommandMode('*#', enter_command="configure terminal", exit_command="exit", parent_mode=enable_mode)
@@ -108,9 +108,9 @@ config_mode = CommandMode('*#', enter_command="configure terminal", exit_command
 Now that we've learned how to define the session and declare the command modes, we can start using them by creating a CLI object and passing the defined session and command modes.
 
 ```python
-from cloudshell.cli.service.cli import CLI
+from cloudshell.cli._service.cli import CLI
 from cloudshell.cli.profiles import SSHSession
-from cloudshell.cli.mode import CommandMode
+from cloudshell.cli.process.mode import CommandMode
 
 cli = CLI()
 mode = CommandMode(r'my_prompt_regex')  # for example r'%\s*$'
@@ -120,8 +120,8 @@ session_types = [SSHSession(host='ip_address', username='user_name', password='p
 # extract a session from the pool, send the command and return the session to the pool upon completing the "with"
 # block:
 with cli.get_session(session_types, mode) as cli_service:
-    out = cli_service.send_command('show interfaces')
-    print(out)
+  out = cli_service.send_command('show interfaces')
+  print(out)
 
 ```
 
@@ -130,10 +130,10 @@ with cli.get_session(session_types, mode) as cli_service:
 In the previous example, we assumed the device works over SSH. However, you can specify multiple communication protocols (for example, SSH and Telnet). In such a case, CloudShell will attempt connection with each provided protocol until it finds the one that works.
 
 ```python
-from cloudshell.cli.service.cli import CLI
+from cloudshell.cli._service.cli import CLI
 from cloudshell.cli.profiles import SSHSession
 from cloudshell.cli.profiles.telnet.telnet_session import TelnetSession
-from cloudshell.cli.mode import CommandMode
+from cloudshell.cli.process.mode import CommandMode
 
 cli = CLI()
 mode = CommandMode(r'my_prompt_regex')  # for example r'%\s*$'
@@ -141,8 +141,8 @@ mode = CommandMode(r'my_prompt_regex')  # for example r'%\s*$'
 session_types = [SSHSession(host='ip_address', username='user_name', password='password')]
 
 with cli.get_session(session_types, mode) as cli_service:
-    out = cli_service.send_command('show interfaces')
-    print(out)
+  out = cli_service.send_command('show interfaces')
+  print(out)
 
 ```
 **Example - Using multiple command modes**
@@ -151,10 +151,10 @@ To illustrate this point, the following example will execute a `show interfaces`
 First, CloudShell CLI will get a session to the device from the session pool (which will create a new one if empty). The cli service will use the session to access the device and detect the current mode (let's assume it's **enable_mode**). Then, it will automatically switch to config_mode by executing the `enter_command` parameter, as specified in the **config_mode**'s definition.
 
 ```python
-from cloudshell.cli.service.cli import CLI
+from cloudshell.cli._service.cli import CLI
 from cloudshell.cli.profiles import SSHSession
 from cloudshell.cli.profiles.telnet.telnet_session import TelnetSession
-from cloudshell.cli.mode import CommandMode
+from cloudshell.cli.process.mode import CommandMode
 
 hostname = "192.168.1.1"
 username = "admin"
@@ -171,12 +171,12 @@ cli = CLI()
 # extract a session from the pool, switch to config mode, send the command, and return the session to the pool
 # when "with" block finished:
 with cli.get_session(sessions, config_mode) as cli_service:
-    output = cli_service.send_command('show interfaces')
+  output = cli_service.send_command('show interfaces')
 
 # extract the session, switch to enable mode, send the command and return the session to the pool after the
 # "with" block:
 with cli.get_session(sessions, enable_mode) as cli_service:
-    output = cli_service.send_command('show version')
+  output = cli_service.send_command('show version')
 # ----------------------------------------------------------
 # OR switch between the modes by enter_mode command:
 # ----------------------------------------------------------
@@ -184,10 +184,10 @@ with cli.get_session(sessions, enable_mode) as cli_service:
 # send commands, upon completing the 2nd "with" block, return to the previous mode (enable mode) and 
 # return the session to the pool:
 with cli.get_session(sessions, enable_mode) as cli_service:
-    output = cli_service.send_command('show version')
-    with cli_service.enter_mode(config_mode) as config_cli_service:
-        print(config_cli_service.send_command('show interfaces'))
-        output = config_cli_service.send_command('show configuration')
+  output = cli_service.send_command('show version')
+  with cli_service.enter_mode(config_mode) as config_cli_service:
+    print(config_cli_service.send_command('show interfaces'))
+    output = config_cli_service.send_command('show configuration')
 # ----------------------------------------------------------
 
 ```
@@ -197,10 +197,10 @@ with cli.get_session(sessions, enable_mode) as cli_service:
 In the previous example, we learned how to switch from enable_mode to config_mode and send commands in each. Now let's say you're in config_mode and want to return to enable_mode. To do so, simply return to the enable_mode block's indentation and specify your command.
 
 ```python
-from cloudshell.cli.service.cli import CLI
+from cloudshell.cli._service.cli import CLI
 from cloudshell.cli.profiles import SSHSession
 from cloudshell.cli.profiles.telnet.telnet_session import TelnetSession
-from cloudshell.cli.mode import CommandMode
+from cloudshell.cli.process.mode import CommandMode
 
 hostname = "192.168.1.1"
 username = "admin"
@@ -214,12 +214,12 @@ sessions = [SSHSession(hostname, username, password), TelnetSession(hostname, us
 cli = CLI()
 
 with cli.get_session(sessions, enable_mode) as cli_service:
-    output = cli_service.send_command('show version')
-    with cli_service.enter_mode(config_mode) as config_cli_service:
-        print(config_cli_service.send_command('show interfaces'))
-        output = config_cli_service.send_command('show configuration')
-    # switch back to enable_mode and send a command
-    cli_service.send_command("some command")
+  output = cli_service.send_command('show version')
+  with cli_service.enter_mode(config_mode) as config_cli_service:
+    print(config_cli_service.send_command('show interfaces'))
+    output = config_cli_service.send_command('show configuration')
+  # switch back to enable_mode and send a command
+  cli_service.send_command("some command")
 
 ```
 
@@ -233,10 +233,10 @@ In this chapter, we will learn how to set predefined actions to specific cli pro
 **Example:**
 
 ```python
-from cloudshell.cli.service.cli import CLI
+from cloudshell.cli._service.cli import CLI
 from cloudshell.cli.profiles import SSHSession
 from cloudshell.cli.profiles.telnet.telnet_session import TelnetSession
-from cloudshell.cli.mode import CommandMode
+from cloudshell.cli.process.mode import CommandMode
 
 hostname = "192.168.1.1"
 username = "admin"
@@ -255,6 +255,6 @@ my_action_map = {r"--More--": lambda session, logger: session.send_line("", logg
 my_error_map = {r"^[Ii]nvalid [Cc]ommand": "My error message",
                 }
 with cli.get_session(sessions, enable_mode) as cli_service:
-    output = cli_service.send_command('show version', action_map=my_action_map, error_map=my_error_map)
+  output = cli_service.send_command('show version', action_map=my_action_map, error_map=my_error_map)
 ```
 

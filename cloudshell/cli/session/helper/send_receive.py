@@ -1,7 +1,7 @@
 import time
 from typing import TYPE_CHECKING, Optional
 
-from cloudshell.cli.session.exception import SessionReadTimeout, SessionReadEmptyData, SessionException
+from cloudshell.cli.session.core.exception import SessionReadTimeout, SessionReadEmptyData, SessionException
 
 if TYPE_CHECKING:
     from cloudshell.cli.session.core.session import Session

@@ -9,6 +9,3 @@ class SessionReadTimeout(SessionException):
 class SessionReadEmptyData(SessionException):
     pass
 
-
-class PromCannotBeDefinedException(SessionException):
-    pass

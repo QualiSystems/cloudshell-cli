@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from cloudshell.cli.mode import CommandMode
+from cloudshell.cli.process.mode import CommandMode
 
 try:
     from unittest.mock import Mock

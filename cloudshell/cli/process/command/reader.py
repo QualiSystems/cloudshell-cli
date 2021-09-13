@@ -2,14 +2,15 @@ import logging
 import time
 from typing import TYPE_CHECKING
 
-from cloudshell.cli.process.exceptions import SessionLoopLimitException
-from cloudshell.cli.process.helper.reader_helper import normalize_buffer
+from cloudshell.cli.process.command.exception import SessionLoopLimitException
+from cloudshell.cli.process.command.helper.reader_helper import normalize_buffer
 from cloudshell.cli.session.helper.send_receive import receive_all
 
 if TYPE_CHECKING:
     from cloudshell.cli.session.core.session import Session
 
 logger = logging.getLogger(__name__)
+
 
 class ResponseBuffer(object):
     def __init__(self):

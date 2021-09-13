@@ -1,7 +1,7 @@
 import logging
 from typing import TYPE_CHECKING, List, Optional
 
-from cloudshell.cli.manage.exception import SessionManagerException
+from cloudshell.cli.session.manage.exception import SessionManagerException
 
 if TYPE_CHECKING:
     from cloudshell.cli.session.prompt.prompt import Prompt
@@ -12,8 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 class SessionManager(object):
-    def __init__(self):
+    def __init__(self, max_size: int = 1):
         self._existing_sessions = []
+        self._max_size = max_size
 
     def new_session(self, factories: List["AbstractSessionFactory"],
                     prompt: Optional["Prompt"] = None) -> "Session":
@@ -36,6 +37,9 @@ class SessionManager(object):
         :rtype: int
         """
         return len(self._existing_sessions)
+
+    def full(self):
+        return self.sessions_count() >= self._max_size
 
     def remove_session(self, session: "Session"):
         """Remove session."""

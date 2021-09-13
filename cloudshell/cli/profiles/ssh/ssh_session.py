@@ -7,7 +7,7 @@ from scp import SCPClient
 
 from cloudshell.cli.session.core.connection_params import ConnectionParams
 from cloudshell.cli.session.core.session import Session
-from cloudshell.cli.session.exception import SessionException, SessionReadTimeout, SessionReadEmptyData
+from cloudshell.cli.session.core.exception import SessionException, SessionReadTimeout, SessionReadEmptyData
 
 
 class SSHSessionException(SessionException):

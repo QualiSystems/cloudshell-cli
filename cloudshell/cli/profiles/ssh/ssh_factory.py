@@ -1,8 +1,7 @@
 import logging
-from logging import Logger
 from typing import TYPE_CHECKING, Optional
 
-from cloudshell.cli.process.command.command_processor import CommandProcessor
+from cloudshell.cli.process.command.processor import CommandProcessor
 from cloudshell.cli.profiles.ssh.ssh_session import SSHSession
 from cloudshell.cli.process.command.entities import Command
 from cloudshell.cli.session.core.factory import AbstractSessionFactory
