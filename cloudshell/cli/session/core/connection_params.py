@@ -1,4 +1,5 @@
 from abc import ABCMeta
+from typing import Optional
 
 ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 
@@ -6,7 +7,10 @@ ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 class ConnectionParams(ABC):
     """Session parameters."""
 
-    def __init__(self, hostname, port=None, on_session_start=None):
+    def __init__(self, hostname: str,
+                 port: Optional[str, int] = None,
+                 username: Optional[str] = None,
+                 password: Optional[str] = None):
         self.hostname = hostname
         self.port = None
 
@@ -21,13 +25,10 @@ class ConnectionParams(ABC):
         else:
             self.hostname = hostname
 
-        self.on_session_start = on_session_start
+        self.username = username
+        self.password = password
 
-    def _on_session_start(self, logger):
-        if self.on_session_start and callable(self.on_session_start):
-            self.on_session_start(self, logger)
-
-    def __eq__(self, other):
+    def __eq__(self, other: "ConnectionParams"):
         """Is equal.
 
         :type other: ConnectionParams
@@ -37,4 +38,6 @@ class ConnectionParams(ABC):
                 self.__class__ == other.__class__
                 and self.hostname == other.hostname
                 and self.port == other.port
+                and self.username == other.username
+                and self.password == other.password
         )

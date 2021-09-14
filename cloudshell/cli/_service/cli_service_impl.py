@@ -1,6 +1,6 @@
 import re
 
-from cloudshell.cli.process.mode.cli_service import CliService
+from cloudshell.cli._service.cli_service import CliService
 from cloudshell.cli.process.mode.command_mode_helper import CommandModeHelper
 
 

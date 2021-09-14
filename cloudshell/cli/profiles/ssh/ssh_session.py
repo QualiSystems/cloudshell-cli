@@ -1,10 +1,13 @@
 import logging
 import socket
 from io import StringIO
+from typing import Optional
 
 import paramiko
 from scp import SCPClient
 
+from cloudshell.cli.process.command.config import ProcessingConfig
+from cloudshell.cli.session.core.config import SessionConfig
 from cloudshell.cli.session.core.connection_params import ConnectionParams
 from cloudshell.cli.session.core.session import Session
 from cloudshell.cli.session.core.exception import SessionException, SessionReadTimeout, SessionReadEmptyData
@@ -17,35 +20,30 @@ class SSHSessionException(SessionException):
 logger = logging.getLogger(__name__)
 
 
-class SSHSession(Session, ConnectionParams):
-    SESSION_TYPE = "SSH"
-    BUFFER_SIZE = 512
-    CONNECT_TIMEOUT = 30
-
-    def __init__(
-            self,
-            hostname,
-            username,
-            password,
-            port=None,
-            on_session_start=None,
-            pkey=None,
-            pkey_passphrase=None,
-            session_config=None
-    ):
-        ConnectionParams.__init__(
-            self, hostname=hostname, port=port or 22, on_session_start=on_session_start
-        )
-        Session.__init__(self, session_config)
-        self.username = username
-        self.password = password
-
+class SSHParams(ConnectionParams):
+    def __init__(self, hostname, username, password, port=None, pkey=None, pkey_passphrase=None):
+        super().__init__(hostname, port, username, password)
         self.pkey = pkey
         self.pkey_passphrase = pkey_passphrase
 
+    def __eq__(self, other: "SSHParams"):
+        return (super().__eq__(other)
+                and self.pkey == other.pkey
+                and self.pkey_passphrase == other.pkey_passphrase)
+
+
+class SSHSession(Session):
+    SESSION_TYPE = "SSH"
+
+    class SSHConfig(SessionConfig, ProcessingConfig):
+        buffer_size: int = 512
+        connect_timeout: int = 30
+
+    def __init__(self, params: SSHParams, config: Optional[SSHConfig] = None):
+        Session.__init__(self, config if config is not None else self.SSHConfig())
+        self.params = params
         self._handler = None
         self._current_channel = None
-        self._buffer_size = self.BUFFER_SIZE
 
     def __eq__(self, other):
         """Is equal.
@@ -76,7 +74,7 @@ class SSHSession(Session, ConnectionParams):
         :param int timeout:
         :return:
         """
-        connect_timeout = timeout or self.config.timeout
+        connect_timeout = timeout or self.config.connect_timeout
         self._create_handler()
         try:
             self._handler.connect(
@@ -99,18 +97,6 @@ class SSHSession(Session, ConnectionParams):
         self._current_channel = self._handler.invoke_shell()
         self._current_channel.settimeout(connect_timeout)
         super(SSHSession, self).connect()
-
-    # def _connect_actions(self, prompt, logger):
-    #     """Connect actions.
-    #
-    #     :param str prompt:
-    #     :param logging.Logger logger:
-    #     :return:
-    #     """
-    #     self.hardware_expect(
-    #         None, expected_string=prompt, timeout=self._timeout, logger=logger
-    #     )
-    #     self._on_session_start(logger)
 
     def disconnect(self):
         """Disconnect from device."""
@@ -142,7 +128,7 @@ class SSHSession(Session, ConnectionParams):
         self._current_channel.settimeout(timeout)
 
         try:
-            byte_data = self._current_channel.recv(self._buffer_size)
+            byte_data = self._current_channel.recv(self.config.buffer_size)
             data = byte_data.decode()
         except socket.timeout:
             raise SessionReadTimeout()

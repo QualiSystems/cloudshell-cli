@@ -4,6 +4,7 @@ from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Optional
 
 from cloudshell.cli.session.core.config import SessionConfig
+from cloudshell.cli.session.core.exception import SessionException
 from cloudshell.cli.session.helper.send_receive import check_active
 
 if TYPE_CHECKING:
@@ -21,7 +22,7 @@ class Session(ABC):
     """
     SESSION_TYPE = None
 
-    def __init__(self, session_config: SessionConfig = None):
+    def __init__(self, session_config: "SessionConfig"):
         self.__connected = False
         self._last_activity = None
         self.config = session_config or SessionConfig()
@@ -54,6 +55,8 @@ class Session(ABC):
         return self._prompt
 
     def probe_for_prompt(self, command: Optional[str] = None) -> "Prompt":
+        if not self.get_connected():
+            raise SessionException("Cannot define prompt, session is not connected.")
         return self.config.prompt_factory.create_prompt(self, command)
 
     def discard_prompt(self) -> None:
@@ -63,6 +66,8 @@ class Session(ABC):
         self._last_activity = time.time()
 
     def check_active(self) -> bool:
+        if not self.get_connected():
+            return False
         logger.debug("Check active")
         return check_active(self)
 

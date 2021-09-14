@@ -56,26 +56,3 @@ class CommandMode(Node):
 
     def enter_actions(self, command_processor: "CommandProcessor"):
         pass
-
-    # def enter_actions(self, command_processor: "CommandProcessor"):
-    #     """Default actions."""
-    #     pass
-
-    # def prompt_actions(self, command_processor: "CommandProcessor"):
-    #     """Prompt actions."""
-    #     pass
-
-    # @classmethod
-    # def get_all_attached_command_modes(cls, relations_dict=None):
-    #     if relations_dict is None:
-    #         relations_dict = cls.RELATIONS_DICT
-    #
-    #     for key, val in relations_dict.items():
-    #         yield key
-    #
-    #         if isinstance(val, dict):
-    #             for key in cls.get_all_attached_command_modes(val):
-    #                 yield key
-    #
-    # def is_attached_command_mode(self):
-    #     return isinstance(self, tuple(self.get_all_attached_command_modes()))

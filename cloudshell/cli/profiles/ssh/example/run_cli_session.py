@@ -4,7 +4,7 @@ import sys
 from cloudshell.cli.process.command.processor import CommandProcessor
 from cloudshell.cli.process.command.entities import Command
 from cloudshell.cli.process.mode.command_mode import CommandMode
-from cloudshell.cli.process.mode.mode_context_manager import CommandModeContextManager
+from cloudshell.cli.process.mode.manager import CommandModeContextManager
 from cloudshell.cli.profiles.ssh.ssh_factory import SSHSessionFactory
 from cloudshell.cli.session.manage.session_pool import SessionPoolManager
 from cloudshell.cli.session.prompt.prompt import Prompt
