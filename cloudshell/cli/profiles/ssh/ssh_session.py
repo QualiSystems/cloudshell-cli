@@ -20,8 +20,13 @@ class SSHSessionException(SessionException):
 logger = logging.getLogger(__name__)
 
 
+class SSHConfig(SessionConfig, ProcessingConfig):
+    buffer_size: int = 512
+    connect_timeout: int = 30
+
+
 class SSHParams(ConnectionParams):
-    def __init__(self, hostname, username, password, port=None, pkey=None, pkey_passphrase=None):
+    def __init__(self, hostname, username, password=None, port=None, pkey=None, pkey_passphrase=None):
         super().__init__(hostname, port, username, password)
         self.pkey = pkey
         self.pkey_passphrase = pkey_passphrase
@@ -35,30 +40,14 @@ class SSHParams(ConnectionParams):
 class SSHSession(Session):
     SESSION_TYPE = "SSH"
 
-    class SSHConfig(SessionConfig, ProcessingConfig):
-        buffer_size: int = 512
-        connect_timeout: int = 30
-
-    def __init__(self, params: SSHParams, config: Optional[SSHConfig] = None):
-        Session.__init__(self, config if config is not None else self.SSHConfig())
-        self.params = params
+    def __init__(self, params: "SSHParams", config: Optional["SSHConfig"] = None):
+        Session.__init__(self, params, config if config is not None else SSHConfig())
         self._handler = None
         self._current_channel = None
 
-    def __eq__(self, other):
-        """Is equal.
-
-        :param SSHSession other:
-        """
-        return all(
-            [
-                ConnectionParams.__eq__(self, other),
-                self.username == other.username,
-                self.password == other.password,
-                self.pkey == other.pkey,
-                self.pkey_passphrase == other.pkey_passphrase,
-            ]
-        )
+    def __eq__(self, other: "SSHSession"):
+        """Is equal."""
+        return isinstance(other, SSHSession) and self.params == other.params
 
     def __del__(self):
         self.disconnect()

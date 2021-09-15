@@ -9,3 +9,6 @@ class SessionReadTimeout(SessionException):
 class SessionReadEmptyData(SessionException):
     pass
 
+
+class SessionFactoryException(SessionException):
+    pass

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, Sequence
 
 from cloudshell.cli.process.command.exception import CommandExecutionException
 from cloudshell.cli.process.command.processor import CommandProcessor
@@ -16,7 +16,7 @@ class CommandModeContextManager(object):
 
     IGNORED_EXCEPTIONS = (CommandExecutionException,)
 
-    def __init__(self, session_pool: "SessionPoolManager", session_factories: List["AbstractSessionFactory"],
+    def __init__(self, session_pool: "SessionPoolManager", session_factories: Sequence["AbstractSessionFactory"],
                  command_mode: "CommandMode"):
         """Initialize Session pool context manager."""
         self._session_pool = session_pool

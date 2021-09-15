@@ -9,6 +9,7 @@ from cloudshell.cli.session.helper.send_receive import check_active
 
 if TYPE_CHECKING:
     from cloudshell.cli.session.prompt.prompt import Prompt
+    from cloudshell.cli.session.core.connection_params import ConnectionParams
 
 ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 
@@ -22,31 +23,34 @@ class Session(ABC):
     """
     SESSION_TYPE = None
 
-    def __init__(self, session_config: "SessionConfig"):
-        self.__connected = False
-        self._last_activity = None
+    def __init__(self, params: "ConnectionParams", session_config: Optional["SessionConfig"] = None):
+        self.params = params
         self.config = session_config or SessionConfig()
+        self._connected = False
+        self._last_activity = None
         self._prompt = None
 
     def get_connected(self) -> bool:
-        return self.__connected
+        return self._connected
 
-    def get_session_type(self) -> str:
-        return self.SESSION_TYPE
+    @staticmethod
+    def get_session_type() -> str:
+        return Session.SESSION_TYPE
 
     @abstractmethod
     def send(self, command: str) -> None:
         pass
 
+    @abstractmethod
     def receive(self, timeout=Optional[int]) -> str:
         self.set_active()
 
     def connect(self) -> None:
-        self.__connected = True
+        self._connected = True
         logger.debug("Session is CONNECTED")
 
     def disconnect(self) -> None:
-        self.__connected = False
+        self._connected = False
         logger.debug(f"Session {self.get_session_type()} is DISCONNECTED")
 
     def get_prompt(self, command: Optional[str] = None) -> "Prompt":

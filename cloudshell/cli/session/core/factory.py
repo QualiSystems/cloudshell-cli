@@ -1,26 +1,27 @@
-from abc import ABCMeta, abstractmethod
-from typing import TYPE_CHECKING
+from abc import abstractmethod
+from typing import TYPE_CHECKING, Type, Optional
 
 if TYPE_CHECKING:
     from cloudshell.cli.session.core.session import Session
+    from cloudshell.cli.session.core.config import SessionConfig
 
-ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 
-
-class AbstractSessionFactory(ABC):
+class AbstractSessionFactory(object):
     """Session Factory model.
 
     Create new session object.
     """
 
-    @abstractmethod
-    def get_type(self):
-        raise NotImplementedError
+    def __init__(self, session_class: Type[Session], session_config: Optional[SessionConfig] = None):
+        self.session_class = session_class
+        self.config = session_config
+
+    def get_session_type(self) -> str:
+        return self.session_class.get_session_type()
 
     @abstractmethod
-    def get_session(self, *args, **kwargs):
+    def get_active_session(self) -> "Session":
         raise NotImplementedError
 
-    @abstractmethod
-    def compatible(self, session: "Session"):
-        raise NotImplementedError
+    def compatible(self, session: "Session") -> bool:
+        return isinstance(session, self.session_class)

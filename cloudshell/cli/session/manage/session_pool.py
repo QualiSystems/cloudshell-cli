@@ -2,7 +2,7 @@ import logging
 import time
 from queue import Queue, Empty
 from threading import Condition
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional, List, TYPE_CHECKING, Sequence
 
 from cloudshell.cli.session.manage.exception import SessionPoolException
 from cloudshell.cli.session.manage.reconnect import reconnect
@@ -11,7 +11,6 @@ from cloudshell.cli.session.manage.session_manager import SessionManager
 if TYPE_CHECKING:
     from cloudshell.cli.session.core.factory import AbstractSessionFactory
     from cloudshell.cli.session.core.session import Session
-    from cloudshell.cli.session.prompt.prompt import Prompt
 
 logger = logging.getLogger(__name__)
 
@@ -39,8 +38,7 @@ class SessionPoolManager(object):
 
         self._pool: Queue["Session"] = pool or Queue(self._max_pool_size)
 
-    def get_session(self, factories: List["AbstractSessionFactory"],
-                    prompt: Optional["Prompt"] = None):
+    def get_session(self, factories: Sequence["AbstractSessionFactory"]):
         """Return session object, takes it from pool or create new session."""
         call_time = time.time()
         with self._session_condition:
@@ -51,7 +49,7 @@ class SessionPoolManager(object):
                     continue
 
                 elif not self._session_manager.full():
-                    session_obj = self._create_session(factories, prompt)
+                    session_obj = self._create_session(factories)
                 else:
                     self._session_condition.wait(self._pool_timeout)
                     if (time.time() - call_time) >= self._pool_timeout:
@@ -77,14 +75,13 @@ class SessionPoolManager(object):
                 self._pool.put(session)
             self._session_condition.notify()
 
-    def _create_session(self, factories: List["AbstractSessionFactory"],
-                        prompt: Optional["Prompt"] = None):
+    def _create_session(self, factories: Sequence["AbstractSessionFactory"]):
         """Create new session using session manager."""
         logger.debug("Creating new session")
-        session = self._session_manager.new_session(factories, prompt)
+        session = self._session_manager.new_session(factories)
         return session
 
-    def _get_from_pool(self, factories: List["AbstractSessionFactory"]) -> Optional["Session"]:
+    def _get_from_pool(self, factories: Sequence["AbstractSessionFactory"]) -> Optional["Session"]:
         """Get session from the pool."""
         logger.debug("Getting session from the pool")
         while True:
