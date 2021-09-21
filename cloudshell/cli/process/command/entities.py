@@ -25,8 +25,11 @@ class Command(object):
         self.read_timeout = read_timeout
         self.clear_buffer = clear_buffer
 
-    def __str__(self):
+    def to_str(self):
         return self.command
+
+    def __str__(self):
+        return self.to_str()
 
 
 class CommandResponse(object):

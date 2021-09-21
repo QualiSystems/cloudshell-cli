@@ -18,13 +18,7 @@ class BasicPromptFactory(object):
         send_line(session, command or "")
         data = receive_all(session, session.config.prompt_timeout)
 
-        # pattern = None
-
-        # if prompt is not None and session.config.use_exact_prompt:
-        #     pattern = self._get_exact_pattern(data, prompt)
-
-        # if not pattern:
-        pattern = data.strip().splitlines()[-1].strip()
+        pattern = "".join(data.strip().splitlines()[-2:]).strip()
 
         if pattern:
             prompt = Prompt(re.escape(pattern), data)
@@ -32,7 +26,7 @@ class BasicPromptFactory(object):
             return prompt
 
         else:
-            raise PromCannotBeDefinedException("Cannot identify pattern")
+            raise PromCannotBeDefinedException("Cannot identify prompt pattern")
 
     def _get_exact_pattern(self, data: str, prompt: Prompt) -> str:
         """Initialize exact pattern"""

@@ -52,7 +52,7 @@ class CommandMode(Node):
 
     def session_within(self, command_processor: "CommandProcessor"):
         """Check if session within the mode"""
-        return command_processor.session.get_prompt() == self.prompt
+        return self._prompt.match(command_processor.session.get_prompt().source_data)
 
     def enter_actions(self, command_processor: "CommandProcessor"):
         pass

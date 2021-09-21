@@ -6,9 +6,9 @@ ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 class CommandModeFactory(ABC):
 
     @abstractmethod
-    def enable_mode(self):
+    def get_enable_mode(self):
         raise NotImplementedError
 
     @abstractmethod
-    def config_mode(self):
+    def get_config_mode(self):
         raise NotImplementedError

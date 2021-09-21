@@ -1,5 +1,5 @@
 from abc import ABCMeta
-from typing import Optional
+from typing import Optional, Union
 
 ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 
@@ -8,9 +8,10 @@ class ConnectionParams(ABC):
     """Session parameters."""
 
     def __init__(self, hostname: str,
-                 port: Optional[str, int] = None,
+                 port: Optional[Union[str, int]] = None,
                  username: Optional[str] = None,
-                 password: Optional[str] = None):
+                 password: Optional[str] = None,
+                 ):
         self.hostname = hostname
         self.port = None
 

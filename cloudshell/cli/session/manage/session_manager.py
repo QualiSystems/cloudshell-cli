@@ -1,11 +1,11 @@
 import logging
-from typing import TYPE_CHECKING, List, Sequence
+from typing import TYPE_CHECKING, Sequence
 
 from cloudshell.cli.session.manage.exception import SessionManagerException
 
 if TYPE_CHECKING:
     from cloudshell.cli.session.core.session import Session
-    from cloudshell.cli.session.core.factory import AbstractSessionFactory
+    from cloudshell.cli.session.core.factory import SessionFactory
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +15,7 @@ class SessionManager(object):
         self._existing_sessions = []
         self._max_size = max_size
 
-    def new_session(self, factories: Sequence["AbstractSessionFactory"]) -> "Session":
+    def new_session(self, factories: Sequence["SessionFactory"]) -> "Session":
 
         for factory in factories:
             try:
@@ -46,7 +46,7 @@ class SessionManager(object):
             logger.debug("{} session was removed".format(session.session_type))
 
     def is_compatible(self, session: "Session",
-                      factories: Sequence["AbstractSessionFactory"]):
+                      factories: Sequence["SessionFactory"]):
         """Compare session with new session parameters."""
         if session in self._existing_sessions:
             for factory in factories:

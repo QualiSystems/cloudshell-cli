@@ -1,28 +1,24 @@
+import logging
 from collections import OrderedDict
 import re
+from typing import Callable, Optional, Type, TYPE_CHECKING
 
 from cloudshell.cli.process.command.actions.exception import SessionLoopDetectorException
 
+if TYPE_CHECKING:
+    from cloudshell.cli.session.core.session import Session
+
+logger = logging.getLogger(__name__)
+
 
 class Action:
-    def __init__(self, pattern, exception, callback, execute_once=False):
-        """
-
-        :param str pattern:
-        :param function callback:
-        :param bool execute_once:
-        """
+    def __init__(self, pattern: str, callback: Callable, execute_once: Optional[bool] = False):
         self.pattern = pattern
         self.compiled_pattern = re.compile(pattern=pattern, flags=re.DOTALL)
         self.callback = callback
         self.execute_once = execute_once
 
-    def __call__(self, session, logger):
-        """
-
-        :param cloudshell.cli.session.expect_session.ExpectSession session:
-        :return:
-        """
+    def __call__(self, session: "Session"):
         return self.callback(session)
 
     def __repr__(self):
@@ -39,6 +35,22 @@ class Action:
         :rtype: bool
         """
         return bool(self.compiled_pattern.search(output))
+
+
+class ErrorAction(Action):
+    def __init__(self, pattern: str, exception: Type[Exception], description: str):
+        self._exception = exception
+        self.description = description
+        super(ErrorAction, self).__init__(pattern=pattern,
+                                          callback=self.get_exception_callback(exception, description),
+                                          execute_once=True)
+
+    @staticmethod
+    def get_exception_callback(exception: Type[Exception], description: str) -> Callable:
+        def execute_exception():
+            raise exception(description)
+
+        return execute_exception
 
 
 class ActionMap:
@@ -94,7 +106,7 @@ class ActionMap:
         if extend_matched_patterns:
             self.matched_patterns |= action_map.matched_patterns
 
-    def process(self, session, logger, output, action_loop_detector=None):
+    def process(self, session, output, action_loop_detector=None):
         """
 
         :param cloudshell.cli.session.expect_session.ExpectSession session:
@@ -114,7 +126,7 @@ class ActionMap:
                         logger.error(f"Loops detected for action patter: {action.pattern}")
                         raise SessionLoopDetectorException("Expected actions loops detected")
 
-                action(session, logger)
+                action(session)
                 self.matched_patterns.add(action.pattern)
                 return True
 
@@ -122,7 +134,6 @@ class ActionMap:
 
     def process_exception(self, session, logger, output, exception, action_loop_detector=None):
         pass
-
 
     def __add__(self, other):
         """
@@ -144,5 +155,3 @@ class ActionMap:
         :rtype: str
         """
         return f"{super().__repr__()} matched patterns: {self.matched_patterns}, actions: {self.actions}"
-
-

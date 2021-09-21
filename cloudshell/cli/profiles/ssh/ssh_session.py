@@ -1,7 +1,7 @@
 import logging
 import socket
 from io import StringIO
-from typing import Optional
+from typing import Optional, Union
 
 import paramiko
 from scp import SCPClient
@@ -26,7 +26,8 @@ class SSHConfig(SessionConfig, ProcessingConfig):
 
 
 class SSHParams(ConnectionParams):
-    def __init__(self, hostname, username, password=None, port=None, pkey=None, pkey_passphrase=None):
+    def __init__(self, hostname: str, username: str, password: Optional[str] = None, port: Optional[Union[str, int]] = None,
+                 pkey: Optional[str] = None, pkey_passphrase: Optional[str] = None):
         super().__init__(hostname, port, username, password)
         self.pkey = pkey
         self.pkey_passphrase = pkey_passphrase

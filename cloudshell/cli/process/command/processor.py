@@ -51,7 +51,7 @@ class CommandProcessor(object):
             clear_buffer(self.session, self.session.config.clear_buffer_timeout)
 
         logger.debug("Command: {}".format(command))
-        send_line(self.session, command.command)
+        send_line(self.session, str(command))
 
     def expect(self, command: "Command", prompt: Optional["Prompt"] = None) -> "CommandResponse":
 

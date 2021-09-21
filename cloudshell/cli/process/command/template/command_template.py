@@ -1,11 +1,14 @@
 import re
+from typing import Optional, Union
 
-from cloudshell.cli.session.advanced_session.actions.action_map import ActionMap
-from cloudshell.cli.session.advanced_session.actions.error_map import ErrorMap
+from cloudshell.cli.process.command.actions.action_map import ActionMap
+from cloudshell.cli.process.command.actions.error_map import ErrorMap
+from cloudshell.cli.process.command.entities import Command
 
 
 class CommandTemplate:
-    def __init__(self, command, action_map=None, error_map=None):
+    def __init__(self, command: str, action_map: Optional[Union[ActionMap, dict]] = None,
+                 error_map: Optional[Union[ActionMap, dict]] = None):
         """Command Template.
 
         :type command: str
@@ -41,12 +44,9 @@ class CommandTemplate:
 
         error_map = kwargs.get("error_map") or ErrorMap()
         error_map.extend(self.error_map)
+        action_map.extend(error_map)
 
-        return {
-            'command': self.prepare_command(**kwargs),
-            'action_map': action_map,
-            'error_map': error_map
-        }
+        return Command(self.prepare_command(**kwargs), action_map=action_map)
 
     def prepare_command(self, **kwargs):
         cmd = self._command
