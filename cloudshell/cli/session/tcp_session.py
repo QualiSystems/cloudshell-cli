@@ -49,17 +49,11 @@ class TCPSession(ExpectSession, ConnectionParams):
         """
         self._handler.sendall(command)
 
-    def _receive(self, timeout, logger):
-        """Read session buffer."""
-        timeout = timeout if timeout else self._timeout
+    def _set_timeout(self, timeout):
         self._handler.settimeout(timeout)
 
-        try:
-            data = self._handler.recv(self._buffer_size)
-        except socket.timeout:
-            raise SessionReadTimeout()
+    def _read_byte_data(self):
+        pass
 
-        if not data:
-            raise SessionReadEmptyData()
-
-        return data
+    def _read_str_data(self):
+        return self._handler.recv(self._buffer_size)

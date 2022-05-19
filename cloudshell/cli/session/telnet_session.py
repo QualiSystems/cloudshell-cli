@@ -100,18 +100,8 @@ class TelnetSession(ExpectSession, ConnectionParams):
         byte_command = command.encode()
         self._handler.write(byte_command)
 
-    def _receive(self, timeout, logger):
-        """Read session buffer."""
-        timeout = timeout if timeout else self._timeout
+    def _set_timeout(self, timeout):
         self._handler.get_socket().settimeout(timeout)
 
-        try:
-            byte_data = self._handler.read_some()
-        except socket.timeout:
-            raise SessionReadTimeout()
-
-        if not byte_data:
-            raise SessionReadEmptyData()
-
-        data = byte_data.decode()
-        return data
+    def _read_byte_data(self):
+        self._handler.read_some()

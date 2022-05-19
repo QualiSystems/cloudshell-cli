@@ -122,26 +122,11 @@ class SSHSession(ExpectSession, ConnectionParams):
         """
         self._current_channel.send(command)
 
-    def _receive(self, timeout, logger):
-        """Read session buffer.
-
-        :param int timeout: time between retries
-        :param logging.Logger logger:
-        """
-        # Set the channel timeout
-        timeout = timeout if timeout else self._timeout
+    def _set_timeout(self, timeout):
         self._current_channel.settimeout(timeout)
 
-        try:
-            byte_data = self._current_channel.recv(self._buffer_size)
-            data = byte_data.decode()
-        except socket.timeout:
-            raise SessionReadTimeout()
-
-        if not data:
-            raise SessionReadEmptyData()
-
-        return data
+    def _read_byte_data(self):
+        return self._current_channel.recv(self._buffer_size)
 
     def upload_scp(
         self, file_stream, dest_pathname, file_size=None, dest_permissions="0601"
