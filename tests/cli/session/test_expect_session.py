@@ -1,8 +1,6 @@
 from collections import OrderedDict
 from unittest import TestCase
 
-import pytest
-
 from cloudshell.cli.session.expect_session import ActionLoopDetector, ExpectSession
 from cloudshell.cli.session.session_exceptions import (
     CommandExecutionException,
@@ -42,15 +40,6 @@ class ExpectSessionImpl(ExpectSession):
 
     def _set_timeout(self, timeout):
         pass
-
-
-@pytest.fixture()
-def wrong_byte_data():
-    try:
-        data = [b"\xe2\x80\x99hi\xe2", b"\x80\x99"]  # ’hi’
-    except SyntaxError:
-        pytest.skip("skip for python 2")
-    return data
 
 
 @patch(
@@ -378,15 +367,3 @@ class TestActionLoopDetector(TestCase):
             if self._instance.loops_detected(key):
                 loop_detected = True
         self.assertFalse(loop_detected)
-
-
-def test_expect_session_read_wrong_utf8_symbol(wrong_byte_data, logger):
-    class TestSession(ExpectSessionImpl):
-        data = wrong_byte_data
-
-        def _read_byte_data(self):
-            return self.data.pop(0)
-
-    session = TestSession()
-
-    assert session._receive(1, logger) == "’hi’"
