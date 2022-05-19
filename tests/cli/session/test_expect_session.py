@@ -1,4 +1,3 @@
-import sys
 from collections import OrderedDict
 from unittest import TestCase
 
@@ -47,9 +46,11 @@ class ExpectSessionImpl(ExpectSession):
 
 @pytest.fixture()
 def wrong_byte_data():
-    if sys.version_info.major == 2:
+    try:
+        data = [b"\xe2\x80\x99hi\xe2", b"\x80\x99"]  # ’hi’
+    except SyntaxError:
         pytest.skip("skip for python 2")
-    return [b"\xe2\x80\x99hi\xe2", b"\x80\x99"]  # ’hi’
+    return data
 
 
 @patch(
