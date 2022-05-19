@@ -1,4 +1,5 @@
 import re
+import socket
 import time
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
@@ -157,6 +158,45 @@ class ExpectSession(Session, ABC):
                     raise ExpectedSessionException(
                         self.__class__.__name__, "Socket closed by timeout"
                     )
+
+    def _receive(self, timeout, logger):
+        """Read session's buffer.
+
+        :type timeout: float
+        :type logger: logging.Logger
+        :rtype: str
+        """
+        timeout = timeout or self._timeout
+        self._set_timeout(timeout)
+        try:
+            data = self._read_str_data()
+        except socket.timeout:
+            raise SessionReadTimeout
+        if not data:
+            raise SessionReadEmptyData
+        return data
+
+    @abstractmethod
+    def _set_timeout(self, timeout):
+        pass
+
+    def _read_str_data(self):
+        byte_data = b""
+        for _ in range(5):
+            byte_data += self._read_byte_data()
+            try:
+                data = byte_data.decode()
+            except UnicodeDecodeError:
+                continue  # byte data can end with a wrong utf8 symbol, read more
+            else:
+                break
+        else:
+            data = byte_data.decode()
+        return data
+
+    @abstractmethod
+    def _read_byte_data(self):
+        pass
 
     def _generate_command_pattern(self, command):
         """Generate command_pattern.

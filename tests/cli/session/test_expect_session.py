@@ -32,10 +32,13 @@ class ExpectSessionImpl(ExpectSession):
     def disconnect(self):
         pass
 
-    def _receive(self, timeout, logger):
+    def _send(self, command, logger):
         pass
 
-    def _send(self, command, logger):
+    def _read_byte_data(self):
+        pass
+
+    def _set_timeout(self, timeout):
         pass
 
 
@@ -364,3 +367,15 @@ class TestActionLoopDetector(TestCase):
             if self._instance.loops_detected(key):
                 loop_detected = True
         self.assertFalse(loop_detected)
+
+
+def test_expect_session_read_wrong_utf8_symbol(logger):
+    class TestSession(ExpectSessionImpl):
+        data = [b"\xe2\x80\x99hi\xe2", b"\x80\x99"]  # ’hi’
+
+        def _read_byte_data(self):
+            return self.data.pop(0)
+
+    session = TestSession()
+
+    assert session._receive(1, logger) == "’hi’"
