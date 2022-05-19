@@ -7,3 +7,4 @@ PyNaCl>=1.5 ; python_version > "3.7"
 paramiko>=2.6,<2.7
 scp>=0.13,<1
 functools32; python_version <= '2.7'
+six; python_version > "3.7"
