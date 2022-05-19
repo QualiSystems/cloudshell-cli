@@ -15,7 +15,7 @@ except ImportError:
     from mock import MagicMock, Mock, call, patch
 
 
-class TestExpectSessionException(Exception):
+class ExpectSessionException(Exception):
     pass
 
 
@@ -101,7 +101,7 @@ class TestExpectSession(TestCase):
             self._instance._clear_buffer(timeout, self._logger)
 
     def test_clear_buffer_exit_with_no_data(self, normalize_buffer, loops_detected):
-        self._receive.side_effect = ["", TestExpectSessionException("Breaking loop")]
+        self._receive.side_effect = ["", ExpectSessionException("Breaking loop")]
         timeout = Mock()
         self._instance._clear_buffer(timeout, self._logger)
         self.assertTrue(True)
@@ -112,7 +112,7 @@ class TestExpectSession(TestCase):
         self._receive.side_effect = [
             "test",
             "",
-            TestExpectSessionException("Breaking loop"),
+            ExpectSessionException("Breaking loop"),
         ]
         timeout = Mock()
         self._instance._clear_buffer(timeout, self._logger)
