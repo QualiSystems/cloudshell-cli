@@ -158,7 +158,8 @@ class CliServiceImpl(CliService):
             steps = CommandModeHelper.calculate_route_steps(
                 self.command_mode, requested_command_mode
             )
-            list(map(lambda x: x(self, self._logger), steps))
+            for s in steps:
+                s(self, self._logger)
 
     def reconnect(self, timeout=None):
         """Reconnect session, keep current command mode.
