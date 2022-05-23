@@ -16,7 +16,7 @@ except ImportError:
     from mock import Mock, patch
 
 
-KEY_WITH_PASSPHRASE = """-----BEGIN RSA PRIVATE KEY-----
+KEY_WITH_PASSPHRASE = u"""-----BEGIN RSA PRIVATE KEY-----
 Proc-Type: 4,ENCRYPTED
 DEK-Info: AES-128-CBC,E81B330B3A278826D82BEBBC87DE2689
 
@@ -46,7 +46,7 @@ y9/ziFJPPMN703N1dJ0e1oRWpfSFUzlGn1OgF1EY9qQTwQK4PL9bhyJi1/MswZHB
 /XmDlKr7An89Iy+B/Q9ncja2FfK49AP23AMYKhdWBrEq+enXwjkr5Uz8ffD3eagD
 VZxBlCGUp4bmlS5s7sttMZRvJq0CXfxy+q8Qe0sz/CyOAN/J8iZu8AJyp04DQk4d
 -----END RSA PRIVATE KEY-----
-"""
+"""  # noqa
 KEY_PASSPHRASE = "quali1234"
 
 
@@ -566,7 +566,7 @@ class TestSshSession(TestCase):
             on_session_start=self._on_session_start,
         )
         self._instance.connect(">", logger=Mock())
-        self._instance.upload_sftp(StringIO("klmno"), "z.txt", 5, "0601")
+        self._instance.upload_sftp(StringIO(u"klmno"), "z.txt", 5, "0601")
         self.assertTrue(server.filename2stringio["z.txt"].getvalue() == "klmno")
 
     def test_upload_scp(self):
@@ -581,7 +581,7 @@ class TestSshSession(TestCase):
             on_session_start=self._on_session_start,
         )
         self._instance.connect(">", logger=Mock())
-        self._instance.upload_scp(StringIO("abcde"), "y.txt", 5, "0601")
+        self._instance.upload_scp(StringIO(u"abcde"), "y.txt", 5, "0601")
         sleep(3)
         self.assertTrue(server.filename2stringio["y.txt"].getvalue() == "abcde")
 
