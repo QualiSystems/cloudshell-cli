@@ -183,16 +183,22 @@ class ExpectSession(Session, ABC):
     def _read_str_data(self):
         byte_data = b""
         for _ in range(5):
-            byte_data += self._read_byte_data()
+            new_data = self._read_byte_data()
+
+            if not new_data:
+                str_data = byte_data.decode()
+                break
+
+            byte_data += new_data
             try:
-                data = byte_data.decode()
+                str_data = byte_data.decode()
             except UnicodeDecodeError:
                 continue  # byte data can end with a wrong utf8 symbol, read more
             else:
                 break
         else:
-            data = byte_data.decode()
-        return data
+            str_data = byte_data.decode()
+        return str_data
 
     @abstractmethod
     def _read_byte_data(self):
