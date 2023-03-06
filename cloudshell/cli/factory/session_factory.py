@@ -11,7 +11,7 @@ class SessionFactory(ABC):
     Help to initialize session for specified session class.
     """
 
-    def __init__(self, session_class: type):
+    def __init__(self, session_class):
         """:param session_class: Session class."""
         self.session_class = session_class
 
