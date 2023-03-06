@@ -96,7 +96,6 @@ class SwitchCliHandler(CliHandlerImpl):
         session.hardware_expect("exit", EnableCommandMode.PROMPT, logger)
 
     def enter_enable_mode(self, session, logger):
-
         enable_password = get_attribute_by_name(
             attribute_name="Enable Password", context=self._context
         )

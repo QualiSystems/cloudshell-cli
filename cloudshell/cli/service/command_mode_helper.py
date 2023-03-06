@@ -35,7 +35,7 @@ class CommandModeHelper(NodeOperations):
 
         :rtype: OrderedDict
         """
-        # noqa
+
         def _get_child_nodes(command_node):
             return reduce(
                 lambda x, y: x + _get_child_nodes(y),
@@ -60,7 +60,7 @@ class CommandModeHelper(NodeOperations):
 
         :rtype: dict
         """
-        # noqa
+
         def _create_child_modes(instance, child_dict):
             instance_dict = {}
             for mode_type in child_dict:

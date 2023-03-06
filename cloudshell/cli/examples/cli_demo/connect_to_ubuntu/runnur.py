@@ -13,7 +13,6 @@ class CliCommandMode(CommandMode):
     EXIT_COMMAND = "exit"
 
     def __init__(self, context):
-
         CommandMode.__init__(
             self,
             CliCommandMode.PROMPT,

@@ -38,7 +38,6 @@ class SCPISession(TCPSession):
         remove_command_from_output=True,
         **optional_args
     ):
-
         if ";:system:error?" not in command.lower():
             command += ";:system:error?"
 
