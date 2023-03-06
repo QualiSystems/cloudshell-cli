@@ -5,7 +5,6 @@ from cloudshell.cli.session.expect_session import ExpectSession
 
 
 class TCPSession(ExpectSession, ConnectionParams):
-
     SESSION_TYPE = "TCP"
     BUFFER_SIZE = 1024
 

@@ -1,17 +1,15 @@
 repos:
   - repo: https://github.com/timothycrosley/isort
-    rev: 5.10.1
+    rev: 5.12.0
     hooks:
       - id: isort
-        language_version: python3.7
   - repo: https://github.com/python/black
-    rev: 22.3.0
+    rev: 23.1.0
     hooks:
       - id: black
-        language_version: python3.7
         exclude: test_ssh_session.py
   - repo: https://github.com/pycqa/flake8
-    rev: 4.0.1
+    rev: 5.0.4
     hooks:
       - id: flake8
         additional_dependencies: [
@@ -21,4 +19,3 @@ repos:
           flake8-print,
           flake8-eradicate,
         ]
-        language_version: python3.7

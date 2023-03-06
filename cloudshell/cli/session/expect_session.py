@@ -308,7 +308,6 @@ class ExpectSession(Session, ABC):
             self._loop_detector_max_combination_length,
         )
         while retries == 0 or retries_count < retries:
-
             read_buffer = self._receive_all(timeout, logger)
 
             if read_buffer:
