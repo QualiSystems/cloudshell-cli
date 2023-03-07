@@ -17,25 +17,41 @@ class SessionFactory(ABC):
 
     @abstractmethod
     def init_session(
-        self, resource_config, logger, reservation_context=None, on_session_start=None
+        self,
+        resource_config,
+        logger,
+        on_session_start=None,
+        access_key=None,
+        access_key_passphrase=None,
     ):
         """Initialize session instance.
 
         Encapsulate the logic of the session instance creation.
         :param resource_config:
         :param logging.Logger logger:
-        :param ReservationContextDetails reservation_context:  # todo remove context
+        :param on_session_start: function that will be called on session start
+        :param access_key: access key for the resource
+        :param access_key_passphrase: access key passphrase for the resource
         """
         raise NotImplementedError
 
 
 class GenericSessionFactory(SessionFactory):
     def init_session(
-        self, resource_config, logger, reservation_context=None, on_session_start=None
+        self,
+        resource_config,
+        logger,
+        on_session_start=None,
+        access_key=None,
+        access_key_passphrase=None,
     ):
         return self.session_class(
             **self._session_kwargs(
-                resource_config, logger, reservation_context, on_session_start
+                resource_config,
+                logger,
+                on_session_start,
+                access_key,
+                access_key_passphrase,
             )
         )
 
@@ -43,17 +59,14 @@ class GenericSessionFactory(SessionFactory):
     def SESSION_TYPE(self):
         return self.session_class.SESSION_TYPE
 
-    def _on_session_start(self, session, logger):
-        """Perform some default commands when session just opened.
-
-        Like 'no logging console'
-        """
-        pass
-
     def _session_kwargs(
-        self, resource_config, logger, reservation_context=None, on_session_start=None
+        self,
+        resource_config,
+        logger,
+        on_session_start,
+        access_key,
+        access_key_passphrase,
     ):
-        on_session_start = on_session_start or self._on_session_start
         return {
             "host": resource_config.address,
             "username": resource_config.user,
@@ -65,15 +78,19 @@ class GenericSessionFactory(SessionFactory):
 
 class CloudInfoAccessKeySessionFactory(GenericSessionFactory):
     def _session_kwargs(
-        self, resource_config, logger, reservation_context=None, on_session_start=None
+        self,
+        resource_config,
+        logger,
+        on_session_start,
+        access_key,
+        access_key_passphrase,
     ):
-        on_session_start = on_session_start or self._on_session_start
-        access_key = getattr(reservation_context, "cloud_info_access_key", "")
         return {
             "host": resource_config.address,
             "username": resource_config.user,
             "password": resource_config.password,
             "port": resource_config.cli_tcp_port,
             "pkey": access_key,
+            "pkey_passphrase": access_key_passphrase,
             "on_session_start": on_session_start,
         }
