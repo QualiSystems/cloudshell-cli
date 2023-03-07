@@ -16,21 +16,27 @@ class SessionFactory(ABC):
         self.session_class = session_class
 
     @abstractmethod
-    def init_session(self, resource_config, logger, reservation_context=None):
+    def init_session(
+        self, resource_config, logger, reservation_context=None, on_session_start=None
+    ):
         """Initialize session instance.
 
         Encapsulate the logic of the session instance creation.
         :param resource_config:
         :param logging.Logger logger:
-        :param ReservationContextDetails reservation_context:
+        :param ReservationContextDetails reservation_context:  # todo remove context
         """
         raise NotImplementedError
 
 
 class GenericSessionFactory(SessionFactory):
-    def init_session(self, resource_config, logger, reservation_context=None):
+    def init_session(
+        self, resource_config, logger, reservation_context=None, on_session_start=None
+    ):
         return self.session_class(
-            **self._session_kwargs(resource_config, logger, reservation_context)
+            **self._session_kwargs(
+                resource_config, logger, reservation_context, on_session_start
+            )
         )
 
     @property
@@ -44,26 +50,30 @@ class GenericSessionFactory(SessionFactory):
         """
         pass
 
-    def _session_kwargs(self, resource_config, logger, reservation_context=None):
+    def _session_kwargs(
+        self, resource_config, logger, reservation_context=None, on_session_start=None
+    ):
+        on_session_start = on_session_start or self._on_session_start
         return {
             "host": resource_config.address,
             "username": resource_config.user,
             "password": resource_config.password,
             "port": resource_config.cli_tcp_port,
-            "on_session_start": self._on_session_start,
+            "on_session_start": on_session_start,
         }
 
 
 class CloudInfoAccessKeySessionFactory(GenericSessionFactory):
-    def _session_kwargs(self, resource_config, logger, reservation_context=None):
-        access_key = ""
-        if reservation_context and reservation_context.cloud_info_access_key:
-            access_key = reservation_context.cloud_info_access_key
+    def _session_kwargs(
+        self, resource_config, logger, reservation_context=None, on_session_start=None
+    ):
+        on_session_start = on_session_start or self._on_session_start
+        access_key = getattr(reservation_context, "cloud_info_access_key", "")
         return {
             "host": resource_config.address,
             "username": resource_config.user,
             "password": resource_config.password,
             "port": resource_config.cli_tcp_port,
             "pkey": access_key,
-            "on_session_start": self._on_session_start,
+            "on_session_start": on_session_start,
         }

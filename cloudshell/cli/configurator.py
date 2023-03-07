@@ -60,11 +60,17 @@ class CLIServiceConfigurator(object):
             session_dict[sess.SESSION_TYPE.lower()].append(sess)
         return session_dict
 
+    def _on_session_start(self, session, logger):
+        pass
+
     def initialize_session(self, session):
         if not isinstance(session, SessionFactory):
             session = GenericSessionFactory(session)
         return session.init_session(
-            self._resource_config, self._logger, self._reservation_context
+            self._resource_config,
+            self._logger,
+            self._reservation_context,
+            self._on_session_start,
         )
 
     def _defined_sessions(self):
