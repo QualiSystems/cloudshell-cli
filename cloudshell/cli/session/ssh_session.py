@@ -170,6 +170,9 @@ class SSHSession(ExpectSession, ConnectionParams):
     @staticmethod
     def _get_pkey_object(key_material, passphrase, logger):
         """Try to detect private key type and return paramiko.PKey object."""
+        if not key_material:
+            return None
+
         for cls in [paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey]:
             try:
                 key = cls.from_private_key(StringIO(key_material), password=passphrase)
