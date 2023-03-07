@@ -31,7 +31,8 @@ class CLIServiceConfigurator(object):
         logger,
         cli=None,
         registered_sessions=None,
-        reservation_context=None,
+        access_key=None,
+        access_key_passphrase=None,
     ):
         """Initialize CLI service configurator.
 
@@ -39,13 +40,15 @@ class CLIServiceConfigurator(object):
         :param logging.Logger logger:
         :param cloudshell.cli.service.cli.CLI cli:
         :param registered_sessions: Session types and order
-        :param cloudshell.shell.core.driver_context.ReservationContextDetails reservation_context:
+        :param access_key: access key for the resource
+        :param access_key_passphrase: access key passphrase for the resource
         """
         self._cli = cli or CLI()
         self._resource_config = resource_config
         self._logger = logger
         self._registered_sessions = registered_sessions or self.REGISTERED_SESSIONS
-        self._reservation_context = reservation_context
+        self._access_key = access_key
+        self._access_key_passphrase = access_key_passphrase
 
     @property
     def _cli_type(self):
@@ -69,8 +72,9 @@ class CLIServiceConfigurator(object):
         return session.init_session(
             self._resource_config,
             self._logger,
-            self._reservation_context,
-            self._on_session_start,
+            on_session_start=self._on_session_start,
+            access_key=self._access_key,
+            access_key_passphrase=self._access_key_passphrase,
         )
 
     def _defined_sessions(self):
