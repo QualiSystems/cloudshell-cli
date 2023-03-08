@@ -26,5 +26,6 @@ setup(
     version=version_from_file,
     package_data={"": ["*.txt"]},
     description="QualiSystems CloudShell CLI support package",
+    long_description="QualiSystems CloudShell CLI support package",
     include_package_data=True,
 )
