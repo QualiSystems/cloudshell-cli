@@ -1,16 +1,11 @@
 from unittest import TestCase
+from unittest.mock import MagicMock as Mock
+from unittest.mock import call, patch
 
 from cloudshell.cli.service.session_pool_context_manager import (
     SessionPoolContextManager,
 )
 from cloudshell.cli.session.session_exceptions import CommandExecutionException
-
-try:
-    from unittest.mock import MagicMock as Mock
-    from unittest.mock import call, patch
-except ImportError:
-    from mock import MagicMock as Mock
-    from mock import call, patch
 
 
 class TestSessionPoolContextManager(TestCase):

@@ -1,5 +1,6 @@
 from logging import Logger
 from unittest import TestCase
+from unittest.mock import MagicMock, Mock, create_autospec, patch
 
 from cloudshell.cli.service.cli_service_impl import (
     CliServiceImpl,
@@ -7,11 +8,6 @@ from cloudshell.cli.service.cli_service_impl import (
     EnterDetachCommandModeContextManager,
 )
 from cloudshell.cli.service.command_mode import CommandMode
-
-try:
-    from unittest.mock import MagicMock, Mock, create_autospec, patch
-except ImportError:
-    from mock import MagicMock, Mock, create_autospec, patch
 
 
 class TestEnterCommandModeContextManager(TestCase):

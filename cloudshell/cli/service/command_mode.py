@@ -57,7 +57,7 @@ class CommandMode(Node):
         if not enter_action_map:
             enter_action_map = {}
 
-        super(CommandMode, self).__init__()
+        super().__init__()
         self._prompt = prompt
         self._exact_prompt = None
         self._enter_command = enter_command

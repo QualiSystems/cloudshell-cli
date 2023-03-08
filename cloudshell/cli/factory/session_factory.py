@@ -1,8 +1,4 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-from abc import ABCMeta, abstractmethod
-
-ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
+from abc import ABC, abstractmethod
 
 
 class SessionFactory(ABC):

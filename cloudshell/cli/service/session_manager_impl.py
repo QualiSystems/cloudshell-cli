@@ -25,7 +25,7 @@ class SessionManagerImpl(SessionManager):
         for session in new_sessions:
             try:
                 session.connect(prompt, logger)
-                logger.debug("Created new {} session".format(session.session_type))
+                logger.debug(f"Created new {session.session_type} session")
                 self._existing_sessions.append(session)
                 return session
             except Exception as e:
@@ -52,7 +52,7 @@ class SessionManagerImpl(SessionManager):
         """
         if session in self._existing_sessions:
             self._existing_sessions.remove(session)
-            logger.debug("{} session was removed".format(session.session_type))
+            logger.debug(f"{session.session_type} session was removed")
 
     def is_compatible(self, session, new_sessions, logger):
         """Compare session with new session parameters.

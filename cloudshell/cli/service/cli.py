@@ -6,7 +6,7 @@ from cloudshell.cli.service.session_pool_context_manager import (
 from cloudshell.cli.service.session_pool_manager import SessionPoolManager
 
 
-class CLI(object):
+class CLI:
     def __init__(self, session_pool=SessionPoolManager()):
         self._session_pool = session_pool
 

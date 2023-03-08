@@ -13,16 +13,13 @@ with open("test_requirements.txt") as f_tests:
 
 setup(
     name="cloudshell-cli",
-    url="http://www.qualisystems.com/",
+    url="https://www.quali.com/",
     author="QualiSystems",
     author_email="info@qualisystems.com",
     packages=find_packages(),
     install_requires=required,
     tests_require=required_for_tests,
-    test_suite="nose.collector",
-    python_requires=(
-        ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*, !=3.6.*, <4"
-    ),
+    python_requires="~=3.7",
     version=version_from_file,
     package_data={"": ["*.txt"]},
     description="QualiSystems CloudShell CLI support package",

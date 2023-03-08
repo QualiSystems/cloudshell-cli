@@ -1,4 +1,4 @@
-from tests.cli.session.test_expect_session import ExpectSessionImpl
+from tests.cli.session.test_expect_session import ExpectSessionImpl  # noqa
 
 
 def test_expect_session_read_wrong_utf8_symbol(logger):

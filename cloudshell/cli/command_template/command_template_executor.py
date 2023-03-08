@@ -1,7 +1,7 @@
 from collections import OrderedDict
 
 
-class CommandTemplateExecutor(object):
+class CommandTemplateExecutor:
     """Execute command template using cli service."""
 
     def __init__(

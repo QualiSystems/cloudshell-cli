@@ -3,7 +3,7 @@ from cloudshell.cli.service.command_mode_helper import CommandModeHelper
 from cloudshell.cli.session.expect_session import CommandExecutionException
 
 
-class SessionPoolContextManager(object):
+class SessionPoolContextManager:
     """Get and return session from pool and change mode if specified."""
 
     IGNORED_EXCEPTIONS = (CommandExecutionException,)

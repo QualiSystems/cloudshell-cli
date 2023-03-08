@@ -4,19 +4,14 @@ from abc import abstractmethod
 from io import StringIO
 from time import sleep
 from unittest import TestCase
+from unittest.mock import Mock, patch
 
 import paramiko
 from paramiko import RSAKey
 
 from cloudshell.cli.session.ssh_session import SSHSession, SSHSessionException
 
-try:
-    from unittest.mock import Mock, patch
-except ImportError:
-    from mock import Mock, patch
-
-
-KEY_WITH_PASSPHRASE = u"""-----BEGIN RSA PRIVATE KEY-----
+KEY_WITH_PASSPHRASE = """-----BEGIN RSA PRIVATE KEY-----
 Proc-Type: 4,ENCRYPTED
 DEK-Info: AES-128-CBC,E81B330B3A278826D82BEBBC87DE2689
 
@@ -101,12 +96,12 @@ class DefaultFakeDevice(FakeDevice):
         if command == "exit":
             self.prompt = self.NORMAL_PROMPT
         output = "".join(["%s " % s for s in command])  # c o m m a n d
-        return '%s\noutput of "%s"\n%s' % (command, output, self.prompt), "", 0
+        return f'{command}\noutput of "{output}"\n{self.prompt}', "", 0
 
 
 class SFTPReceiver(paramiko.SFTPHandle):
     def __init__(self, buf, flags=0):
-        super(SFTPReceiver, self).__init__(flags)
+        super().__init__(flags)
         self.buf = buf
 
     def write(self, offset, data):
@@ -114,7 +109,7 @@ class SFTPReceiver(paramiko.SFTPHandle):
         return paramiko.SFTP_OK
 
     def close(self):
-        super(SFTPReceiver, self).close()
+        super().close()
 
 
 class SFTPServerInterface(paramiko.SFTPServerInterface):
@@ -136,17 +131,17 @@ class SFTPServerInterface(paramiko.SFTPServerInterface):
         return SFTPReceiver(buf)
 
     def session_started(self):
-        super(SFTPServerInterface, self).session_started()
+        super().session_started()
 
     def session_ended(self):
-        super(SFTPServerInterface, self).session_ended()
+        super().session_ended()
 
 
 class SFTPHandler(paramiko.SFTPServer):
     def __init__(
         self, channel, name, server, sftp_si=SFTPServerInterface, *largs, **kwargs
     ):
-        super(SFTPHandler, self).__init__(
+        super().__init__(
             channel, name, server, SFTPServerInterface, *largs, **kwargs
         )
         self.server.channel = channel
@@ -350,7 +345,7 @@ class SSHServer(paramiko.ServerInterface):
             return paramiko.AUTH_FAILED
 
     def check_channel_subsystem_request(self, channel, name):
-        return super(SSHServer, self).check_channel_subsystem_request(channel, name)
+        return super().check_channel_subsystem_request(channel, name)
 
     def get_allowed_auths(self, username):
         if self.user2password:
@@ -563,7 +558,7 @@ class TestSshSession(TestCase):
             on_session_start=self._on_session_start,
         )
         self._instance.connect(">", logger=Mock())
-        self._instance.upload_sftp(StringIO(u"klmno"), "z.txt", 5, "0601")
+        self._instance.upload_sftp(StringIO("klmno"), "z.txt", 5, "0601")
         self.assertTrue(server.filename2stringio["z.txt"].getvalue() == "klmno")
 
     def test_upload_scp(self):
@@ -578,7 +573,7 @@ class TestSshSession(TestCase):
             on_session_start=self._on_session_start,
         )
         self._instance.connect(">", logger=Mock())
-        self._instance.upload_scp(StringIO(u"abcde"), "y.txt", 5, "0601")
+        self._instance.upload_scp(StringIO("abcde"), "y.txt", 5, "0601")
         sleep(3)
         self.assertTrue(server.filename2stringio["y.txt"].getvalue() == "abcde")
 
