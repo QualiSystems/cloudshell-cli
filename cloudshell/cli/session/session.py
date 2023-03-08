@@ -1,7 +1,5 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from collections import OrderedDict
-
-ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 
 
 class Session(ABC):

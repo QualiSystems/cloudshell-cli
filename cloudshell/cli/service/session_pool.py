@@ -1,6 +1,4 @@
-from abc import ABCMeta, abstractmethod
-
-ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
+from abc import ABC, abstractmethod
 
 
 class SessionPool(ABC):

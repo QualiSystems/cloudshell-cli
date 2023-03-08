@@ -9,7 +9,7 @@ class SCPISession(TCPSession):
     BUFFER_SIZE = 1024
 
     def __init__(self, host, port, on_session_start=None, *args, **kwargs):
-        super(SCPISession, self).__init__(host, port, on_session_start, *args, **kwargs)
+        super().__init__(host, port, on_session_start, *args, **kwargs)
 
     def _initialize_session(self, prompt, logger):
         self._handler = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -46,7 +46,7 @@ class SCPISession(TCPSession):
         # avoid 'multiple repeat' error from '?' in the command - bug in expect_session
         remove_command_from_output = False
 
-        rv = super(SCPISession, self).hardware_expect(
+        rv = super().hardware_expect(
             command,
             statusre,
             logger,

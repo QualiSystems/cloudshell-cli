@@ -12,7 +12,7 @@ class TL1Session(TCPSession):
     def __init__(
         self, host, username, password, port, on_session_start=None, *args, **kwargs
     ):
-        super(TL1Session, self).__init__(host, port, on_session_start, *args, **kwargs)
+        super().__init__(host, port, on_session_start, *args, **kwargs)
         self._username = username
         self._password = password
         self.switch_name = "switch-name-not-initialized"
@@ -41,7 +41,7 @@ class TL1Session(TCPSession):
 
     def _connect_actions(self, prompt, logger):
         output = self.hardware_expect(
-            "ACT-USER::%s:{counter}::%s;" % (self._username, self._password),
+            f"ACT-USER::{self._username}:{{counter}}::{self._password};",
             expected_string=None,
             logger=logger,
         )
@@ -74,14 +74,14 @@ class TL1Session(TCPSession):
         check_action_loop_detector=True,
         empty_loop_timeout=None,
         remove_command_from_output=True,
-        **optional_args
+        **optional_args,
     ):
         self._tl1_counter += 1
         command = command.replace("{counter}", str(self._tl1_counter))
         command = command.replace("{name}", self.switch_name)
         prompt = r"M\s+%d\s+([A-Z ]+)[^;]*;" % self._tl1_counter
 
-        rv = super(TL1Session, self).hardware_expect(
+        rv = super().hardware_expect(
             command,
             prompt,
             logger,
@@ -92,11 +92,11 @@ class TL1Session(TCPSession):
             check_action_loop_detector,
             empty_loop_timeout,
             remove_command_from_output,
-            **optional_args
+            **optional_args,
         )
 
         m = re.search(prompt, rv)
         status = m.groups()[0]
         if status != "COMPLD":
-            raise Exception('Error: Status "%s": %s' % (status, rv))
+            raise Exception(f'Error: Status "{status}": {rv}')
         return rv

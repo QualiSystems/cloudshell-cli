@@ -1,8 +1,6 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-import sys
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from collections import defaultdict
+from functools import lru_cache
 
 from cloudshell.cli.factory.session_factory import (
     CloudInfoAccessKeySessionFactory,
@@ -13,17 +11,9 @@ from cloudshell.cli.service.cli import CLI
 from cloudshell.cli.session.ssh_session import SSHSession
 from cloudshell.cli.session.telnet_session import TelnetSession
 
-ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 
-if sys.version_info >= (3, 0):
-    from functools import lru_cache
-else:
-    from functools32 import lru_cache
-
-
-class CLIServiceConfigurator(object):
+class CLIServiceConfigurator:
     REGISTERED_SESSIONS = (CloudInfoAccessKeySessionFactory(SSHSession), TelnetSession)
-    """Using factories instead of """
 
     def __init__(
         self,

@@ -1,6 +1,4 @@
-from abc import ABCMeta
-
-ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
+from abc import ABC
 
 
 class ConnectionParams(ABC):

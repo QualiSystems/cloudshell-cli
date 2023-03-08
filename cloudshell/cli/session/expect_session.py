@@ -1,7 +1,7 @@
 import re
 import socket
 import time
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from collections import OrderedDict
 
 from cloudshell.cli.session.helper.normalize_buffer import normalize_buffer
@@ -14,8 +14,6 @@ from cloudshell.cli.session.session_exceptions import (
     SessionReadEmptyData,
     SessionReadTimeout,
 )
-
-ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 
 
 class ExpectSession(Session, ABC):
@@ -252,7 +250,7 @@ class ExpectSession(Session, ABC):
         check_action_loop_detector=True,
         empty_loop_timeout=None,
         remove_command_from_output=True,
-        **optional_args
+        **optional_args,
     ):
         """Get response from the device.
 
@@ -288,7 +286,7 @@ class ExpectSession(Session, ABC):
         if command is not None:
             self._clear_buffer(self._clear_buffer_timeout, logger)
 
-            logger.debug("Command: {}".format(command))
+            logger.debug(f"Command: {command}")
             self.send_line(command, logger)
 
         if not expected_string:
@@ -345,7 +343,7 @@ class ExpectSession(Session, ABC):
                                 self.__class__.__name__,
                                 "Expected actions loops detected",
                             )
-                    logger.debug("Action key: {}".format(action_key))
+                    logger.debug(f"Action key: {action_key}")
                     action_map[action_key](self, logger)
                     output_str = ""
                     break
@@ -356,7 +354,7 @@ class ExpectSession(Session, ABC):
         if not is_correct_exit:
             raise SessionLoopLimitException(
                 self.__class__.__name__,
-                "Session Loop limit exceeded, {} loops".format(retries_count),
+                f"Session Loop limit exceeded, {retries_count} loops",
             )
 
         result_output = "".join(output_list)
@@ -368,9 +366,7 @@ class ExpectSession(Session, ABC):
                 if isinstance(error, CommandExecutionException):
                     raise error
                 else:
-                    raise CommandExecutionException(
-                        "Session returned '{}'".format(error)
-                    )
+                    raise CommandExecutionException(f"Session returned '{error}'")
 
         # Read buffer to the end. Useful when expected_string isn't last in buffer
         result_output += self._clear_buffer(self._clear_buffer_timeout, logger)
@@ -400,7 +396,7 @@ class ExpectSession(Session, ABC):
         )
 
 
-class ActionLoopDetector(object):
+class ActionLoopDetector:
     """Help to detect loops for action combinations."""
 
     def __init__(self, max_loops, max_combination_length):

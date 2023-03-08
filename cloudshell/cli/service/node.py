@@ -1,6 +1,4 @@
-from abc import ABCMeta, abstractmethod
-
-ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
+from abc import ABC, abstractmethod
 
 
 class Node(ABC):
@@ -27,7 +25,7 @@ class Node(ABC):
         pass
 
 
-class NodeOperations(object):
+class NodeOperations:
     @staticmethod
     def path_to_the_root(node):
         """Calculate path to the root node.

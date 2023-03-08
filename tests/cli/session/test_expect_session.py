@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from unittest import TestCase
+from unittest.mock import MagicMock, Mock, call, patch
 
 from cloudshell.cli.session.expect_session import ActionLoopDetector, ExpectSession
 from cloudshell.cli.session.session_exceptions import (
@@ -8,11 +9,6 @@ from cloudshell.cli.session.session_exceptions import (
     SessionLoopLimitException,
     SessionReadTimeout,
 )
-
-try:
-    from unittest.mock import MagicMock, Mock, call, patch
-except ImportError:
-    from mock import MagicMock, Mock, call, patch
 
 
 class ExpectSessionException(Exception):
@@ -250,10 +246,8 @@ class TestExpectSession(TestCase):
     ):
         command = "test_command"
         expected_string = "test_string"
-        out = """{0}
-        {1}""".format(
-            command, expected_string
-        )
+        out = f"""{command}
+        {expected_string}"""
         receive_all.return_value = out
         normalize_buffer.return_value = out
         timeout = Mock()

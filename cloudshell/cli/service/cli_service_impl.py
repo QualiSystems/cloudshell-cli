@@ -4,7 +4,7 @@ from cloudshell.cli.service.cli_service import CliService
 from cloudshell.cli.service.command_mode_helper import CommandModeHelper
 
 
-class EnterCommandModeContextManager(object):
+class EnterCommandModeContextManager:
     def __init__(self, cli_service, command_mode, logger):
         """Context manager used to enter specific command mode.
 
@@ -42,9 +42,7 @@ class EnterDetachCommandModeContextManager(EnterCommandModeContextManager):
         These command modes works without using CommandMode relations
         in CommandMode.RELATIONS_DICT
         """
-        super(EnterDetachCommandModeContextManager, self).__init__(
-            cli_service, command_mode, logger
-        )
+        super().__init__(cli_service, command_mode, logger)
 
         if command_mode.parent_node is None:
             command_mode.parent_node = self._previous_mode
@@ -71,7 +69,7 @@ class CliServiceImpl(CliService):
     """Session wrapper, used to keep session mode and enter any child mode."""
 
     def __init__(self, session, requested_command_mode, logger):
-        super(CliServiceImpl, self).__init__(session, logger)
+        super().__init__(session, logger)
         self._initialize(requested_command_mode)
 
     def _initialize(self, requested_command_mode):
@@ -110,7 +108,7 @@ class CliServiceImpl(CliService):
         logger=None,
         remove_prompt=False,
         *args,
-        **kwargs
+        **kwargs,
     ):
         """Send command.
 
@@ -140,12 +138,10 @@ class CliServiceImpl(CliService):
             error_map=error_map,
             logger=logger,
             *args,
-            **kwargs
+            **kwargs,
         )
         if remove_prompt:
-            output = re.sub(
-                r"^.*{}.*$".format(expected_string), "", output, flags=re.MULTILINE
-            )
+            output = re.sub(rf"^.*{expected_string}.*$", "", output, flags=re.MULTILINE)
         return output
 
     def _change_mode(self, requested_command_mode):
