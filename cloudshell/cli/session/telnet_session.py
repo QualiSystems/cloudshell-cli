@@ -99,4 +99,4 @@ class TelnetSession(ExpectSession, ConnectionParams):
         self._handler.get_socket().settimeout(timeout)
 
     def _read_byte_data(self):
-        self._handler.read_some()
+        return self._handler.read_some()
