@@ -1,35 +1,30 @@
+from __future__ import annotations
+
 import re
 from collections import OrderedDict
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from cloudshell.cli.types import T_ACTION_MAP, T_ERROR_MAP
 
 
 class CommandTemplate:
-    def __init__(self, command, action_map=None, error_map=None):
-        """Command Template.
-
-        :type command: str
-        :type action_map: dict
-        :param error_map: expected error map with subclass of CommandExecutionException
-            or str
-        :type error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]  # noqa: E501
-        """
+    def __init__(
+        self,
+        command: str,
+        action_map: T_ACTION_MAP | None = None,
+        error_map: T_ERROR_MAP | None = None,
+    ):
         self._command = command
         self._action_map = action_map or OrderedDict()
         self._error_map = error_map or OrderedDict()
 
     @property
-    def action_map(self):
-        """Property for action map.
-
-        :rtype: OrderedDict()
-        """
+    def action_map(self) -> T_ACTION_MAP:
         return self._action_map
 
     @property
-    def error_map(self):
-        """Property for error map.
-
-        :rtype: OrderedDict
-        """
+    def error_map(self) -> T_ERROR_MAP:
         return self._error_map
 
     # ToDo: Needs to be reviewed
@@ -44,7 +39,7 @@ class CommandTemplate:
             "error_map": error_map,
         }
 
-    def prepare_command(self, **kwargs):
+    def prepare_command(self, **kwargs) -> str:
         cmd = self._command
         keys = re.findall(r"{(\w+)}", self._command)
         for key in keys:

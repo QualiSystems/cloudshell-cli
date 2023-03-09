@@ -1,5 +1,14 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from cloudshell.cli.service.cli_exception import CliException
 from cloudshell.cli.service.session_manager import SessionManager
+
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from cloudshell.cli.types import T_SESSION
 
 
 class SessionManagerException(CliException):
@@ -8,17 +17,12 @@ class SessionManagerException(CliException):
 
 class SessionManagerImpl(SessionManager):
     def __init__(self):
-        self._existing_sessions = []
+        self._existing_sessions: list[T_SESSION] = []
 
-    def new_session(self, new_sessions, prompt, logger):
-        """Create new session.
-
-        :param new_sessions
-        :type new_sessions: list
-        :param prompt:
-        :param logger:
-        :return:
-        """
+    def new_session(
+        self, new_sessions: list[T_SESSION] | T_SESSION, prompt: str, logger: Logger
+    ) -> T_SESSION:
+        """Create new session."""
         if not isinstance(new_sessions, list):
             new_sessions = [new_sessions]
 
@@ -37,28 +41,21 @@ class SessionManagerImpl(SessionManager):
             ),
         )
 
-    def existing_sessions_count(self):
-        """Count of existing sessions.
-
-        :rtype: int
-        """
+    def existing_sessions_count(self) -> int:
         return len(self._existing_sessions)
 
-    def remove_session(self, session, logger):
-        """Remove session.
-
-        :param session:
-        :param logger:
-        """
+    def remove_session(self, session: T_SESSION, logger: Logger) -> None:
         if session in self._existing_sessions:
             self._existing_sessions.remove(session)
             logger.debug(f"{session.session_type} session was removed")
 
-    def is_compatible(self, session, new_sessions, logger):
-        """Compare session with new session parameters.
-
-        :type session: Session
-        """
+    def is_compatible(
+        self,
+        session: T_SESSION,
+        new_sessions: list[T_SESSION] | T_SESSION,
+        logger: Logger,
+    ) -> bool:
+        """Compare session with new session parameters."""
         if not isinstance(new_sessions, list):
             new_sessions = [new_sessions]
 

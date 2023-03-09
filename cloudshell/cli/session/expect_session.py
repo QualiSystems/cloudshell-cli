@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import re
 import socket
 import time
 from abc import ABC, abstractmethod
 from collections import OrderedDict
+from typing import TYPE_CHECKING
 
 from cloudshell.cli.session.helper.normalize_buffer import normalize_buffer
 from cloudshell.cli.session.session import Session
@@ -14,6 +17,11 @@ from cloudshell.cli.session.session_exceptions import (
     SessionReadEmptyData,
     SessionReadTimeout,
 )
+
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from cloudshell.cli.types import T_ACTION_MAP, T_ERROR_MAP, T_TIMEOUT
 
 
 class ExpectSession(Session, ABC):
@@ -31,26 +39,15 @@ class ExpectSession(Session, ABC):
 
     def __init__(
         self,
-        timeout=READ_TIMEOUT,
-        new_line="\r",
-        max_loop_retries=MAX_LOOP_RETRIES,
-        empty_loop_timeout=EMPTY_LOOP_TIMEOUT,
-        loop_detector_max_action_loops=LOOP_DETECTOR_MAX_ACTION_LOOPS,
-        loop_detector_max_combination_length=LOOP_DETECTOR_MAX_COMBINATION_LENGTH,
-        clear_buffer_timeout=CLEAR_BUFFER_TIMEOUT,
-        reconnect_timeout=RECONNECT_TIMEOUT,
+        timeout: T_TIMEOUT = READ_TIMEOUT,
+        new_line: str = "\r",
+        max_loop_retries: int = MAX_LOOP_RETRIES,
+        empty_loop_timeout: T_TIMEOUT = EMPTY_LOOP_TIMEOUT,
+        loop_detector_max_action_loops: int = LOOP_DETECTOR_MAX_ACTION_LOOPS,
+        loop_detector_max_combination_length: int = LOOP_DETECTOR_MAX_COMBINATION_LENGTH,  # noqa: E501
+        clear_buffer_timeout: T_TIMEOUT = CLEAR_BUFFER_TIMEOUT,
+        reconnect_timeout: T_TIMEOUT = RECONNECT_TIMEOUT,
     ):
-        """Help to handle additional actions during send command.
-
-        :param timeout:
-        :param new_line:
-        :param max_loop_retries:
-        :param empty_loop_timeout:
-        :param loop_detector_max_action_loops:
-        :param loop_detector_max_combination_length:
-        :param clear_buffer_timeout:
-        :return:
-        """
         self._new_line = new_line
         self._timeout = timeout
         self._max_loop_retries = max_loop_retries
@@ -64,42 +61,29 @@ class ExpectSession(Session, ABC):
         self._reconnect_timeout = reconnect_timeout
 
         self._active = False
-        self._command_patterns = {}
+        self._command_patterns: dict[str, str] = {}
 
     @property
-    def session_type(self):
+    def session_type(self) -> str:
         return self.SESSION_TYPE
 
     @abstractmethod
-    def _connect_actions(self, prompt, logger):
-        """Read out buffer and run on_session_start actions.
-
-        :param prompt: expected string in output
-        :param logger: logger
-        """
+    def _connect_actions(self, prompt: str, logger: Logger) -> None:
+        """Read out buffer and run on_session_start actions."""
         pass
 
     @abstractmethod
-    def _initialize_session(self, prompt, logger):
-        """Create handler and initialize session.
-
-        :param prompt: expected string in output
-        :param logger: logger
-        """
+    def _initialize_session(self, prompt: str, logger: Logger) -> None:
+        """Create handler and initialize session."""
         pass
 
-    def set_active(self, state):
+    def set_active(self, state: bool) -> None:
         self._active = state
 
-    def active(self):
+    def active(self) -> bool:
         return self._active
 
-    def _clear_buffer(self, timeout, logger):
-        """Clear buffer.
-
-        :param timeout:
-        :return:
-        """
+    def _clear_buffer(self, timeout: T_TIMEOUT, logger: Logger) -> str:
         out = ""
         while True:
             try:
@@ -112,12 +96,7 @@ class ExpectSession(Session, ABC):
                 break
         return out
 
-    def connect(self, prompt, logger):
-        """Connect to device.
-
-        :param prompt: expected string in output
-        :param logger: logger
-        """
+    def connect(self, prompt: str, logger: Logger) -> None:
         try:
             self._initialize_session(prompt, logger)
             self._connect_actions(prompt, logger)
@@ -126,22 +105,12 @@ class ExpectSession(Session, ABC):
             self.disconnect()
             raise
 
-    def send_line(self, command, logger):
-        """Add new line to the end of command string and send.
-
-        :param command:
-        :return:
-        """
+    def send_line(self, command: str, logger: Logger) -> None:
+        """Add new line to the end of command string and send."""
         self._send(command + self._new_line, logger)
 
-    def _receive_all(self, timeout, logger):
-        """Read as much as possible before catch SessionTimeoutException.
-
-        :param timeout:
-        :param logger:
-        :return:
-        :rtype: str
-        """
+    def _receive_all(self, timeout: T_TIMEOUT, logger: Logger) -> str:
+        """Read as much as possible before catch SessionTimeoutException."""
         if not timeout:
             timeout = self._timeout
         start_time = time.time()
@@ -157,13 +126,8 @@ class ExpectSession(Session, ABC):
                         self.__class__.__name__, "Socket closed by timeout"
                     )
 
-    def _receive(self, timeout, logger):
-        """Read session's buffer.
-
-        :type timeout: float
-        :type logger: logging.Logger
-        :rtype: str
-        """
+    def _receive(self, timeout: T_TIMEOUT, logger: Logger) -> str:
+        """Read session's buffer."""
         timeout = timeout or self._timeout
         self._set_timeout(timeout)
         try:
@@ -175,10 +139,10 @@ class ExpectSession(Session, ABC):
         return data
 
     @abstractmethod
-    def _set_timeout(self, timeout):
+    def _set_timeout(self, timeout: T_TIMEOUT) -> None:
         pass
 
-    def _read_str_data(self):
+    def _read_str_data(self) -> str:
         byte_data = b""
         for _ in range(5):
             new_data = self._read_byte_data()
@@ -199,40 +163,22 @@ class ExpectSession(Session, ABC):
         return str_data
 
     @abstractmethod
-    def _read_byte_data(self):
+    def _read_byte_data(self) -> bytes:
         pass
 
-    def _generate_command_pattern(self, command):
-        """Generate command_pattern.
-
-        :param command:
-        :return:
-        """
+    def _generate_command_pattern(self, command: str) -> str:
         if command not in self._command_patterns:
             self._command_patterns[command] = (
                 "\\s*" + re.sub(r"\\\s+", r"\\s+", re.escape(command)) + "\\s*"
             )
         return self._command_patterns[command]
 
-    def probe_for_prompt(self, expected_string, logger):
-        """Matched string for regexp.
-
-        :param expected_string:
-        :param logger:
-        :return:
-        """
+    def probe_for_prompt(self, expected_string: str, logger: Logger) -> str:
+        """Matched string for regexp."""
         return self.hardware_expect("", expected_string, logger)
 
-    def match_prompt(self, prompt, match_string, logger):
-        """Main verification for the prompt match.
-
-        :param prompt: Expected string, string or regular expression
-        :type prompt: str
-        :param match_string: Match string
-        :type match_string: str
-        :param logger
-        :rtype: bool
-        """
+    def match_prompt(self, prompt: str, match_string: str, logger: Logger) -> bool:
+        """Main verification for the prompt match."""
         if re.search(prompt, match_string, re.DOTALL):
             return True
         else:
@@ -240,39 +186,27 @@ class ExpectSession(Session, ABC):
 
     def hardware_expect(
         self,
-        command,
-        expected_string,
-        logger,
-        action_map=None,
-        error_map=None,
-        timeout=None,
-        retries=None,
-        check_action_loop_detector=True,
-        empty_loop_timeout=None,
-        remove_command_from_output=True,
+        command: str | None,
+        expected_string: str,
+        logger: Logger,
+        action_map: T_ACTION_MAP | None = None,
+        error_map: T_ERROR_MAP | None = None,
+        timeout: T_TIMEOUT | None = None,
+        retries: int | None = None,
+        check_action_loop_detector: bool = True,
+        empty_loop_timeout: T_TIMEOUT | None = None,
+        remove_command_from_output: bool = True,
         **optional_args,
-    ):
+    ) -> str:
         """Get response from the device.
 
         Compare it to action_map, error_map and expected_string patterns,
         perform actions specified in action_map if any, and return output.
         Raise Exception if receive empty response from device within a minute
 
-        :param command: command to send
-        :param expected_string: expected string
-        :param logger: logger
-        :param action_map: dict with {re_str: action} to trigger some action
-            on received string
-        :param error_map: expected error map with subclass of CommandExecutionException
-            or str
-        :type error_map: dict[str, CommandExecutionException|str]
-        :param timeout: session timeout
-        :param retries: maximal retries count
-        :param remove_command_from_output: In some switches the output string includes
-            the command which was called. The flag used to verify whether the the
+        remove_command_from_output - In some switches the output string includes
+            the command which was called. The flag used to verify whether the
             command string removed from the output string.
-        :return:
-        :rtype: str
         """
         if not action_map:
             action_map = OrderedDict()
@@ -372,14 +306,9 @@ class ExpectSession(Session, ABC):
         result_output += self._clear_buffer(self._clear_buffer_timeout, logger)
         return result_output
 
-    def reconnect(self, prompt, logger, timeout=None):
-        """Recconnect implementation.
-
-        :param prompt:
-        :param logger:
-        :param timeout:
-        :return:
-        """
+    def reconnect(
+        self, prompt: str, logger: Logger, timeout: T_TIMEOUT | None = None
+    ) -> None:
         logger.debug("Reconnect")
         timeout = timeout or self._reconnect_timeout
 
@@ -399,24 +328,13 @@ class ExpectSession(Session, ABC):
 class ActionLoopDetector:
     """Help to detect loops for action combinations."""
 
-    def __init__(self, max_loops, max_combination_length):
-        """Help to detect loops for action combinations.
-
-        :param max_loops:
-        :param max_combination_length:
-        :return:
-        """
+    def __init__(self, max_loops: int, max_combination_length: int):
         self._max_action_loops = max_loops
         self._max_combination_length = max_combination_length
         self._action_history = []
 
-    def loops_detected(self, action_key):
-        """Add action key to the history and detect loops.
-
-        :param action_key:
-        :return:
-        """
-        # """Added action key to the history and detect for loops"""
+    def loops_detected(self, action_key: str) -> bool:
+        """Add action key to the history and detect loops."""
         loops_detected = False
         self._action_history.append(action_key)
         for combination_length in range(1, self._max_combination_length + 1):
@@ -426,24 +344,16 @@ class ActionLoopDetector:
                     break
         return loops_detected
 
-    def _is_combination_compatible(self, combination_length):
-        """Check if combinations may exist.
-
-        :param combination_length:
-        :return:
-        """
+    def _is_combination_compatible(self, combination_length: int) -> bool:
+        """Check if combinations may exist."""
         if len(self._action_history) / combination_length >= self._max_action_loops:
             is_compatible = True
         else:
             is_compatible = False
         return is_compatible
 
-    def _detect_loops_for_combination_length(self, combination_length):
-        """Detect loops for combination length.
-
-        :param combination_length:
-        :return:
-        """
+    def _detect_loops_for_combination_length(self, combination_length: int) -> bool:
+        """Detect loops for combination length."""
         reversed_history = self._action_history[::-1]
         combinations = [
             reversed_history[x : x + combination_length]

@@ -1,20 +1,23 @@
+from __future__ import annotations
+
 from collections import OrderedDict
 from functools import reduce
+from typing import TYPE_CHECKING
 
 from cloudshell.cli.service.command_mode import CommandMode, CommandModeException
 from cloudshell.cli.service.node import NodeOperations
 
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from cloudshell.cli.types import T_COMMAND_MODE_RELATIONS, T_SESSION
+
 
 class CommandModeHelper(NodeOperations):
     @staticmethod
-    def determine_current_mode(session, command_mode, logger):
-        """Determine current command mode.
-
-        :type session: cloudshell.cli.session.session.Session
-        :type command_mode: CommandMode
-        :type logger: logging.Logger
-        :rtype: CommandMode
-        """
+    def determine_current_mode(
+        session: T_SESSION, command_mode: CommandMode, logger: Logger
+    ) -> CommandMode:
         defined_modes = CommandModeHelper.defined_modes_by_prompt(command_mode)
         prompts_re = r"|".join(defined_modes.keys())
         try:
@@ -30,11 +33,8 @@ class CommandModeHelper(NodeOperations):
                 return mode
 
     @staticmethod
-    def defined_modes_by_prompt(command_mode):
-        """Find all modes by relations and generate dict.
-
-        :rtype: OrderedDict
-        """
+    def defined_modes_by_prompt(command_mode: CommandMode) -> dict[str, CommandMode]:
+        """Find all modes by relations and generate dict."""
 
         def _get_child_nodes(command_node):
             return reduce(
@@ -55,13 +55,12 @@ class CommandModeHelper(NodeOperations):
         return modes_dict
 
     @staticmethod
-    def create_command_mode(*args, **kwargs):
-        """Create specific command mode with relations.
+    def create_command_mode(*args, **kwargs) -> T_COMMAND_MODE_RELATIONS:
+        """Create specific command mode with relations."""
 
-        :rtype: dict
-        """
-
-        def _create_child_modes(instance, child_dict):
+        def _create_child_modes(
+            instance: CommandMode | None, child_dict: T_COMMAND_MODE_RELATIONS
+        ) -> T_COMMAND_MODE_RELATIONS:
             instance_dict = {}
             for mode_type in child_dict:
                 mode_instance = mode_type(*args, **kwargs)

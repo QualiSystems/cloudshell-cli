@@ -1,7 +1,17 @@
+from __future__ import annotations
+
 import re
+from typing import TYPE_CHECKING
 
 from cloudshell.cli.service.cli_exception import CliException
 from cloudshell.cli.service.node import Node
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Generator
+    from logging import Logger
+
+    from cloudshell.cli.service.cli_service import CliService
+    from cloudshell.cli.types import T_ACTION_MAP, T_COMMAND_MODE_RELATIONS, T_ERROR_MAP
 
 
 class CommandModeException(CliException):
@@ -15,38 +25,23 @@ class CommandMode(Node):
 
     def __init__(
         self,
-        prompt,
-        enter_command=None,
-        exit_command=None,
-        enter_action_map=None,
-        exit_action_map=None,
-        enter_error_map=None,
-        exit_error_map=None,
-        parent_mode=None,
-        enter_actions=None,
-        use_exact_prompt=False,
+        prompt: str,
+        enter_command: str | None = None,
+        exit_command: str | None = None,
+        enter_action_map: T_ACTION_MAP | None = None,
+        exit_action_map: T_ACTION_MAP | None = None,
+        enter_error_map: T_ERROR_MAP | None = None,
+        exit_error_map: T_ERROR_MAP | None = None,
+        parent_mode: CommandMode | None = None,
+        enter_actions: Callable[[CliService], None] | None = None,
+        use_exact_prompt: bool = False,
     ):
         """Initialize Command Mode.
 
         :param prompt: Prompt of this mode
-        :type prompt: str
         :param enter_command: Command used to enter this mode
-        :type enter_command: str
         :param exit_command: Command used to exit from this mode
-        :type exit_command: str
         :param enter_actions: Actions which needs to be done when entering this mode
-        :param enter_action_map: Enter expected actions
-        :type enter_action_map: dict
-        :param enter_error_map: expected error map with subclass of
-            CommandExecutionException or str
-        :type enter_error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]  # noqa: E501
-        :param exit_action_map:
-        :type exit_action_map: dict
-        :param exit_error_map: expected error map with subclass of
-            CommandExecutionException or str
-        :type exit_error_map: dict[str, cloudshell.cli.session.session_exceptions.CommandExecutionException|str]  # noqa: E501
-        :param
-        :param parent_mode: Connect parent mode
         """
         if not exit_error_map:
             exit_error_map = {}
@@ -73,33 +68,21 @@ class CommandMode(Node):
             self.add_parent_mode(parent_mode)
 
     @property
-    def prompt(self):
+    def prompt(self) -> str:
         if self._use_exact_prompt and self._exact_prompt:
             return self._exact_prompt
         else:
             return self._prompt
 
     @prompt.setter
-    def prompt(self, value):
+    def prompt(self, value: str) -> None:
         self._prompt = value
 
-    def add_parent_mode(self, mode):
-        """Add parent mode.
-
-        :param mode:
-        :type mode: CommandMode
-        :return:
-        """
+    def add_parent_mode(self, mode: CommandMode | None) -> None:
         if mode:
             mode.add_child_node(self)
 
-    def step_up(self, cli_service, logger):
-        """Enter command mode.
-
-        :param cli_service:
-        :type cli_service: CliService
-        :type logger: logging.Logger
-        """
+    def step_up(self, cli_service: CliService, logger: Logger) -> None:
         if not isinstance(self._enter_command, (list, tuple)):
             enter_command_list = [self._enter_command]
         else:
@@ -115,13 +98,7 @@ class CommandMode(Node):
         self.enter_actions(cli_service)
         self.prompt_actions(cli_service, logger)
 
-    def step_down(self, cli_service, logger):
-        """Exit from command mode.
-
-        :param cli_service:
-        :type cli_service: CliService
-        :type logger: logging.Logger
-        """
+    def step_down(self, cli_service: CliService, logger: Logger) -> None:
         if not isinstance(self._exit_command, (list, tuple)):
             exit_command_list = [self._exit_command]
         else:
@@ -135,30 +112,16 @@ class CommandMode(Node):
             )
         cli_service.command_mode = self.parent_node
 
-    def enter_actions(self, cli_service):
-        """Default actions.
-
-        :type cli_service: cloudshell.cli.cli_service.CliService
-        """
+    def enter_actions(self, cli_service: CliService) -> None:
         if self._enter_actions:
             self._enter_actions(cli_service)
 
-    def prompt_actions(self, cli_service, logger):
-        """Prompt actions.
-
-        :type cli_service: cloudshell.cli.cli_service.CliService
-        :type logger: logging.Logger
-        """
+    def prompt_actions(self, cli_service: CliService, logger: Logger) -> None:
         if self._use_exact_prompt:
             self._exact_prompt = self._initialize_exact_prompt(cli_service, logger)
             logger.debug("Exact prompt: " + self._exact_prompt)
 
-    def _initialize_exact_prompt(self, cli_service, logger):
-        """Exact prompt initialization.
-
-        :type cli_service: cloudshell.cli.cli_service.CliService
-        :type logger: logging.Logger
-        """
+    def _initialize_exact_prompt(self, cli_service: CliService, logger: Logger) -> str:
         if self._exact_prompt:
             return self._exact_prompt
 
@@ -178,7 +141,9 @@ class CommandMode(Node):
         return exact_prompt
 
     @classmethod
-    def get_all_attached_command_modes(cls, relations_dict=None):
+    def get_all_attached_command_modes(
+        cls, relations_dict: T_COMMAND_MODE_RELATIONS | None = None
+    ) -> Generator[type[CommandMode], None, None]:
         if relations_dict is None:
             relations_dict = cls.RELATIONS_DICT
 
@@ -189,5 +154,5 @@ class CommandMode(Node):
                 for key in cls.get_all_attached_command_modes(val):
                     yield key
 
-    def is_attached_command_mode(self):
+    def is_attached_command_mode(self) -> bool:
         return isinstance(self, tuple(self.get_all_attached_command_modes()))

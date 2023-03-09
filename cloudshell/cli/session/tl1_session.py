@@ -1,8 +1,21 @@
+from __future__ import annotations
+
 import re
 import socket
+from typing import TYPE_CHECKING
 
 from cloudshell.cli.session.connection_params import ConnectionParams
 from cloudshell.cli.session.tcp_session import TCPSession
+
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from cloudshell.cli.types import (
+        T_ACTION_MAP,
+        T_ERROR_MAP,
+        T_ON_SESSION_START,
+        T_TIMEOUT,
+    )
 
 
 class TL1Session(TCPSession):
@@ -10,7 +23,14 @@ class TL1Session(TCPSession):
     BUFFER_SIZE = 1024
 
     def __init__(
-        self, host, username, password, port, on_session_start=None, *args, **kwargs
+        self,
+        host: str,
+        username: str,
+        password: str,
+        port: int | None,
+        on_session_start: T_ON_SESSION_START | None = None,
+        *args,
+        **kwargs,
     ):
         super().__init__(host, port, on_session_start, *args, **kwargs)
         self._username = username
@@ -18,28 +38,24 @@ class TL1Session(TCPSession):
         self.switch_name = "switch-name-not-initialized"
         self._tl1_counter = 0
 
-    def __eq__(self, other):
-        """Is equal.
-
-        :type other: TL1Session
-        """
+    def __eq__(self, other) -> bool:
         return (
             ConnectionParams.__eq__(self, other)
             and self._username == other._username
             and self._password == other._password
         )
 
-    def probe_for_prompt(self, expected_string, logger):
+    def probe_for_prompt(self, expected_string: str, logger: Logger) -> str:
         return "DUMMY_PROMPT"
 
-    def _initialize_session(self, prompt, logger):
+    def _initialize_session(self, prompt: str, logger: Logger) -> None:
         self._handler = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         server_address = (self.host, self.port)
         self._handler.connect(server_address)
         self._handler.settimeout(self._timeout)
 
-    def _connect_actions(self, prompt, logger):
+    def _connect_actions(self, prompt: str, logger: Logger) -> None:
         output = self.hardware_expect(
             f"ACT-USER::{self._username}:{{counter}}::{self._password};",
             expected_string=None,
@@ -64,18 +80,18 @@ class TL1Session(TCPSession):
 
     def hardware_expect(
         self,
-        command,
-        expected_string,
-        logger,
-        action_map=None,
-        error_map=None,
-        timeout=None,
-        retries=None,
-        check_action_loop_detector=True,
-        empty_loop_timeout=None,
-        remove_command_from_output=True,
+        command: str | None,
+        expected_string: str | None,
+        logger: Logger,
+        action_map: T_ACTION_MAP | None = None,
+        error_map: T_ERROR_MAP | None = None,
+        timeout: T_TIMEOUT | None = None,
+        retries: int | None = None,
+        check_action_loop_detector: bool = True,
+        empty_loop_timeout: T_TIMEOUT | None = None,
+        remove_command_from_output: bool = True,
         **optional_args,
-    ):
+    ) -> str:
         self._tl1_counter += 1
         command = command.replace("{counter}", str(self._tl1_counter))
         command = command.replace("{name}", self.switch_name)
