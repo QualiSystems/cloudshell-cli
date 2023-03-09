@@ -1,29 +1,28 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from cloudshell.cli.types import T_SESSION
 
 
 class SessionPool(ABC):
     @abstractmethod
-    def get_session(self, new_sessions, prompt, logger):
-        """Get session from pool.
-
-        :rtype: cloudshell.cli.session.session.Session
-        """
+    def get_session(
+        self, new_sessions: list[T_SESSION], prompt: str, logger: Logger
+    ) -> T_SESSION:
+        """Get session from pool."""
         pass
 
     @abstractmethod
-    def return_session(self, session, logger):
-        """Return session to pool.
-
-        :type session: cloudshell.cli.session.session.Session
-        :type logger: logging.Logger
-        """
+    def return_session(self, session: T_SESSION, logger: Logger) -> None:
+        """Return session to pool."""
         pass
 
     @abstractmethod
-    def remove_session(self, session, logger):
-        """Remove session from pool.
-
-        :type session: cloudshell.cli.session.session.Session
-        :type logger: logging.Logger
-        """
+    def remove_session(self, session: T_SESSION, logger: Logger) -> None:
+        """Remove session from pool."""
         pass

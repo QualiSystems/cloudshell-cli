@@ -1,4 +1,12 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from cloudshell.cli.types import T_ON_SESSION_START, T_SESSION
 
 
 class SessionFactory(ABC):
@@ -15,20 +23,11 @@ class SessionFactory(ABC):
     def init_session(
         self,
         resource_config,
-        logger,
-        on_session_start=None,
-        access_key=None,
-        access_key_passphrase=None,
-    ):
-        """Initialize session instance.
-
-        Encapsulate the logic of the session instance creation.
-        :param resource_config:
-        :param logging.Logger logger:
-        :param on_session_start: function that will be called on session start
-        :param access_key: access key for the resource
-        :param access_key_passphrase: access key passphrase for the resource
-        """
+        logger: Logger,
+        on_session_start: T_ON_SESSION_START | None = None,
+        access_key: str | None = None,
+        access_key_passphrase: str | None = None,
+    ) -> T_SESSION:
         raise NotImplementedError
 
 
@@ -36,11 +35,11 @@ class GenericSessionFactory(SessionFactory):
     def init_session(
         self,
         resource_config,
-        logger,
-        on_session_start=None,
-        access_key=None,
-        access_key_passphrase=None,
-    ):
+        logger: Logger,
+        on_session_start: T_ON_SESSION_START | None = None,
+        access_key: str | None = None,
+        access_key_passphrase: str | None = None,
+    ) -> T_SESSION:
         return self.session_class(
             **self._session_kwargs(
                 resource_config,
@@ -52,17 +51,17 @@ class GenericSessionFactory(SessionFactory):
         )
 
     @property
-    def SESSION_TYPE(self):
+    def SESSION_TYPE(self) -> str:
         return self.session_class.SESSION_TYPE
 
     def _session_kwargs(
         self,
         resource_config,
-        logger,
-        on_session_start,
-        access_key,
-        access_key_passphrase,
-    ):
+        logger: Logger,
+        on_session_start: T_ON_SESSION_START | None,
+        access_key: str | None,
+        access_key_passphrase: str | None,
+    ) -> dict:
         return {
             "host": resource_config.address,
             "username": resource_config.user,
@@ -76,10 +75,10 @@ class CloudInfoAccessKeySessionFactory(GenericSessionFactory):
     def _session_kwargs(
         self,
         resource_config,
-        logger,
-        on_session_start,
-        access_key,
-        access_key_passphrase,
+        logger: Logger,
+        on_session_start: T_ON_SESSION_START | None,
+        access_key: str | None,
+        access_key_passphrase: str | None,
     ):
         return {
             "host": resource_config.address,

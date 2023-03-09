@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from io import StringIO
+from typing import TYPE_CHECKING
 
 import paramiko
 from scp import SCPClient
@@ -6,6 +9,11 @@ from scp import SCPClient
 from cloudshell.cli.session.connection_params import ConnectionParams
 from cloudshell.cli.session.expect_session import ExpectSession
 from cloudshell.cli.session.session_exceptions import SessionException
+
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from cloudshell.cli.types import T_ON_SESSION_START, T_TIMEOUT
 
 
 class SSHSessionException(SessionException):
@@ -18,13 +26,13 @@ class SSHSession(ExpectSession, ConnectionParams):
 
     def __init__(
         self,
-        host,
-        username,
-        password,
-        port=None,
-        on_session_start=None,
-        pkey=None,
-        pkey_passphrase=None,
+        host: str,
+        username: str,
+        password: str,
+        port: int | None = None,
+        on_session_start: T_ON_SESSION_START | None = None,
+        pkey: str | None = None,
+        pkey_passphrase: str | None = None,
         *args,
         **kwargs,
     ):
@@ -45,11 +53,7 @@ class SSHSession(ExpectSession, ConnectionParams):
         self._current_channel = None
         self._buffer_size = self.BUFFER_SIZE
 
-    def __eq__(self, other):
-        """Is equal.
-
-        :param SSHSession other:
-        """
+    def __eq__(self, other) -> bool:
         return all(
             [
                 ConnectionParams.__eq__(self, other),
@@ -60,20 +64,15 @@ class SSHSession(ExpectSession, ConnectionParams):
             ]
         )
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.disconnect()
 
-    def _create_handler(self):
+    def _create_handler(self) -> None:
         self._handler = paramiko.SSHClient()
         self._handler.load_system_host_keys()
         self._handler.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-    def _initialize_session(self, prompt, logger):
-        """Initialize session.
-
-        :param str prompt:
-        :param logging.Logger logger:
-        """
+    def _initialize_session(self, prompt: str, logger: Logger) -> None:
         self._create_handler()
         try:
             self._handler.connect(
@@ -94,35 +93,26 @@ class SSHSession(ExpectSession, ConnectionParams):
         self._current_channel = self._handler.invoke_shell()
         self._current_channel.settimeout(self._timeout)
 
-    def _connect_actions(self, prompt, logger):
-        """Connect actions.
-
-        :param str prompt:
-        :param logging.Logger logger:
-        """
+    def _connect_actions(self, prompt: str, logger: Logger) -> None:
         self.hardware_expect(
             None, expected_string=prompt, timeout=self._timeout, logger=logger
         )
         self._on_session_start(logger)
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         """Disconnect from device."""
         if self._handler:
             self._handler.close()
         self._active = False
 
-    def _send(self, command, logger):
-        """Send message to device.
-
-        :param str command:
-        :param logging.Logger logger:
-        """
+    def _send(self, command: str, logger: Logger) -> None:
+        """Send message to device."""
         self._current_channel.send(command)
 
-    def _set_timeout(self, timeout):
+    def _set_timeout(self, timeout: T_TIMEOUT) -> None:
         self._current_channel.settimeout(timeout)
 
-    def _read_byte_data(self):
+    def _read_byte_data(self) -> bytes:
         return self._current_channel.recv(self._buffer_size)
 
     def upload_scp(
@@ -166,7 +156,9 @@ class SSHSession(ExpectSession, ConnectionParams):
         sftp.close()
 
     @staticmethod
-    def _get_pkey_object(key_material, passphrase, logger):
+    def _get_pkey_object(
+        key_material: str | None, passphrase: str | None, logger: Logger
+    ) -> paramiko.RSAKey | paramiko.DSSKey | paramiko.ECDSAKey | None:
         """Try to detect private key type and return paramiko.PKey object."""
         if not key_material:
             return None

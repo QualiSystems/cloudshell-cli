@@ -1,12 +1,8 @@
 import re
 
 
-def normalize_buffer(input_buffer):
-    """Method for clear color fro input_buffer and special characters.
-
-    :param str input_buffer: input buffer string from device
-    :return: str
-    """
+def normalize_buffer(input_buffer: str) -> str:
+    """Method for clear color fro input_buffer and special characters."""
     color_pattern = re.compile(
         r"\[[0-9]+;{0,1}[0-9]+m|\[[0-9]+m|\b|" + chr(27)
     )  # 27 - ESC character

@@ -1,6 +1,17 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from cloudshell.cli.service.cli_service_impl import CliServiceImpl as CliService
 from cloudshell.cli.service.command_mode_helper import CommandModeHelper
 from cloudshell.cli.session.expect_session import CommandExecutionException
+
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from cloudshell.cli.service.command_mode import CommandMode
+    from cloudshell.cli.service.session_pool import SessionPool
+    from cloudshell.cli.types import T_SESSION
 
 
 class SessionPoolContextManager:
@@ -8,13 +19,13 @@ class SessionPoolContextManager:
 
     IGNORED_EXCEPTIONS = (CommandExecutionException,)
 
-    def __init__(self, session_pool, defined_sessions, command_mode, logger):
-        """Initialize Session pool context manager.
-
-        :param cloudshell.cli.service.session_pool_manager.SessionPoolManager session_pool:  # noqa: E501
-        :type command_mode: cli.service.command_mode.CommandMode
-        :type logger: logging.Logger
-        """
+    def __init__(
+        self,
+        session_pool: SessionPool,
+        defined_sessions: list[T_SESSION],
+        command_mode: CommandMode,
+        logger: Logger,
+    ):
         self._session_pool = session_pool
         self._command_mode = command_mode
         self._logger = logger
@@ -23,18 +34,14 @@ class SessionPoolContextManager:
 
         self._active_session = None
 
-    def _initialize_cli_service(self, session, prompt):
+    def _initialize_cli_service(self, session: T_SESSION, prompt: str) -> CliService:
         try:
             return CliService(session, self._command_mode, self._logger)
         except Exception:
             session.reconnect(prompt, self._logger)
             return CliService(session, self._command_mode, self._logger)
 
-    def __enter__(self):
-        """Enter.
-
-        :rtype: CliService
-        """
+    def __enter__(self) -> CliService:
         prompts_re = r"|".join(
             CommandModeHelper.defined_modes_by_prompt(self._command_mode).keys()
         )

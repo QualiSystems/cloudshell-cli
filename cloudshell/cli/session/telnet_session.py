@@ -1,9 +1,17 @@
+from __future__ import annotations
+
 import telnetlib
 from collections import OrderedDict
+from typing import TYPE_CHECKING
 
 from cloudshell.cli.session.connection_params import ConnectionParams
 from cloudshell.cli.session.expect_session import ExpectSession
 from cloudshell.cli.session.session_exceptions import SessionException
+
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from cloudshell.cli.types import T_ON_SESSION_START, T_TIMEOUT
 
 
 class TelnetSessionException(SessionException):
@@ -17,13 +25,13 @@ class TelnetSession(ExpectSession, ConnectionParams):
 
     def __init__(
         self,
-        host,
-        username,
-        password,
-        port=None,
-        on_session_start=None,
+        host: str,
+        username: str,
+        password: str,
+        port: int | None = None,
+        on_session_start: T_ON_SESSION_START | None = None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         ConnectionParams.__init__(
             self, host, port=port, on_session_start=on_session_start
@@ -38,21 +46,17 @@ class TelnetSession(ExpectSession, ConnectionParams):
 
         self._handler = None
 
-    def __eq__(self, other):
-        """Is equal.
-
-        :type other: TelnetSession
-        """
+    def __eq__(self, other) -> bool:
         return (
             ConnectionParams.__eq__(self, other)
             and self.username == other.username
             and self.password == other.password
         )
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.disconnect()
 
-    def _connect_actions(self, prompt, logger):
+    def _connect_actions(self, prompt: str, logger: Logger) -> None:
         action_map = OrderedDict()
         action_map[
             "[Ll]ogin:|[Uu]ser:|[Uu]sername:"
@@ -69,7 +73,7 @@ class TelnetSession(ExpectSession, ConnectionParams):
         )
         self._on_session_start(logger)
 
-    def _initialize_session(self, prompt, logger):
+    def _initialize_session(self, prompt: str, logger: Logger) -> None:
         self._handler = telnetlib.Telnet()
 
         self._handler.open(self.host, int(self.port), self._timeout)
@@ -80,23 +84,19 @@ class TelnetSession(ExpectSession, ConnectionParams):
 
         self._handler.get_socket().send(telnetlib.IAC + telnetlib.WILL + telnetlib.ECHO)
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         """Disconnect / close the session."""
         if self._handler:
             self._handler.close()
         self._active = False
 
-    def _send(self, command, logger):
-        """Send message / command to device.
-
-        :param command: message / command to send
-        :type command: str
-        """
+    def _send(self, command: str, logger: Logger) -> None:
+        """Send message / command to device."""
         byte_command = command.encode()
         self._handler.write(byte_command)
 
-    def _set_timeout(self, timeout):
+    def _set_timeout(self, timeout: T_TIMEOUT) -> None:
         self._handler.get_socket().settimeout(timeout)
 
-    def _read_byte_data(self):
+    def _read_byte_data(self) -> bytes:
         return self._handler.read_some()
