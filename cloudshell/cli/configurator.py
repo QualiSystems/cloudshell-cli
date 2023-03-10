@@ -3,14 +3,18 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from functools import lru_cache
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
+
+from attrs import define, field
 
 from cloudshell.cli.factory.session_factory import (
     CloudInfoAccessKeySessionFactory,
     GenericSessionFactory,
     SessionFactory,
 )
+from cloudshell.cli.service.auth_model import Auth
 from cloudshell.cli.service.cli import CLI
+from cloudshell.cli.service.console_model import ConsoleParams
 from cloudshell.cli.session.ssh_session import SSHSession
 from cloudshell.cli.session.telnet_session import TelnetSession
 
@@ -22,42 +26,65 @@ if TYPE_CHECKING:
     from cloudshell.cli.service.session_pool_context_manager import (
         SessionPoolContextManager,
     )
-    from cloudshell.cli.types import T_SESSION
+    from cloudshell.cli.types import T_SESSION, CliConfigProtocol
 
 
+@define
 class CLIServiceConfigurator:
-    REGISTERED_SESSIONS: tuple[SessionFactory] = (
+    REGISTERED_SESSIONS: ClassVar[tuple[SessionFactory]] = (
         CloudInfoAccessKeySessionFactory(SSHSession),
         GenericSessionFactory(TelnetSession),
     )
 
-    def __init__(
-        self,
-        resource_config,
+    _cli_type: str
+    _host: str
+    _logger: Logger
+    _port: int = 0
+    _auth: Auth = field(factory=Auth)
+    _console_params: ConsoleParams | None = None
+    _cli: CLI = field(factory=CLI)
+    _registered_sessions: Collection[SessionFactory] = REGISTERED_SESSIONS
+
+    @classmethod
+    def from_config(
+        cls,
+        conf: CliConfigProtocol,
         logger: Logger,
         cli: CLI | None = None,
-        registered_sessions: Collection[SessionFactory] | None = None,
-        access_key: str | None = None,
-        access_key_passphrase: str | None = None,
-    ):
-        self._cli = cli or CLI()
-        self._resource_config = resource_config
-        self._logger = logger
-        self._registered_sessions = registered_sessions or self.REGISTERED_SESSIONS
-        self._access_key = access_key
-        self._access_key_passphrase = access_key_passphrase
-
-    @property
-    def _cli_type(self) -> str:
-        """Connection type property [ssh|telnet|console|auto]."""
-        return self._resource_config.cli_connection_type.value
+        registered_sessions: Collection[SessionFactory] | None = REGISTERED_SESSIONS,
+    ) -> CLIServiceConfigurator:
+        if not cli:
+            cli = CLI()
+        auth = Auth(
+            conf.user,
+            conf.password,
+            conf.enable_password,
+            conf.access_key,
+            conf.access_key_passphrase,
+        )
+        console_params = ConsoleParams(
+            conf.console_server_ip_address,
+            conf.console_user,
+            conf.console_password,
+            conf.console_port,
+        )
+        return cls(
+            conf.cli_connection_type.value,
+            conf.address,
+            logger,
+            port=conf.cli_tcp_port,
+            auth=auth,
+            console_params=console_params,
+            cli=cli,
+            registered_sessions=registered_sessions,
+        )
 
     @property
     @lru_cache()
     def _session_dict(self) -> defaultdict[str, list[SessionFactory]]:
         session_dict = defaultdict(list)
         for sess in self._registered_sessions:
-            session_dict[sess.SESSION_TYPE.lower()].append(sess)
+            session_dict[sess.session_type.lower()].append(sess)
         return session_dict
 
     def _on_session_start(self, session: T_SESSION, logger: Logger) -> None:
@@ -65,11 +92,12 @@ class CLIServiceConfigurator:
 
     def initialize_session(self, session: SessionFactory) -> T_SESSION:
         return session.init_session(
-            self._resource_config,
-            self._logger,
+            host=self._host,
+            port=self._port,
+            auth=self._auth,
+            console_params=self._console_params,
+            logger=self._logger,
             on_session_start=self._on_session_start,
-            access_key=self._access_key,
-            access_key_passphrase=self._access_key_passphrase,
         )
 
     def _defined_sessions(self) -> list[T_SESSION]:

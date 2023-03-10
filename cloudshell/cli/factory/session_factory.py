@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from logging import Logger
 
+    from cloudshell.cli.service.auth_model import Auth
+    from cloudshell.cli.service.console_model import ConsoleParams
     from cloudshell.cli.types import T_ON_SESSION_START, T_SESSION
 
 
@@ -15,18 +17,24 @@ class SessionFactory(ABC):
     Help to initialize session for specified session class.
     """
 
-    def __init__(self, session_class):
+    def __init__(self, session_class, session_kwargs: dict[str, str] | None = None):
         """:param session_class: Session class."""
         self.session_class = session_class
+        self.session_kwargs = session_kwargs or {}
+
+    @property
+    def session_type(self) -> str:
+        return self.session_class.SESSION_TYPE
 
     @abstractmethod
     def init_session(
         self,
-        resource_config,
+        host: str,
+        port: int,
+        auth: Auth,
+        console_params: ConsoleParams | None,
         logger: Logger,
         on_session_start: T_ON_SESSION_START | None = None,
-        access_key: str | None = None,
-        access_key_passphrase: str | None = None,
     ) -> T_SESSION:
         raise NotImplementedError
 
@@ -34,58 +42,72 @@ class SessionFactory(ABC):
 class GenericSessionFactory(SessionFactory):
     def init_session(
         self,
-        resource_config,
+        host: str,
+        port: int,
+        auth: Auth,
+        console_params: ConsoleParams | None,
         logger: Logger,
         on_session_start: T_ON_SESSION_START | None = None,
-        access_key: str | None = None,
-        access_key_passphrase: str | None = None,
     ) -> T_SESSION:
         return self.session_class(
-            **self._session_kwargs(
-                resource_config,
-                logger,
-                on_session_start,
-                access_key,
-                access_key_passphrase,
-            )
+            host=host,
+            port=port,
+            username=auth.username,
+            password=auth.password,
+            on_session_start=on_session_start,
+            **self.session_kwargs,
         )
-
-    @property
-    def SESSION_TYPE(self) -> str:
-        return self.session_class.SESSION_TYPE
-
-    def _session_kwargs(
-        self,
-        resource_config,
-        logger: Logger,
-        on_session_start: T_ON_SESSION_START | None,
-        access_key: str | None,
-        access_key_passphrase: str | None,
-    ) -> dict:
-        return {
-            "host": resource_config.address,
-            "username": resource_config.user,
-            "password": resource_config.password,
-            "port": resource_config.cli_tcp_port,
-            "on_session_start": on_session_start,
-        }
 
 
 class CloudInfoAccessKeySessionFactory(GenericSessionFactory):
-    def _session_kwargs(
+    def init_session(
         self,
-        resource_config,
+        host: str,
+        port: int,
+        auth: Auth,
+        console_params: ConsoleParams | None,
         logger: Logger,
-        on_session_start: T_ON_SESSION_START | None,
-        access_key: str | None,
-        access_key_passphrase: str | None,
+        on_session_start: T_ON_SESSION_START | None = None,
+    ) -> T_SESSION:
+        return self.session_class(
+            host=host,
+            port=port,
+            username=auth.username,
+            password=auth.password,
+            pkey=auth.key,
+            pkey_passphrase=auth.key_passphrase,
+            on_session_start=on_session_start,
+            **self.session_kwargs,
+        )
+
+
+class ConsoleSessionFactory(GenericSessionFactory):
+    def __init__(
+        self,
+        session_class,
+        console_auth: bool = True,
+        session_kwargs: dict[str, str] | None = None,
     ):
-        return {
-            "host": resource_config.address,
-            "username": resource_config.user,
-            "password": resource_config.password,
-            "port": resource_config.cli_tcp_port,
-            "pkey": access_key,
-            "pkey_passphrase": access_key_passphrase,
-            "on_session_start": on_session_start,
-        }
+        super().__init__(session_class, session_kwargs)
+        self.console_auth = console_auth
+
+    def init_session(
+        self,
+        host: str,
+        port: int,
+        auth: Auth | None,
+        console_params: ConsoleParams | None,
+        logger: Logger,
+        on_session_start: T_ON_SESSION_START | None = None,
+    ) -> T_SESSION:
+        assert console_params, "Console params are required for console session"
+        username = console_params.username if self.console_auth else auth.username
+        password = console_params.password if self.console_auth else auth.password
+        return self.session_class(
+            host=host,
+            port=port,
+            username=username,
+            password=password,
+            on_session_start=on_session_start,
+            **self.session_kwargs,
+        )
