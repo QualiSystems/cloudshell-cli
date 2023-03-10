@@ -115,45 +115,13 @@ class SSHSession(ExpectSession, ConnectionParams):
     def _read_byte_data(self) -> bytes:
         return self._current_channel.recv(self._buffer_size)
 
-    def upload_scp(
-        self, file_stream, dest_pathname, file_size=None, dest_permissions="0601"
-    ):
-        """Upload SCP.
+    @property
+    def scp_client(self) -> SCPClient:
+        return SCPClient(self._handler.get_transport())
 
-        :param file_stream: filelike object: open file, StringIO, or other
-            filelike object to read data from
-        :param str dest_pathname: name of the file in the destination, with optional
-            folder path prefix
-        :param int file_size: size of the file, mandatory unless you are sure SFTP is
-            available, in which case pass 0
-        :param str dest_permissions: permission string as octal digits, e.g. 0601
-        """
-        scp = SCPClient(self._handler.get_transport())
-        scp.putfo(
-            fl=file_stream,
-            remote_path=dest_pathname,
-            mode=dest_permissions,
-            size=file_size,
-        )
-        scp.close()
-
-    def upload_sftp(
-        self, file_stream, dest_pathname, file_size, dest_permissions="0601"
-    ):
-        """Upload SFTP.
-
-        :param file_stream: filelike object: open file, StringIO, or other
-            filelike object to read data from
-        :param str dest_pathname: name of the file in the destination,
-            with optional folder path prefix
-        :param int file_size: size of the file, mandatory unless you are sure SFTP is
-            available, in which case pass 0
-        :param str dest_permissions: permission string as octal digits, e.g. 0601
-        """
-        sftp = paramiko.SFTPClient.from_transport(self._handler.get_transport())
-        sftp.putfo(file_stream, dest_pathname)
-        sftp.chmod(dest_pathname, int(dest_permissions, base=8))
-        sftp.close()
+    @property
+    def sftp_client(self) -> paramiko.SFTPClient:
+        return paramiko.SFTPClient.from_transport(self._handler.get_transport())
 
     @staticmethod
     def _get_pkey_object(
