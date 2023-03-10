@@ -555,11 +555,16 @@ class TestSshSession(TestCase):
             "user0",
             "password0",
             port=server.port,
-            on_session_start=self._on_session_start,
         )
         self._instance.connect(">", logger=Mock())
-        self._instance.upload_sftp(StringIO("klmno"), "z.txt", 5, "0601")
-        self.assertTrue(server.filename2stringio["z.txt"].getvalue() == "klmno")
+        dst_name = "z.txt"
+        content = "klmno"
+
+        with self._instance.sftp_client as sftp:
+            sftp.putfo(StringIO(content), dst_name)
+            sftp.chmod(dst_name, int("0601", base=8))
+
+        self.assertTrue(server.filename2stringio[dst_name].getvalue() == content)
 
     def test_upload_scp(self):
         server = SSHServer(
@@ -570,10 +575,11 @@ class TestSshSession(TestCase):
             "user0",
             "password0",
             port=server.port,
-            on_session_start=self._on_session_start,
         )
         self._instance.connect(">", logger=Mock())
-        self._instance.upload_scp(StringIO("abcde"), "y.txt", 5, "0601")
+
+        with self._instance.scp_client as scp:
+            scp.putfo(StringIO("abcde"), "y.txt", "0601", 5)
         sleep(3)
         self.assertTrue(server.filename2stringio["y.txt"].getvalue() == "abcde")
 
