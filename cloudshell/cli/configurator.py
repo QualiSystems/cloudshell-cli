@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from functools import lru_cache
 from typing import TYPE_CHECKING, ClassVar
 
 from attrs import define, field
@@ -43,7 +42,15 @@ class CLIServiceConfigurator:
     _auth: Auth = field(factory=Auth)
     _console_params: ConsoleParams | None = None
     _cli: CLI = field(factory=CLI)
-    _registered_sessions: Collection[SessionFactory] = REGISTERED_SESSIONS
+    _registered_sessions: Collection[SessionFactory] | None = None
+
+    def __attrs_post_init__(self):
+        if self._registered_sessions is None:
+            self._registered_sessions = self.REGISTERED_SESSIONS
+
+        self._session_dict = defaultdict(list)
+        for sess in self._registered_sessions:
+            self._session_dict[sess.session_type.lower()].append(sess)
 
     @classmethod
     def from_config(
@@ -51,7 +58,7 @@ class CLIServiceConfigurator:
         conf: CliConfigProtocol,
         logger: Logger,
         cli: CLI | None = None,
-        registered_sessions: Collection[SessionFactory] | None = REGISTERED_SESSIONS,
+        registered_sessions: Collection[SessionFactory] | None = None,
     ) -> CLIServiceConfigurator:
         if not cli:
             cli = CLI()
@@ -78,14 +85,6 @@ class CLIServiceConfigurator:
             cli=cli,
             registered_sessions=registered_sessions,
         )
-
-    @property
-    @lru_cache()
-    def _session_dict(self) -> defaultdict[str, list[SessionFactory]]:
-        session_dict = defaultdict(list)
-        for sess in self._registered_sessions:
-            session_dict[sess.session_type.lower()].append(sess)
-        return session_dict
 
     def _on_session_start(self, session: T_SESSION, logger: Logger) -> None:
         pass
