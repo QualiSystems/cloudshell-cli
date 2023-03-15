@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from logging import Logger
@@ -86,7 +86,7 @@ class ConsoleSessionFactory(GenericSessionFactory):
         self,
         session_class,
         console_auth: bool = True,
-        session_kwargs: dict[str, str] | None = None,
+        session_kwargs: dict[str, Any] | None = None,
     ):
         super().__init__(session_class, session_kwargs)
         self.console_auth = console_auth
