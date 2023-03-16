@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections import defaultdict
 from typing import TYPE_CHECKING, ClassVar
 
 from attrs import define, field
@@ -43,14 +42,12 @@ class CLIServiceConfigurator:
     _console_params: ConsoleParams | None = None
     _cli: CLI = field(factory=CLI)
     _registered_sessions: Collection[SessionFactory] | None = None
+    _supported_sessions: tuple[SessionFactory] = field(init=False)
 
     def __attrs_post_init__(self):
         if self._registered_sessions is None:
             self._registered_sessions = self.REGISTERED_SESSIONS
-
-        self._session_dict = defaultdict(list)
-        for sess in self._registered_sessions:
-            self._session_dict[sess.session_type.lower()].append(sess)
+        self._supported_sessions = self._get_supported_sessions()
 
     @classmethod
     def from_config(
@@ -99,13 +96,20 @@ class CLIServiceConfigurator:
             on_session_start=self._on_session_start,
         )
 
-    def _defined_sessions(self) -> list[T_SESSION]:
-        return [
-            self.initialize_session(sess)
-            for sess in self._session_dict.get(
-                self._cli_type.lower(), self._registered_sessions
+    def _get_supported_sessions(self) -> tuple[SessionFactory]:
+        session_type = self._cli_type.lower()
+        if session_type == "auto":
+            sessions = tuple(self._registered_sessions)
+        else:
+            sessions = tuple(
+                session
+                for session in self._registered_sessions
+                if session.session_type.lower() == session_type
             )
-        ]
+        return sessions
+
+    def _defined_sessions(self) -> list[T_SESSION]:
+        return [self.initialize_session(sess) for sess in self._supported_sessions]
 
     def get_cli_service(self, command_mode: CommandMode) -> SessionPoolContextManager:
         """Use cli.get_session to open CLI connection and switch into required mode.
