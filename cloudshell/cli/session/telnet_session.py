@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import telnetlib
-from collections import OrderedDict
 from typing import TYPE_CHECKING
 
 from cloudshell.cli.session.connection_params import ConnectionParams
@@ -11,7 +10,7 @@ from cloudshell.cli.session.session_exceptions import SessionException
 if TYPE_CHECKING:
     from logging import Logger
 
-    from cloudshell.cli.types import T_ON_SESSION_START, T_TIMEOUT
+    from cloudshell.cli.types import T_ACTION_MAP, T_ON_SESSION_START, T_TIMEOUT
 
 
 class TelnetSessionException(SessionException):
@@ -56,20 +55,25 @@ class TelnetSession(ExpectSession, ConnectionParams):
     def __del__(self) -> None:
         self.disconnect()
 
+    @property
+    def _connect_action_map(self) -> T_ACTION_MAP:
+        action_map = {
+            "[Ll]ogin:|[Uu]ser:|[Uu]sername:": lambda s, l: s.send_line(s.username, l),
+            "[Pp]assword:": lambda s, l: s.send_line(s.password, l),
+        }
+        return action_map
+
+    @property
+    def _connect_command(self) -> str | None:
+        return None
+
     def _connect_actions(self, prompt: str, logger: Logger) -> None:
-        action_map = OrderedDict()
-        action_map[
-            "[Ll]ogin:|[Uu]ser:|[Uu]sername:"
-        ] = lambda session, logger: session.send_line(session.username, logger)
-        action_map["[Pp]assword:"] = lambda session, logger: session.send_line(
-            session.password, logger
-        )
         self.hardware_expect(
-            None,
+            self._connect_command,
             expected_string=prompt,
             timeout=self._timeout,
             logger=logger,
-            action_map=action_map,
+            action_map=self._connect_action_map,
         )
         self._on_session_start(logger)
 
