@@ -85,11 +85,15 @@ class ConsoleSessionFactory(GenericSessionFactory):
     def __init__(
         self,
         session_class,
-        console_auth: bool = True,
+        console_auth: bool = False,
         session_kwargs: dict[str, Any] | None = None,
     ):
         super().__init__(session_class, session_kwargs)
         self.console_auth = console_auth
+
+    @property
+    def session_type(self) -> str:
+        return "Console"
 
     def init_session(
         self,
@@ -103,6 +107,8 @@ class ConsoleSessionFactory(GenericSessionFactory):
         assert console_params, "Console params are required for console session"
         username = console_params.username if self.console_auth else auth.username
         password = console_params.password if self.console_auth else auth.password
+        host = console_params.host
+        port = console_params.port
         return self.session_class(
             host=host,
             port=port,
