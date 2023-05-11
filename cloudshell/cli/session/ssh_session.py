@@ -54,14 +54,12 @@ class SSHSession(ExpectSession, ConnectionParams):
         self._buffer_size = self.BUFFER_SIZE
 
     def __eq__(self, other) -> bool:
-        return all(
-            [
-                ConnectionParams.__eq__(self, other),
-                self.username == other.username,
-                self.password == other.password,
-                self.pkey == other.pkey,
-                self.pkey_passphrase == other.pkey_passphrase,
-            ]
+        return (
+            ConnectionParams.__eq__(self, other)
+            and self.username == other.username
+            and self.password == other.password
+            and self.pkey == other.pkey
+            and self.pkey_passphrase == other.pkey_passphrase
         )
 
     def __del__(self) -> None:
