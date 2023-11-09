@@ -83,6 +83,7 @@ class SSHSession(ExpectSession, ConnectionParams):
                 allow_agent=False,
                 look_for_keys=False,
                 pkey=self._get_pkey_object(self.pkey, self.pkey_passphrase, logger),
+                transport_factory=_transport_factory,
             )
         except Exception as e:
             logger.exception("Failed to initialize session:")
@@ -137,3 +138,11 @@ class SSHSession(ExpectSession, ConnectionParams):
                 logger.warning(e)
             else:
                 return key
+
+
+def _transport_factory(*args, **kwargs):
+    """Old SSH servers might not return server-sig-algs."""
+    t = paramiko.Transport(*args, **kwargs)
+    if hasattr(t, "server_extensions"):
+        t.server_extensions = {"server-sig-algs": "ssh-rsa"}
+    return t
