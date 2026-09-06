@@ -1,7 +1,12 @@
 from __future__ import annotations
 
-import telnetlib
 from typing import TYPE_CHECKING
+
+try:
+    # telnetlib was removed from the stdlib in Python 3.13 (PEP 594)
+    import telnetlib
+except ImportError:
+    from cloudshell.cli.session import _telnetlib as telnetlib
 
 from cloudshell.cli.session.connection_params import ConnectionParams
 from cloudshell.cli.session.expect_session import ExpectSession
